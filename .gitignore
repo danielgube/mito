@@ -1,0 +1,22 @@
+core/tools/
+core/apps/
+core/wheels/
+core/cache/
+core/buckets/
+core/staging/
+core/state/
+logs/
+home/
+profiles/
+workspaces/
+*.lnk
+MITO - *.cmd
+__pycache__/
+*.pyc
+releases/
+update/
+
+core/profile-apps/
+
+exports/
+pocketools/
