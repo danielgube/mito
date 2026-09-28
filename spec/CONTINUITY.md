@@ -1,5 +1,21 @@
 # Estado al 23 de septiembre de 2026
 
+## Correcciones de pruebas tras la suite de 357 casos (28 de septiembre)
+
+- El usuario reporta dos fallos y un error; la release se detuvo sin publicar.
+- La prueba de identidad comparaba C:/Yito con c:/mito como si fueran la misma
+  raíz. Ahora comprueba igualdad entre C:/MITO y c:/mito y diferencia con C:/Yito.
+- La prueba MCP publica child.pid y ready.json mediante renombrado del temporal
+  cerrado, evitando leer archivos todavía vacíos. Conserva la comprobación de
+  muerte del servidor y descendiente, con mensajes explícitos si faltan marcadores.
+- La prueba del editor espera al montaje de Textual tras ambas aperturas antes
+  de leer o cambiar Select; el widget inicializa su selección durante Mount.
+- Sólo se modifican pruebas; no se cambia el comportamiento de la aplicación.
+  No se han ejecutado tests ni doctor. Validación pendiente del usuario:
+  `core\tools\python\python.exe -B -I -m unittest discover -s core\tests -k test_owner_crash -k test_taskbar_identity -k test_global_configuration_editor -v`.
+- El ResourceWarning del extracto no incluye origen suficiente para atribuirlo;
+  no se considera corregido por estos cambios.
+
 ## Icono Pocketools: tuerca en primer plano (27 de septiembre)
 
 - El usuario aportó una composición con el octágono MITO sobre una tuerca y
@@ -2025,3 +2041,15 @@ No hay repositorio Git inicializado ni publicación remota creada por esta tarea
   suites ni doctor. Pendiente de aprobación visual del usuario en el README.
 - Comprobación: Start-Process .\docs\images\mito-inicio.svg y
   Start-Process .\docs\images\mito-catalogo.svg desde PowerShell en la raíz.
+
+## Capturas sin decoración de ventana (28 de septiembre de 2026)
+
+- Eliminados de ambos SVG del README la barra de título externa, los tres
+  botones tipo macOS y el borde redondeado que añadía Rich. Se conserva únicamente
+  la interfaz de MITO, incluida su propia cabecera, sin alterar contenido ni estado.
+- capture_readme.py aplica el mismo recorte en futuras exportaciones: conserva
+  estilos, definiciones y grupo de terminal y ajusta el viewBox a ese contenido.
+- Modificados directamente los SVG existentes, sin volver a ejecutar MITO.
+  Revisados mediante renderizado PNG; aprobación visual del usuario pendiente.
+  Comprobación: Start-Process .\docs\images\mito-inicio.svg y
+  Start-Process .\docs\images\mito-catalogo.svg.

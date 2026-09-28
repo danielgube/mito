@@ -262,7 +262,8 @@ def launch(engine,pipe,owner,session):
     (root/'server.pid').write_text(str(process.pid))
 service.start(launch=launch)
 while service.state=='starting': time.sleep(.05)
-(root/'ready.json').write_text(json.dumps({'url':service.url,'error':service.error}))
+(root/'ready.tmp').write_text(json.dumps({'url':service.url,'error':service.error}))
+(root/'ready.tmp').replace(root/'ready.json')
 while True: time.sleep(1)
 '''
             owner = subprocess.Popen([sys.executable, '-B', '-I', '-c', script, tmp], creationflags=subprocess.CREATE_NO_WINDOW)
@@ -270,6 +271,7 @@ while True: time.sleep(1)
             try:
                 deadline = time.monotonic()+35
                 while not (root/'ready.json').exists() and time.monotonic()<deadline: time.sleep(.05)
+                self.assertTrue((root/'ready.json').exists(), 'MCP owner did not publish readiness within 35 seconds')
                 ready = json.loads((root/'ready.json').read_text())
                 self.assertTrue(ready['url'], ready)
                 handles.append(ProcessHandle(int((root/'server.pid').read_text())))
@@ -277,12 +279,14 @@ while True: time.sleep(1)
                     async with streamable_http_client(ready['url']) as (read, write, _):
                         async with ClientSession(read, write) as client:
                             await client.initialize()
-                            code = "import subprocess,sys,time,pathlib; p=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)']); pathlib.Path('child.pid').write_text(str(p.pid)); time.sleep(60)"
+                            # Publish only after closing the file: existence means the PID is complete.
+                            code = "import subprocess,sys,time,pathlib; p=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)']); pathlib.Path('child.pid.tmp').write_text(str(p.pid)); pathlib.Path('child.pid.tmp').replace('child.pid'); time.sleep(60)"
                             result = await client.call_tool('command_start', {'profile': 'default', 'argv': [sys.executable, '-c', code]})
                             self.assertFalse(result.isError, result)
                             deadline = time.monotonic()+10
                             marker = root/'workspaces/default/child.pid'
                             while not marker.exists() and time.monotonic()<deadline: await asyncio.sleep(.05)
+                            self.assertTrue(marker.exists(), 'MCP command did not publish its child PID within 10 seconds')
                             handles.append(ProcessHandle(int(marker.read_text())))
                 asyncio.run(check())
                 owner.kill(); owner.wait(5)

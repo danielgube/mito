@@ -219,6 +219,7 @@ class UITests(unittest.IsolatedAsyncioTestCase):
             async with app.run_test(size=(150,45)) as pilot:
                 await pilot.pause()
                 await pilot.click('#configuration')
+                await pilot.pause()
                 self.assertIsInstance(app.screen, ConfigurationDialog)
                 shell_row = next(r for r in app.screen.query(SettingRow) if r.key == 'terminal.defaultShell')
                 self.assertEqual(shell_row.query_one('.setting-value', Select).value, 'cmd')
@@ -228,6 +229,7 @@ class UITests(unittest.IsolatedAsyncioTestCase):
                 await pilot.press('escape')
                 self.assertEqual(parse(path.read_text()), {'env.CUSTOM':'old'})
                 await pilot.click('#configuration')
+                await pilot.pause()
                 shell_row = next(r for r in app.screen.query(SettingRow) if r.key == 'terminal.defaultShell')
                 shell_row.query_one('.setting-value', Select).value = 'powershell'
                 kind = app.screen.query_one('#configuration-kind', Select)

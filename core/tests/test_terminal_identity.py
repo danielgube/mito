@@ -10,7 +10,7 @@ from mito import terminal_identity as identity
 
 class TerminalIdentityTests(unittest.TestCase):
     def test_taskbar_identity_is_per_instance_and_uses_only_mito_icon(self):
-        root = Path('C:/Yito')
+        root = Path('C:/MITO')
         properties = identity.identity_properties(root)
         values = dict(properties)
         self.assertEqual([pid for pid, _ in properties], [2, 4, 3, 5])
@@ -20,6 +20,7 @@ class TerminalIdentityTests(unittest.TestCase):
         self.assertTrue(values[2].endswith('-m mito start'))
         self.assertNotIn('pocketool', values[2])
         self.assertEqual(values[5], dict(identity.identity_properties(Path('c:/mito')))[5])
+        self.assertNotEqual(values[5], dict(identity.identity_properties(Path('C:/Yito')))[5])
         self.assertNotEqual(values[5], dict(identity.identity_properties(Path('C:/other-mito')))[5])
 
     def test_enumeration_excludes_other_instances_and_unrelated_windows(self):
