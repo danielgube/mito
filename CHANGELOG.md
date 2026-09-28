@@ -33,6 +33,14 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.2.9 — 2026-09-28
+
+### Commits incluidos
+
+- initial upload ([b826c6c](https://github.com/danielgube/mito/commit/b826c6cb91f0a14ddd9b6b0491a0da25326a96fe))
+- snapshoots upgraded and updated ([58d668d](https://github.com/danielgube/mito/commit/58d668d6ebfe4a8d7adcc446a191f3f08f32e7a8))
+- readme and test hotfixed ([37c39d6](https://github.com/danielgube/mito/commit/37c39d60d1ef1905df13fa39d9efc91207d4eaf2))
+
 ## 0.2.8 — 2026-09-25
 
 ### Commits incluidos

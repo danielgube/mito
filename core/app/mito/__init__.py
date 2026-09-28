@@ -1,2 +1,2 @@
 """MITO: entornos portátiles con catálogos Scoop y motor Python."""
-__version__ = "0.2.8"
+__version__ = "0.2.9"
