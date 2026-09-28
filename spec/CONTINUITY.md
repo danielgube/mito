@@ -1,5 +1,103 @@
 # Estado al 23 de septiembre de 2026
 
+## Icono Pocketools: tuerca en primer plano (27 de septiembre)
+
+- El usuario aportó una composición con el octágono MITO sobre una tuerca y
+  pidió la inversa: la tuerca delante. Nuevo maestro Pocketools generado con
+  image_gen usando como referencias el propio `mito_icon.png` (para que el
+  octágono no derive) y la composición aportada, invirtiendo el orden de
+  capas: octágono detrás, tuerca-engranaje naranja plana con contorno verde
+  oscuro completa y en primer plano, tapando el tercio inferior.
+- El maestro llega con paleta final y transparencia real; build_branding.py
+  deriva ambos iconos ya sin desplazamientos de color (MITO margen 2 px,
+  Pocketools margen 8 px) y shift_cyan_to_blue queda disponible para futuros
+  retoques. La zona inferior derecha de la tuerca es naranja plana y conserva
+  la legibilidad de la etiqueta superpuesta de los accesos.
+- Regenerados pocketools.ico (nueve tamaños, lectura verificada con Pillow),
+  maestro y resto de variantes MITO sin cambios de concepto. Caché de iconos
+  del Explorador refrescada. Sin ejecutar tests ni la aplicación; validación
+  visual pendiente del usuario, en especial un acceso de Pocketools con
+  etiqueta compuesta.
+
+## Nuevo icono principal MITO aportado por el usuario (27 de septiembre)
+
+- El usuario aportó el render definitivo del icono MITO: insignia octogonal de
+  neón con borde verde, trazas de circuito cian-azuladas y chevron «>» naranja
+  en relieve. Sustituye al hexágono generado por IA; Pocketools conserva su
+  hexágono con engranaje naranja sin cambios de concepto.
+- El PNG venía con fondo claro opaco: se eliminó por flood fill desde el marco
+  sobre la máscara «claro y desaturado», con erosión de 2 px contra la franja
+  anti-alias. El contenido sólido se escaló hasta dejar 2 px de margen: el
+  octágono ocupa 968 × 1020 px del lienzo de 1024, prácticamente el 100 %.
+- `build_branding.py` distingue ahora ambos maestros: MITO se deriva sin
+  desplazamiento de color y con margen 2; Pocketools mantiene el azul
+  eléctrico por desplazamiento de tono y margen 12. Regenerados ICO (nueve
+  tamaños, lectura verificada con Pillow), preview, JPG y banner del README.
+  Caché de iconos del Explorador refrescada.
+- Sin ejecutar tests ni la aplicación; validación visual pendiente del
+  usuario en barra de tareas, accesos regenerados y banner del README.
+
+## Iconos ampliados y conexiones en azul eléctrico (27 de septiembre)
+
+- A petición del usuario: el contenido sólido de ambos iconos se amplía hasta
+  dejar sólo 12 px de margen en el lienzo (antes ~40 px sobre el halo), y
+  algunas conexiones interiores pasan de cian a azul eléctrico (~216°),
+  recuperando el acento de los ojos de la cotorra original. El borde del
+  hexágono permanece verde: el desplazamiento de tono (banda 155–182°, +48°)
+  se limita al interior erosionando la máscara sólida ~80 px con Pillow.
+- La derivación desde los maestros queda versionada y es reproducible en
+  `core/assets/branding/build_branding.py`: azul, limpieza de alfa, escalado,
+  ICO de nueve tamaños, preview y variantes aplanadas. La carpeta de trabajo
+  `.scratch` se había vaciado entre sesiones; ya no se depende de ella.
+- Lectura de ambos ICO verificada con Pillow (nueve tamaños) y caché de
+  iconos del Explorador refrescada. Sin ejecutar tests ni la aplicación;
+  validación visual pendiente del usuario en barra de tareas, accesos
+  regenerados y banner del README.
+
+## Acento naranja en los símbolos centrales (26 de septiembre)
+
+- A petición del usuario, el chevron «>» de mito.ico y el engranaje de
+  pocketools.ico pasan a naranja cálido con halo ámbar; el hexágono y las
+  trazas conservan exactamente los mismos verdes. El naranja recupera el
+  acento del pico de la cotorra original y armoniza con la etiqueta naranja
+  por defecto de los accesos. El usuario confirmó que el cambio anterior no se
+  veía por la caché de iconos de Windows, no por los archivos.
+- Regenerados ambos maestros con image_gen usando los iconos verdes como
+  referencia de composición, y reconstruidas todas las variantes con el mismo
+  proceso Pillow (limpieza de alfa, recorte, ICO de nueve tamaños, preview,
+  JPG y banner). Lectura de ambos ICO verificada con Pillow.
+- El acento naranja mejora la lectura a 24–32 px: punto cálido reconocible
+  sobre el verde. Sin ejecutar tests ni la aplicación; validación visual
+  pendiente del usuario (refrescar la caché de iconos y revisar barra de
+  tareas, accesos regenerados y banner del README).
+
+## Nueva identidad de iconos: hexágono de circuitos en verde (26 de septiembre)
+
+- El usuario aportó una referencia (insignia hexagonal de neón con trazas de
+  circuito y un símbolo «>» luminoso) y pidió sustituir la cotorra de la etapa
+  YITO y el icono de Pocketools por esa familia en tonos más verdosos, en todas
+  las variantes de core/assets/branding.
+- Nuevo maestro MITO: hexágono redondeado de neón, interior verde muy oscuro
+  con trazas de circuito y un chevron de terminal «>» centrado. Pocketools
+  conserva identidad propia con un engranaje de ocho dientes en el centro de la
+  misma insignia. Ambos generados con image_gen integrado a partir de la
+  referencia, con fondo transparente real, limpieza de alfa y recorte al
+  contenido con Pillow. Maestros RGBA de 1024×1024.
+- mito.ico y pocketools.ico se derivan en los nueve tamaños habituales (16–256,
+  PNG RGBA) y se verificó su lectura con Pillow. El chevron se reconoce hasta
+  20–24 px; a 16 px queda una insignia verde con centro luminoso. Se conservan
+  mito-original.ico y la historia git de la cotorra.
+- Las variantes aplanadas se recomponen con Pillow sobre degradado radial verde
+  oscuro: mito_ico.jpg, mito_logo.jpg, mito_shortcut.jpg y el banner
+  mito_logo.png del README, que pasa de «YITO / Your Integrated…» a
+  «MITO / My Integrated Terminal Orchestrator».
+- Sin ejecutar tests ni la aplicación. Validación pendiente del usuario: abrir
+  `mito.cmd` y comprobar el icono de la ventana y la barra de tareas (la
+  sincronización con el Windows Terminal privado y YitoTerminal.exe se
+  regenera por hashes del ICO), generar un acceso de componente y uno de
+  Pocketools para ver la composición con la etiqueta inferior derecha, y
+  revisar el banner del README.
+
 ## Regresiones reportadas, diálogo Pocketools y workspace (24 de septiembre)
 
 - El usuario ejecutó 354 pruebas: tres fallos y un error; release se detuvo. Corregidos
@@ -1897,3 +1995,33 @@ No hay repositorio Git inicializado ni publicación remota creada por esta tarea
   intentaba leer `engine.root`, y faltaban dos mensajes nuevos en los bundles.
   Corregida la lectura del valor por defecto sin motor y añadidos ambos mensajes a
   los 24 idiomas. Esta corrección espera una nueva ejecución de la suite por el usuario.
+
+## Iconos al borde y Pocketools simplificado (28 de septiembre de 2026)
+
+- Regenerados ambos ICO y sus previews, con nueve tamaños de 16 a 256 px.
+  El recorte por alpha > 48 ocupa todo el eje mayor sin deformar el dibujo.
+  MITO conserva su diseño y proporciones; el aumento es pequeño respecto al previo.
+- Pocketools muestra una tuerca naranja grande con un pequeño «>» azul eléctrico
+  en el centro, sin octágono posterior. Maestro generado con image_gen integrado.
+- build_branding.py --icons-only permite regenerar los ICO sólo con Pillow,
+  sin modificar maestros ni variantes promocionales. La ejecución completa conserva
+  sus dependencias NumPy/Matplotlib y termina aplicando el mismo encuadre a los ICO.
+- Generación realizada; no se han ejecutado tests, doctor ni la aplicación.
+  Validación visual en Windows y de etiquetas superpuestas pendiente del usuario.
+  Para comprobar: explorer.exe D:\mito\core\assets\branding y seleccionar iconos grandes.
+
+## Capturas del README actualizadas a MITO (28 de septiembre de 2026)
+
+- Regenerados docs/images/mito-inicio.svg y mito-catalogo.svg desde Textual
+  con MITO 0.2.8 y «My Integrated Terminal Orchestrator». Los enlaces del README
+  mantienen sus rutas. Inicio muestra los siete componentes instalados, cuatro
+  activos en default; Catálogo conserva la búsqueda java 21 lts.
+- docs/tools/capture_readme.py reproduce la captura a 170 × 58 celdas, en español.
+  Oculta aplicaciones del host por privacidad. La captura final desactiva hooks de
+  red, actualizaciones, identidad y preparación de terminal y escritura de filtros.
+  Requiere poder leer metadatos de core/apps: el sandbox inicialmente los ocultó;
+  la generación definitiva se hizo con permiso de lectura ampliado.
+- SVG renderizados a PNG temporal e inspeccionados visualmente. No se ejecutaron
+  suites ni doctor. Pendiente de aprobación visual del usuario en el README.
+- Comprobación: Start-Process .\docs\images\mito-inicio.svg y
+  Start-Process .\docs\images\mito-catalogo.svg desde PowerShell en la raíz.

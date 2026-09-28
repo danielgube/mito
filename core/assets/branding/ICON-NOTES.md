@@ -1,23 +1,35 @@
 # Icono MITO
 
-Fuente de concepto: `mito_ico.jpg`. Herramienta: `image_gen` integrado, seguida
-de conversión multirresolución con Pillow.
+Fuente de concepto: render aportado directamente por el usuario el 27 de
+septiembre de 2026 (PNG de 1024 × 1016 sobre fondo claro). Sustituye al
+hexágono generado por IA del día anterior, y antes a la cotorra argentina de
+la etapa YITO, conservada en `mito-original.ico` y en la historia git.
 
-Dirección visual: cotorra argentina frontal convertida en mascota corporativa de
-formas planas y silueta fuerte. La paleta se limita a verde cotorra, blanco puro,
-naranja vivo para el pico, verde oscuro estructural y azul eléctrico en los ojos.
-Se eliminan los grises, el acabado realista y el detalle fino que se pierde en la
-barra de tareas.
+Dirección visual: insignia octogonal de neón con borde verde esmeralda-lima,
+interior verde muy oscuro con trazas de circuito impreso cian-azuladas
+rematadas en nodos redondos y un chevron de terminal «>» naranja cálido en
+relieve tipo tubo, centrado. Sin texto ni marco exterior.
 
-Prompt final usado:
-Redesign the referenced Argentine parakeet face into a bold, corporate,
-vector-friendly mascot mark for a Windows desktop application. Preserve the
-frontal parakeet identity, strong symmetrical silhouette and electric-blue
-superpower eyes. Use vivid leaf green, pure white, vivid orange for the beak and
-electric blue, with dark green only as structural outline. No gray, beige, yellow,
-black, text, border or watermark. Use a genuinely transparent background and
-optimize the composition for recognition at 16–32 px.
+Proceso: eliminación del fondo claro por flood fill desde el marco sobre la
+máscara «claro y desaturado», erosión de 2 px para cortar la franja
+anti-alias, recorte al contenido y escalado del contenido sólido hasta dejar
+2 px de margen: el octágono aprovecha prácticamente el 100 % del lienzo
+(968 × 1020 px de 1024). Transparencia real comprobada sobre fondo claro y
+oscuro.
 
-`mito_icon.png` es el maestro RGBA de 1254 × 1254. `mito.ico` contiene PNG RGBA
-de 16, 20, 24, 32, 40, 48, 64, 128 y 256 píxeles. `mito_icon_preview.png` es la
-vista previa de 256 píxeles.
+`mito.ico` contiene PNG RGBA de 16, 20, 24, 32, 40, 48, 64, 128 y 256
+píxeles; `mito_icon_preview.png` es la vista previa de 256. El chevron naranja
+se reconoce hasta 20–24 px; a 16 px queda una insignia verde con centro
+luminoso.
+
+Toda la derivación se reproduce con `build_branding.py` (este directorio):
+sobre el maestro MITO no se aplica ningún desplazamiento de color (su paleta
+es final), sólo limpieza, escalado y emisión de ICO, preview y variantes
+aplanadas sobre degradado verde oscuro: `mito_ico.jpg` (1024²),
+`mito_logo.jpg` (1024², con wordmark MITO y «My Integrated Terminal
+Orchestrator»), `mito_logo.png` (banner README de 1407 × 768) y
+`mito_shortcut.jpg` (1408 × 768, sin texto).
+
+Actualización 28/09/2026: los ICO se encuadran ahora sin margen en el eje mayor
+mediante build_branding.py --icons-only, conservando proporciones y maestro.
+El eje horizontal conserva el espacio derivado de la forma original.
