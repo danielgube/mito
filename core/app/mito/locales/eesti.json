@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Võrgu seaded salvestati faili config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Puhverserver {p0} nõuab HTTP 407 autentimist ({p1}), mida MITO ei toeta.",
   "La comprobación de Internet respondió HTTP {p0}.": "Interneti kontroll vastas HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internetti ei õnnestunud jõuda ei Windowsi puhverserveri kaudu ega otse."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internetti ei õnnestunud jõuda ei Windowsi puhverserveri kaudu ega otse.",
+  "En host · ": "Hostis · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Kas eemaldada hosti lingid?\n{p1}\nMITO andmed säilivad.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Hosti lingid eemaldatud. MITO andmed säilivad.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "MITO AppData kaustadest ükski ei vasta käivitatavale failile. Ava rakendus esmalt MITO-st.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} hostis: kas luua link?\nHost: {p2}\nMITO: {p4}\nKui rakendus käivitub väljaspool MITO-t (automaatne käivitus, failiseosed), kasutab see neid andmeid, kuid mitte profile'i keskkonda. Sulge rakendus enne linkimist.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Hosti kaust {p1} on juba olemas. See nimetatakse ümber nimeks {p3} ja taastatakse lingi eemaldamisel.",
+  "Apartar y enlazar": "Tõsta kõrvale ja lingi",
+  "Enlace creado en el host: {p1}": "Link loodud hostis: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Hosti linke ei õnnestunud eemaldada: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Oodati MITO andmekausta: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Seda hosti teed haldab juba MITO",
+  "La carpeta del host ya existe: {p1}": "Hosti kaust on juba olemas: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Hosti lingid uuendati uuele teele: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Hosti linki {p1} ei õnnestunud uuendada: {p3}"
 }

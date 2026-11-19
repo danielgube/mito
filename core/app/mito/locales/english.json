@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Network settings saved in config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Proxy {p0} requires HTTP 407 authentication ({p1}), which MITO does not support.",
   "La comprobación de Internet respondió HTTP {p0}.": "The Internet check returned HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Could not reach the Internet through the Windows proxy or directly."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Could not reach the Internet through the Windows proxy or directly.",
+  "En host · ": "On host · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Remove the host links?\n{p1}\nMITO data is kept.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Host links removed. MITO data is kept.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "No folders in MITO AppData match the executable. Open the application from MITO first.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} on the host: create a link?\nHost: {p2}\nMITO: {p4}\nWhen the application starts outside MITO (autostart, file associations) it will use this data, but not the profile environment. Close the application before linking.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "The host folder {p1} already exists. It will be renamed to {p3} and restored when unlinking.",
+  "Apartar y enlazar": "Move aside and link",
+  "Enlace creado en el host: {p1}": "Link created on the host: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Could not remove the host links: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Expected a data folder in MITO: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "This host path is already managed by MITO",
+  "La carpeta del host ya existe: {p1}": "The host folder already exists: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Host links updated to the new path: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Could not update the host link {p1}: {p3}"
 }

@@ -2201,3 +2201,28 @@ No hay repositorio Git inicializado ni publicación remota creada por esta tarea
   Revisados mediante renderizado PNG; aprobación visual del usuario pendiente.
   Comprobación: Start-Process .\docs\images\mito-inicio.svg y
   Start-Process .\docs\images\mito-catalogo.svg.
+
+## Datos en host: junctions inversas hacia AppData de MITO (19 de noviembre de 2026)
+
+- Nuevo host_exposure.py y botón «En host · link/unlink» en cada componente con
+  ejecutable declarado. Crea junctions desde %APPDATA%/%LOCALAPPDATA% reales del
+  host hacia home/AppData de MITO, para que una app arrancada por el host (inicio
+  automático de Windows, asociaciones, otro programa) use los mismos datos.
+  Caso motivador: Mattermost con «arrancar con el sistema» abría sin datos.
+- Genérico: candidatos por nombre de los ejecutables de shortcuts/bin en
+  home/AppData/{Roaming,Local}, sin reglas por producto. Sin candidatos se indica
+  que hay que abrir antes la aplicación desde MITO para que cree sus datos.
+- Carpeta existente del host: nunca se borra; con confirmación se aparta como
+  <nombre>.mito-backup-<fecha> y se restaura al desenlazar. Registro en
+  core/state/host-exposed-links.json. Eliminar el componente retira las junctions.
+  relocation las reapunta tras mover la instancia y las abandona tras copiarla.
+- Límites: sólo datos; al arrancar fuera de MITO no hay PATH, variables, workspace
+  ni dependencias del profile. Las apps que dependan de Java u otros runtimes de
+  MITO no funcionarán así. Ejecutar a la vez la copia del host y la de MITO depende
+  del bloqueo de instancia única de cada app. Hay que cerrar la app antes de
+  enlazar o desenlazar. Es la única escritura de MITO en el AppData del host y es
+  explícita. Las rutas son absolutas: al llevar la instancia a otro PC hay que
+  volver a enlazar.
+- Mensajes nuevos traducidos en los 24 catálogos. Regresiones añadidas en
+  core/tests/test_host_exposure.py (junctions reales en carpetas temporales).
+  No se han ejecutado tests ni doctor: validación pendiente del usuario.

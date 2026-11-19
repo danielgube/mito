@@ -10,6 +10,8 @@ reconstruyen al abrir pestañas o aplicaciones. Quedan fuera de esa reconstrucci
   hacia la nueva ruta; tras una copia pertenecen al original y se dejan de registrar
   aquí, para que esta instancia no los sobrescriba.
 - Enlaces Host data/cache materializados: se avisa; la UI ya los muestra sin enlazar.
+- Datos en host: tras un traslado las junctions del AppData del host se reapuntan;
+  tras una copia siguen siendo del original y esta instancia deja de registrarlas.
 """
 from __future__ import annotations
 
@@ -90,7 +92,8 @@ def check(engine, log=print):
         summary = {'from': str(old), 'to': str(root), 'copied': copied,
                    'persist': set_aside_materialized_persist(root, log),
                    'shortcuts': repair_shortcuts(engine, old, copied, log),
-                   'host_links': materialized_host_links(root)}
+                   'host_links': materialized_host_links(root),
+                   'host_exposed': exposed_host_links(root, old, copied, log)}
         remember(root)
     if copied:
         log(tr('MITO se ha copiado desde {p1}. Esta copia usa sus propias rutas; los accesos del escritorio siguen siendo del original.', p1=old))
@@ -146,6 +149,16 @@ def materialized_host_links(root):
                 if item.get('relative') and path.is_dir() and not path.is_junction():
                     result.append(str(path))
     return result
+
+
+def exposed_host_links(root, old, copied, log=print):
+    """Junctions del AppData del host hacia esta instancia (Datos en host)."""
+    from .host_exposure import relocate
+    try:
+        return relocate(root, old, copied, log)
+    except (OSError, ValueError, YitoError) as exc:
+        log(tr('No se pudieron retirar los enlaces del host: {p1}', p1=exc))
+        return 0
 
 
 def link_targets(paths):

@@ -42,6 +42,10 @@ de publicación remota. Las decisiones vigentes están en
 
 ### Añadido
 
+- «En host · link/unlink» en MIS COMPONENTES: enlaza el AppData real del host con
+  los datos de la app en MITO, para que una app arrancada fuera de MITO (por ejemplo,
+  con el inicio automático de Windows) use los mismos datos. Sólo comparte datos, no
+  el entorno del profile; las carpetas existentes del host se apartan y se restauran.
 - El botón de Internet de Inicio configura la red cuando no hay conexión. Prueba la
   ruta configurada, el proxy de Windows (manual, PAC o WPAD) y la conexión directa, y
   propone guardar el proxy o el portal detectados. Si el portal lo exige, pide usuario

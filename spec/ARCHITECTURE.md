@@ -577,6 +577,26 @@ No se migran asociaciones ni se controla una instancia de la app ya abierta:
 el usuario debe cerrar la aplicación antes de cambiar los enlaces. Local/Roaming
 son convenciones; una app puede ignorar estas variables o guardar datos fuera.
 
+host_exposure.py ofrece la dirección inversa («En host» en MIS COMPONENTES) para
+componentes con ejecutable declarado: junctions desde el AppData real del host
+(Known Folders) hacia home/AppData/{Roaming,Local} de MITO. Así una app arrancada
+por el host sin pasar por `mito run` (inicio automático, asociaciones, otro programa)
+encuentra los mismos datos. Sólo se comparten datos: no se aplican PATH, variables,
+workspace ni dependencias del profile. Como home es único, no hay ambigüedad de
+profile. Candidatos genéricos: carpetas reales de home/AppData cuyo nombre contiene
+el nombre (≥3 caracteres, sin extensión, sin mayúsculas) de un ejecutable declarado
+en shortcuts/bin; se conservan las coincidencias más externas y no se recorren
+junctions. Confirmación por candidato. Una carpeta existente del host nunca se
+borra: con segunda confirmación se renombra a `<nombre>.mito-backup-<fecha>` y se
+restaura al desenlazar. Se rechazan enlaces ajenos, rutas ya gestionadas y rutas
+circulares; un fallo al crear la junction restaura la carpeta apartada. El registro
+core/state/host-exposed-links.json guarda bucket/app, categoría, ruta relativa y
+copia apartada; el destino se deriva de la raíz actual. La comprobación compara el
+destino almacenado de la junction (os.readlink) sin resolverla. Desenlazar y
+eliminar el componente retiran la junction con rmdir y conservan los datos de MITO;
+una junction modificada fuera de MITO se rechaza. relocation reapunta las junctions
+que apuntan a la raíz anterior tras un traslado y deja de registrarlas tras una copia.
+
 Crear profiles, activar o instalar refresca los ajustes de Terminal sin generar enlaces.
 application_link se llama únicamente por petición explícita (botón o CLI). Usa
 Known Folder Desktop de Windows, registra la ruta creada y evita sobrescribir un

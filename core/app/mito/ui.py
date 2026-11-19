@@ -845,6 +845,7 @@ class YitoApp(App):
             self.checkbox_states = {}
             rows = []
             from .components import available_update
+            from .host_exposure import linked as exposure_linked
             catalog = dict(self.engine.catalog.all())
             for index, (installation, lock) in enumerate(self.inventory.items()):
                 self.row_ids[str(index)] = installation
@@ -853,6 +854,9 @@ class YitoApp(App):
                 self.checkbox_states[widgets[0]] = (profile, installation in active)
                 if installation in active and self.engine.can_open(lock):
                     widgets += [Button(tr('Abrir'), id=f'open-{index}', disabled=self.busy), Button(tr('Generar acceso directo'), id=f'link-{index}', classes='app-shortcut', disabled=self.busy)]
+                if self.engine.can_open(lock):
+                    exposed = exposure_linked(self.engine.root, installation)
+                    widgets.append(Button(tr('En host · ') + ('link' if exposed else 'unlink'), id=f'expose-{index}', classes='host-data-button', disabled=self.busy))
                 widgets.append(Button(tr('Info'), id=f'info-{index}', classes='component-info', disabled=self.busy))
                 candidate = available_update(self.engine,lock,catalog)
                 if candidate:
@@ -1101,7 +1105,7 @@ class YitoApp(App):
             self.push_screen(ManageProfileDialog(profile, bool(profile) and len(self.engine.profiles()) > 1),
                              lambda result: self.manage_profile_result(profile, result))
             return
-        if action not in ('create', 'refresh', 'install', 'versions') and not action.startswith(('remove-', 'update-', 'info-')) and not profile:
+        if action not in ('create', 'refresh', 'install', 'versions') and not action.startswith(('remove-', 'update-', 'info-', 'expose-')) and not profile:
             self.notify(tr('Selecciona un profile'), severity='warning')
             return
         if action.startswith('info-'):
@@ -1118,6 +1122,9 @@ class YitoApp(App):
                 if remove:
                     self.begin('remove-component',profile,installation)
             self.push_screen(RemoveComponentDialog(self.inventory[installation],users(self.engine,installation)),confirmed)
+            return
+        if action.startswith('expose-'):
+            self.begin('host-expose', profile, self.row_ids[action.removeprefix('expose-')])
             return
         if action.startswith('update-'):
             self.begin('update-component',profile,self.row_ids[action.removeprefix('update-')])
@@ -1364,6 +1371,30 @@ class YitoApp(App):
                             folder = choose_folder(kind)
                             if folder:
                                 self.offer_host_data(target, kind, folder)
+            elif action == 'host-expose':
+                from . import host_exposure as exposure
+                current = exposure.entries(self.engine.root, target)
+                if current:
+                    paths = '\n'.join(str(exposure.host_folder(kind)/item['relative']) for kind, item in current)
+                    if self.call_from_thread(self.confirm_host_data,
+                            tr('¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.', p1=(paths)), tr('Desenlazar')):
+                        exposure.unlink(self.engine.root, target)
+                        log(tr('Enlaces del host retirados. Los datos de MITO se conservan.'))
+                else:
+                    found = exposure.candidates(self.engine, self.engine.installed()[target])
+                    if not found:
+                        log(tr('No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.'))
+                    for kind, relative in found:
+                        source, host = exposure.plan(self.engine.root, kind, relative)
+                        if not self.call_from_thread(self.confirm_host_data,
+                                tr('{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.', p0=(exposure.KINDS[kind]), p2=(host), p4=(source))):
+                            continue
+                        aside = (host.exists() or host.is_junction()) and not exposure.points_to(host, source)
+                        if aside and not self.call_from_thread(self.confirm_host_data,
+                                tr('La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.', p1=(host), p3=(exposure.backup_path(host).name)), tr('Apartar y enlazar')):
+                            continue
+                        exposure.link(self.engine, target, kind, relative, aside=aside)
+                        log(tr('Enlace creado en el host: {p1}', p1=(host)))
             elif action == 'host-open':
                 from .host_apps import launch
                 launch(self.engine, profile, target, arguments, coupled=coupled)

@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Il-konfigurazzjoni tan-netwerk ġiet issejvjata f’config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Il-proxy {p0} jeħtieġ awtentikazzjoni HTTP 407 ({p1}), li MITO ma jappoġġjax.",
   "La comprobación de Internet respondió HTTP {p0}.": "Il-verifika tal-Internet wieġbet HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Ma setax jintlaħaq l-Internet la permezz tal-proxy tal-Windows u lanqas direttament."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Ma setax jintlaħaq l-Internet la permezz tal-proxy tal-Windows u lanqas direttament.",
+  "En host · ": "Fuq il-host · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Tneħħi l-links fuq il-host?\n{p1}\nId-data ta’ MITO tinżamm.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Il-links fuq il-host tneħħew. Id-data ta’ MITO tinżamm.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "L-ebda folder fl-AppData ta’ MITO ma jaqbel mal-eżekutibbli. Iftaħ l-applikazzjoni minn MITO l-ewwel.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} fuq il-host: toħloq link?\nHost: {p2}\nMITO: {p4}\nMeta l-applikazzjoni tibda barra minn MITO (bidu awtomatiku, assoċjazzjonijiet), tuża din id-data, iżda mhux l-ambjent tal-profile. Agħlaq l-applikazzjoni qabel ma tgħaqqad.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Il-folder tal-host {p1} diġà jeżisti. Se jingħata l-isem {p3} u jiġi rrestawrat meta tiskonnettja.",
+  "Apartar y enlazar": "Warrab u għaqqad",
+  "Enlace creado en el host: {p1}": "Link maħluq fuq il-host: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Ma setgħux jitneħħew il-links fuq il-host: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Kien mistenni folder tad-data f’MITO: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Din il-mogħdija tal-host diġà hija ġestita minn MITO",
+  "La carpeta del host ya existe: {p1}": "Il-folder tal-host diġà jeżisti: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Il-links fuq il-host ġew aġġornati għall-mogħdija l-ġdida: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Ma setax jiġi aġġornat il-link fuq il-host {p1}: {p3}"
 }

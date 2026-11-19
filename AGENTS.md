@@ -53,6 +53,9 @@ Lee README.md, spec/ARCHITECTURE.md y spec/CONTINUITY.md antes de modificar cont
 - Las aplicaciones agregadas del host conservan su ejecutable externo, pero Abrir y
   sus accesos usan el entorno y workspace del profile de MITO, incluido APPDATA.
   Se guardan referencias en core/state; eliminarlas nunca borra el ejecutable del host.
+- «En host» es la inversa explícita: junctions del AppData real del host hacia
+  home/AppData de MITO para apps arrancadas por el host. Sólo datos, sin entorno;
+  candidatos por nombre de ejecutable declarado; nunca borrar carpetas del host.
 - Los iconos usan el compositor Pillow adaptado de EAP: ICO multirresolución y
   etiqueta superpuesta de hasta 4 caracteres, por defecto MITO.
 - Inicio muestra todas las instalaciones con checkboxes de activación por profile.

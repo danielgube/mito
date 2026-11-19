@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Netværksindstillinger gemt i config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Proxyen {p0} kræver HTTP 407-godkendelse ({p1}), som MITO ikke understøtter.",
   "La comprobación de Internet respondió HTTP {p0}.": "Internetkontrollen svarede HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Kunne ikke nå internettet hverken via Windows-proxyen eller direkte."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Kunne ikke nå internettet hverken via Windows-proxyen eller direkte.",
+  "En host · ": "På værten · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Fjern links på værten?\n{p1}\nMITO-data bevares.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Links på værten fjernet. MITO-data bevares.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Ingen mapper i MITO AppData matcher den eksekverbare fil. Åbn først programmet fra MITO.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} på værten: opret et link?\nHost: {p2}\nMITO: {p4}\nNår programmet starter uden for MITO (autostart, filtilknytninger), bruger det disse data, men ikke profilens miljø. Luk programmet før linkning.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Værtsmappen {p1} findes allerede. Den omdøbes til {p3} og gendannes, når linket fjernes.",
+  "Apartar y enlazar": "Flyt til side og link",
+  "Enlace creado en el host: {p1}": "Link oprettet på værten: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Kunne ikke fjerne links på værten: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Forventede en datamappe i MITO: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Denne sti på værten styres allerede af MITO",
+  "La carpeta del host ya existe: {p1}": "Værtsmappen findes allerede: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Links på værten opdateret til den nye sti: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Kunne ikke opdatere linket på værten {p1}: {p3}"
 }

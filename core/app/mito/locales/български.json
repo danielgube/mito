@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Мрежовите настройки са записани в config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Проксито {p0} изисква HTTP 407 удостоверяване ({p1}), което MITO не поддържа.",
   "La comprobación de Internet respondió HTTP {p0}.": "Проверката за интернет върна HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Интернет не беше достъпен нито през проксито на Windows, нито директно."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Интернет не беше достъпен нито през проксито на Windows, нито директно.",
+  "En host · ": "В хоста · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Да се премахнат ли връзките в хоста?\n{p1}\nДанните на MITO се запазват.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Връзките в хоста са премахнати. Данните на MITO се запазват.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Няма папки в AppData на MITO, които да съответстват на изпълнимия файл. Първо отворете приложението от MITO.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} в хоста: да се създаде ли връзка?\nHost: {p2}\nMITO: {p4}\nКогато приложението стартира извън MITO (автоматично стартиране, асоциации), ще използва тези данни, но не и средата на profile. Затворете приложението преди свързване.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Папката в хоста {p1} вече съществува. Ще бъде преименувана на {p3} и възстановена при премахване на връзката.",
+  "Apartar y enlazar": "Премести и свържи",
+  "Enlace creado en el host: {p1}": "Създадена връзка в хоста: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Връзките в хоста не можаха да бъдат премахнати: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Очакваше се папка с данни в MITO: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Този път в хоста вече се управлява от MITO",
+  "La carpeta del host ya existe: {p1}": "Папката в хоста вече съществува: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Връзките в хоста са обновени към новия път: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Връзката в хоста {p1} не можа да бъде обновена: {p3}"
 }

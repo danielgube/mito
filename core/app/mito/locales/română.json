@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Configurația rețelei a fost salvată în config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Proxy-ul {p0} cere autentificare HTTP 407 ({p1}), pe care MITO nu o acceptă.",
   "La comprobación de Internet respondió HTTP {p0}.": "Verificarea Internetului a răspuns HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internetul nu a putut fi accesat nici prin proxy-ul Windows, nici direct."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internetul nu a putut fi accesat nici prin proxy-ul Windows, nici direct.",
+  "En host · ": "Pe gazdă · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Eliminați legăturile de pe gazdă?\n{p1}\nDatele MITO se păstrează.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Legăturile de pe gazdă au fost eliminate. Datele MITO se păstrează.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Niciun folder din AppData MITO nu corespunde executabilului. Deschideți mai întâi aplicația din MITO.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} pe gazdă: creați o legătură?\nHost: {p2}\nMITO: {p4}\nCând aplicația pornește în afara MITO (pornire automată, asocieri), va folosi aceste date, dar nu și mediul profile-ului. Închideți aplicația înainte de legare.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Folderul gazdei {p1} există deja. Va fi redenumit în {p3} și restaurat la deconectare.",
+  "Apartar y enlazar": "Mută deoparte și leagă",
+  "Enlace creado en el host: {p1}": "Legătură creată pe gazdă: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Nu s-au putut elimina legăturile de pe gazdă: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Se aștepta un folder de date în MITO: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Această cale a gazdei este deja gestionată de MITO",
+  "La carpeta del host ya existe: {p1}": "Folderul gazdei există deja: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Legăturile de pe gazdă au fost actualizate la noua cale: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Nu s-a putut actualiza legătura de pe gazdă {p1}: {p3}"
 }

@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Netzwerkeinstellungen in config.properties gespeichert",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Der Proxy {p0} verlangt HTTP-407-Authentifizierung ({p1}), die MITO nicht unterstützt.",
   "La comprobación de Internet respondió HTTP {p0}.": "Die Internetprüfung antwortete mit HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Das Internet war weder über den Windows-Proxy noch direkt erreichbar."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Das Internet war weder über den Windows-Proxy noch direkt erreichbar.",
+  "En host · ": "Auf dem Host · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Verknüpfungen auf dem Host entfernen?\n{p1}\nMITO-Daten bleiben erhalten.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Verknüpfungen auf dem Host entfernt. MITO-Daten bleiben erhalten.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Kein Ordner im AppData von MITO passt zur ausführbaren Datei. Öffne die Anwendung zuerst aus MITO.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} auf dem Host: Verknüpfung erstellen?\nHost: {p2}\nMITO: {p4}\nWenn die Anwendung außerhalb von MITO startet (Autostart, Dateizuordnungen), verwendet sie diese Daten, aber nicht die Umgebung des Profils. Schließe die Anwendung vor dem Verknüpfen.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Der Host-Ordner {p1} existiert bereits. Er wird in {p3} umbenannt und beim Lösen der Verknüpfung wiederhergestellt.",
+  "Apartar y enlazar": "Beiseitelegen und verknüpfen",
+  "Enlace creado en el host: {p1}": "Verknüpfung auf dem Host erstellt: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Verknüpfungen auf dem Host konnten nicht entfernt werden: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Datenordner in MITO erwartet: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Dieser Host-Pfad wird bereits von MITO verwaltet",
+  "La carpeta del host ya existe: {p1}": "Der Host-Ordner existiert bereits: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Verknüpfungen auf dem Host auf den neuen Pfad aktualisiert: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Verknüpfung auf dem Host {p1} konnte nicht aktualisiert werden: {p3}"
 }

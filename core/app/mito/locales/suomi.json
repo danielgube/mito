@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Verkkoasetukset tallennettu tiedostoon config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Välityspalvelin {p0} vaatii HTTP 407 -todennuksen ({p1}), jota MITO ei tue.",
   "La comprobación de Internet respondió HTTP {p0}.": "Internet-tarkistus vastasi HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internetiin ei saatu yhteyttä Windowsin välityspalvelimen kautta eikä suoraan."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internetiin ei saatu yhteyttä Windowsin välityspalvelimen kautta eikä suoraan.",
+  "En host · ": "Isännässä · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Poistetaanko isännän linkit?\n{p1}\nMITOn tiedot säilytetään.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Isännän linkit poistettu. MITOn tiedot säilytetään.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Mikään MITOn AppData-kansio ei vastaa suoritettavaa tiedostoa. Avaa sovellus ensin MITOsta.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} isännässä: luodaanko linkki?\nHost: {p2}\nMITO: {p4}\nKun sovellus käynnistyy MITOn ulkopuolella (automaattinen käynnistys, tiedostokytkennät), se käyttää näitä tietoja mutta ei profilen ympäristöä. Sulje sovellus ennen linkittämistä.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Isännän kansio {p1} on jo olemassa. Se nimetään uudelleen nimellä {p3} ja palautetaan linkityksen poistamisen yhteydessä.",
+  "Apartar y enlazar": "Siirrä sivuun ja linkitä",
+  "Enlace creado en el host: {p1}": "Linkki luotu isäntään: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Isännän linkkejä ei voitu poistaa: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "MITOssa odotettiin tietokansiota: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "MITO hallitsee jo tätä isännän polkua",
+  "La carpeta del host ya existe: {p1}": "Isännän kansio on jo olemassa: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Isännän linkit päivitetty uuteen polkuun: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Isännän linkkiä {p1} ei voitu päivittää: {p3}"
 }

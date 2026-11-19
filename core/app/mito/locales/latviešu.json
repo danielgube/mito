@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Tīkla iestatījumi saglabāti failā config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Starpniekserveris {p0} pieprasa HTTP 407 autentifikāciju ({p1}), ko MITO neatbalsta.",
   "La comprobación de Internet respondió HTTP {p0}.": "Interneta pārbaude atbildēja ar HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internetu neizdevās sasniegt ne caur Windows starpniekserveri, ne tieši."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internetu neizdevās sasniegt ne caur Windows starpniekserveri, ne tieši.",
+  "En host · ": "Resursdatorā · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Noņemt saites resursdatorā?\n{p1}\nMITO dati tiek saglabāti.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Saites resursdatorā noņemtas. MITO dati tiek saglabāti.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Neviena MITO AppData mape neatbilst izpildāmajam failam. Vispirms atveriet lietotni no MITO.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} resursdatorā: izveidot saiti?\nHost: {p2}\nMITO: {p4}\nKad lietotne startē ārpus MITO (automātiska startēšana, failu saistījumi), tā izmantos šos datus, bet ne profile vidi. Pirms saistīšanas aizveriet lietotni.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Resursdatora mape {p1} jau pastāv. Tā tiks pārdēvēta par {p3} un atjaunota, atsaistot.",
+  "Apartar y enlazar": "Pārvietot malā un saistīt",
+  "Enlace creado en el host: {p1}": "Saite izveidota resursdatorā: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Neizdevās noņemt saites resursdatorā: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Tika gaidīta datu mape MITO: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Šo resursdatora ceļu jau pārvalda MITO",
+  "La carpeta del host ya existe: {p1}": "Resursdatora mape jau pastāv: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Saites resursdatorā atjauninātas uz jauno ceļu: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Neizdevās atjaunināt saiti resursdatorā {p1}: {p3}"
 }

@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Nastavení sítě uloženo do config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Proxy {p0} vyžaduje ověření HTTP 407 ({p1}), které MITO nepodporuje.",
   "La comprobación de Internet respondió HTTP {p0}.": "Kontrola internetu odpověděla HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internet se nepodařilo dosáhnout přes proxy Windows ani přímo."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internet se nepodařilo dosáhnout přes proxy Windows ani přímo.",
+  "En host · ": "V hostiteli · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Odebrat odkazy v hostiteli?\n{p1}\nData MITO zůstanou zachována.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Odkazy v hostiteli odebrány. Data MITO zůstanou zachována.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Žádná složka v AppData MITO neodpovídá spustitelnému souboru. Nejprve otevřete aplikaci z MITO.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} v hostiteli: vytvořit odkaz?\nHost: {p2}\nMITO: {p4}\nKdyž se aplikace spustí mimo MITO (automatické spuštění, přidružení souborů), použije tato data, ale ne prostředí profilu. Před propojením aplikaci zavřete.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Složka v hostiteli {p1} již existuje. Bude přejmenována na {p3} a obnovena při odpojení.",
+  "Apartar y enlazar": "Odsunout a propojit",
+  "Enlace creado en el host: {p1}": "Odkaz vytvořen v hostiteli: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Odkazy v hostiteli nelze odebrat: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Byla očekávána datová složka v MITO: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Tuto cestu v hostiteli již spravuje MITO",
+  "La carpeta del host ya existe: {p1}": "Složka v hostiteli již existuje: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Odkazy v hostiteli aktualizovány na novou cestu: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Odkaz v hostiteli {p1} nelze aktualizovat: {p3}"
 }

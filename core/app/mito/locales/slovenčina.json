@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Nastavenia siete uložené do config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Proxy {p0} vyžaduje overenie HTTP 407 ({p1}), ktoré MITO nepodporuje.",
   "La comprobación de Internet respondió HTTP {p0}.": "Kontrola internetu odpovedala HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internet sa nepodarilo dosiahnuť cez proxy Windows ani priamo."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internet sa nepodarilo dosiahnuť cez proxy Windows ani priamo.",
+  "En host · ": "V hostiteľovi · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Odstrániť prepojenia v hostiteľovi?\n{p1}\nÚdaje MITO sa zachovajú.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Prepojenia v hostiteľovi odstránené. Údaje MITO sa zachovajú.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Žiadny priečinok v AppData MITO nezodpovedá spustiteľnému súboru. Najprv otvorte aplikáciu z MITO.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} v hostiteľovi: vytvoriť prepojenie?\nHost: {p2}\nMITO: {p4}\nKeď sa aplikácia spustí mimo MITO (automatické spustenie, priradenia súborov), použije tieto údaje, ale nie prostredie profilu. Pred prepojením aplikáciu zatvorte.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Priečinok hostiteľa {p1} už existuje. Premenuje sa na {p3} a obnoví sa pri zrušení prepojenia.",
+  "Apartar y enlazar": "Odsunúť a prepojiť",
+  "Enlace creado en el host: {p1}": "Prepojenie vytvorené v hostiteľovi: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Prepojenia v hostiteľovi sa nepodarilo odstrániť: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Očakával sa priečinok s údajmi v MITO: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Túto cestu hostiteľa už spravuje MITO",
+  "La carpeta del host ya existe: {p1}": "Priečinok hostiteľa už existuje: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Prepojenia v hostiteľovi aktualizované na novú cestu: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Prepojenie v hostiteľovi {p1} sa nepodarilo aktualizovať: {p3}"
 }

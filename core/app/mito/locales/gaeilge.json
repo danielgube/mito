@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Socruithe líonra sábháilte in config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Éilíonn an seachfhreastalaí {p0} fíordheimhniú HTTP 407 ({p1}), nach dtacaíonn MITO leis.",
   "La comprobación de Internet respondió HTTP {p0}.": "D’fhreagair seiceáil an Idirlín HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Níorbh fhéidir an tIdirlíon a bhaint amach trí sheachfhreastalaí Windows ná go díreach."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Níorbh fhéidir an tIdirlíon a bhaint amach trí sheachfhreastalaí Windows ná go díreach.",
+  "En host · ": "Ar an óstach · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Na naisc ar an óstach a bhaint?\n{p1}\nCoinnítear sonraí MITO.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Baineadh na naisc ar an óstach. Coinnítear sonraí MITO.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Níl aon fhillteán in AppData MITO a mheaitseálann an comhad inrite. Oscail an feidhmchlár ó MITO ar dtús.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} ar an óstach: nasc a chruthú?\nHost: {p2}\nMITO: {p4}\nNuair a thosaíonn an feidhmchlár lasmuigh de MITO (tosú uathoibríoch, comhcheangail), úsáidfidh sé na sonraí seo, ach ní timpeallacht an profile. Dún an feidhmchlár sula nascann tú.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Tá fillteán an óstaigh {p1} ann cheana. Athainmneofar é go {p3} agus athchóireofar é nuair a dhínasctar é.",
+  "Apartar y enlazar": "Cuir i leataobh agus nasc",
+  "Enlace creado en el host: {p1}": "Cruthaíodh nasc ar an óstach: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Níorbh fhéidir na naisc ar an óstach a bhaint: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Bhíothas ag súil le fillteán sonraí in MITO: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Tá an cosán óstaigh seo á bhainistiú ag MITO cheana",
+  "La carpeta del host ya existe: {p1}": "Tá fillteán an óstaigh ann cheana: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Nuashonraíodh na naisc ar an óstach chuig an gcosán nua: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Níorbh fhéidir an nasc ar an óstach {p1} a nuashonrú: {p3}"
 }

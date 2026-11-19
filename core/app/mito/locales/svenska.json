@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Nätverksinställningar sparade i config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Proxyn {p0} kräver HTTP 407-autentisering ({p1}), som MITO inte stöder.",
   "La comprobación de Internet respondió HTTP {p0}.": "Internetkontrollen svarade HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Det gick inte att nå internet varken via Windows-proxyn eller direkt."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Det gick inte att nå internet varken via Windows-proxyn eller direkt.",
+  "En host · ": "På värden · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Ta bort länkarna på värden?\n{p1}\nMITO-data behålls.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Länkarna på värden har tagits bort. MITO-data behålls.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Ingen mapp i MITO:s AppData matchar den körbara filen. Öppna först programmet från MITO.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} på värden: skapa en länk?\nHost: {p2}\nMITO: {p4}\nNär programmet startar utanför MITO (autostart, filassociationer) använder det dessa data, men inte profilens miljö. Stäng programmet innan du länkar.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Värdmappen {p1} finns redan. Den byter namn till {p3} och återställs när länken tas bort.",
+  "Apartar y enlazar": "Flytta undan och länka",
+  "Enlace creado en el host: {p1}": "Länk skapad på värden: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Det gick inte att ta bort länkarna på värden: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "En datamapp förväntades i MITO: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Den här sökvägen på värden hanteras redan av MITO",
+  "La carpeta del host ya existe: {p1}": "Värdmappen finns redan: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Länkarna på värden uppdaterade till den nya sökvägen: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Det gick inte att uppdatera länken på värden {p1}: {p3}"
 }

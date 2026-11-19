@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Netwerkinstellingen opgeslagen in config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Proxy {p0} vereist HTTP 407-authenticatie ({p1}), die MITO niet ondersteunt.",
   "La comprobación de Internet respondió HTTP {p0}.": "De internetcontrole antwoordde met HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internet was niet bereikbaar via de Windows-proxy of rechtstreeks."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internet was niet bereikbaar via de Windows-proxy of rechtstreeks.",
+  "En host · ": "Op host · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Koppelingen op de host verwijderen?\n{p1}\nMITO-gegevens blijven behouden.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Koppelingen op de host verwijderd. MITO-gegevens blijven behouden.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Geen mappen in MITO AppData komen overeen met het uitvoerbare bestand. Open de toepassing eerst vanuit MITO.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} op de host: een koppeling maken?\nHost: {p2}\nMITO: {p4}\nAls de toepassing buiten MITO start (automatisch opstarten, bestandskoppelingen), gebruikt ze deze gegevens, maar niet de omgeving van het profile. Sluit de toepassing voordat je koppelt.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "De hostmap {p1} bestaat al. Deze wordt hernoemd naar {p3} en hersteld bij het ontkoppelen.",
+  "Apartar y enlazar": "Opzijzetten en koppelen",
+  "Enlace creado en el host: {p1}": "Koppeling gemaakt op de host: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Kon de koppelingen op de host niet verwijderen: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Er werd een gegevensmap in MITO verwacht: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Dit pad op de host wordt al door MITO beheerd",
+  "La carpeta del host ya existe: {p1}": "De hostmap bestaat al: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Koppelingen op de host bijgewerkt naar het nieuwe pad: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Kon de koppeling op de host {p1} niet bijwerken: {p3}"
 }

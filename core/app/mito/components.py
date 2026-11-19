@@ -134,6 +134,12 @@ def remove(engine, installation, log=print):
         except OSError:
             log(tr('Componente retirado; quedan archivos en uso en {p1}. Cierra la aplicación para poder limpiarlos.', p1=(stage)))
         refresh_launchers(engine,backup)
+        from .host_exposure import unlink_locked as unexpose
+        try:
+            # The host would otherwise keep a junction for a component MITO no longer has.
+            unexpose(engine.root, installation)
+        except (OSError, YitoError) as exc:
+            log(tr('No se pudieron retirar los enlaces del host: {p1}', p1=(exc)))
         log(tr('Eliminado {p1} {p3}. Datos persistentes conservados.', p1=(lock['key']), p3=(lock['version'])))
 
 

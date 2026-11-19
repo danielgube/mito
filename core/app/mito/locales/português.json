@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Configuração de rede guardada em config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "O proxy {p0} exige autenticação HTTP 407 ({p1}), que o MITO não suporta.",
   "La comprobación de Internet respondió HTTP {p0}.": "A verificação da Internet respondeu HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Não foi possível chegar à Internet nem pelo proxy do Windows nem diretamente."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Não foi possível chegar à Internet nem pelo proxy do Windows nem diretamente.",
+  "En host · ": "No host · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Remover as ligações no host?\n{p1}\nOs dados do MITO são mantidos.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Ligações no host removidas. Os dados do MITO são mantidos.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Nenhuma pasta no AppData do MITO corresponde ao executável. Abra primeiro a aplicação a partir do MITO.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} no host: criar uma ligação?\nHost: {p2}\nMITO: {p4}\nQuando a aplicação arrancar fora do MITO (arranque automático, associações), usará estes dados, mas não o ambiente do profile. Feche a aplicação antes de ligar.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "A pasta do host {p1} já existe. Será renomeada para {p3} e restaurada ao desligar.",
+  "Apartar y enlazar": "Afastar e ligar",
+  "Enlace creado en el host: {p1}": "Ligação criada no host: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Não foi possível remover as ligações no host: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Esperava-se uma pasta de dados no MITO: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Este caminho do host já é gerido pelo MITO",
+  "La carpeta del host ya existe: {p1}": "A pasta do host já existe: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Ligações no host atualizadas para o novo caminho: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Não foi possível atualizar a ligação no host {p1}: {p3}"
 }

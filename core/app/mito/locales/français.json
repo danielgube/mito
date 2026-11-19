@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Configuration réseau enregistrée dans config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Le proxy {p0} exige une authentification HTTP 407 ({p1}), que MITO ne prend pas en charge.",
   "La comprobación de Internet respondió HTTP {p0}.": "La vérification d’Internet a répondu HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Impossible d’atteindre Internet via le proxy Windows ou directement."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Impossible d’atteindre Internet via le proxy Windows ou directement.",
+  "En host · ": "Sur l’hôte · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Supprimer les liens sur l’hôte ?\n{p1}\nLes données de MITO sont conservées.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Liens sur l’hôte supprimés. Les données de MITO sont conservées.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Aucun dossier de l’AppData de MITO ne correspond à l’exécutable. Ouvrez d’abord l’application depuis MITO.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} sur l’hôte : créer un lien ?\nHost: {p2}\nMITO: {p4}\nLorsque l’application démarre hors de MITO (démarrage automatique, associations), elle utilisera ces données, mais pas l’environnement du profile. Fermez l’application avant de lier.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Le dossier de l’hôte {p1} existe déjà. Il sera renommé en {p3} et restauré lors de la suppression du lien.",
+  "Apartar y enlazar": "Mettre de côté et lier",
+  "Enlace creado en el host: {p1}": "Lien créé sur l’hôte : {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Impossible de supprimer les liens sur l’hôte : {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Un dossier de données était attendu dans MITO : {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Ce chemin de l’hôte est déjà géré par MITO",
+  "La carpeta del host ya existe: {p1}": "Le dossier de l’hôte existe déjà : {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Liens sur l’hôte mis à jour vers le nouveau chemin : {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Impossible de mettre à jour le lien sur l’hôte {p1} : {p3}"
 }

@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Omrežne nastavitve shranjene v config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Proxy {p0} zahteva preverjanje pristnosti HTTP 407 ({p1}), ki ga MITO ne podpira.",
   "La comprobación de Internet respondió HTTP {p0}.": "Preverjanje interneta je vrnilo HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Interneta ni bilo mogoče doseči niti prek proxyja Windows niti neposredno."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Interneta ni bilo mogoče doseči niti prek proxyja Windows niti neposredno.",
+  "En host · ": "Na gostitelju · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Odstranim povezave na gostitelju?\n{p1}\nPodatki MITO se ohranijo.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Povezave na gostitelju odstranjene. Podatki MITO se ohranijo.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Nobena mapa v AppData MITO se ne ujema z izvršljivo datoteko. Najprej odprite aplikacijo iz MITO.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} na gostitelju: ustvarim povezavo?\nHost: {p2}\nMITO: {p4}\nKo se aplikacija zažene zunaj MITO (samodejni zagon, povezave datotek), bo uporabila te podatke, ne pa okolja profila. Pred povezovanjem zaprite aplikacijo.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Mapa gostitelja {p1} že obstaja. Preimenovana bo v {p3} in obnovljena ob odstranitvi povezave.",
+  "Apartar y enlazar": "Umakni in poveži",
+  "Enlace creado en el host: {p1}": "Povezava ustvarjena na gostitelju: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Povezav na gostitelju ni bilo mogoče odstraniti: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Pričakovana je bila podatkovna mapa v MITO: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "To pot gostitelja že upravlja MITO",
+  "La carpeta del host ya existe: {p1}": "Mapa gostitelja že obstaja: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Povezave na gostitelju posodobljene na novo pot: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Povezave na gostitelju {p1} ni bilo mogoče posodobiti: {p3}"
 }

@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Οι ρυθμίσεις δικτύου αποθηκεύτηκαν στο config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Ο διακομιστής μεσολάβησης {p0} απαιτεί ταυτοποίηση HTTP 407 ({p1}), την οποία το MITO δεν υποστηρίζει.",
   "La comprobación de Internet respondió HTTP {p0}.": "Ο έλεγχος Διαδικτύου απάντησε HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Δεν ήταν δυνατή η πρόσβαση στο Διαδίκτυο ούτε μέσω του διακομιστή μεσολάβησης των Windows ούτε απευθείας."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Δεν ήταν δυνατή η πρόσβαση στο Διαδίκτυο ούτε μέσω του διακομιστή μεσολάβησης των Windows ούτε απευθείας.",
+  "En host · ": "Στον host · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Κατάργηση των συνδέσμων στον host;\n{p1}\nΤα δεδομένα του MITO διατηρούνται.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Οι σύνδεσμοι στον host καταργήθηκαν. Τα δεδομένα του MITO διατηρούνται.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Κανένας φάκελος στο AppData του MITO δεν αντιστοιχεί στο εκτελέσιμο. Ανοίξτε πρώτα την εφαρμογή από το MITO.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} στον host: δημιουργία συνδέσμου;\nHost: {p2}\nMITO: {p4}\nΌταν η εφαρμογή ξεκινά εκτός MITO (αυτόματη εκκίνηση, συσχετίσεις αρχείων), θα χρησιμοποιεί αυτά τα δεδομένα, αλλά όχι το περιβάλλον του profile. Κλείστε την εφαρμογή πριν από τη σύνδεση.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Ο φάκελος του host {p1} υπάρχει ήδη. Θα μετονομαστεί σε {p3} και θα επαναφερθεί κατά την αποσύνδεση.",
+  "Apartar y enlazar": "Μετακίνηση και σύνδεση",
+  "Enlace creado en el host: {p1}": "Δημιουργήθηκε σύνδεσμος στον host: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Δεν ήταν δυνατή η κατάργηση των συνδέσμων στον host: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Αναμενόταν φάκελος δεδομένων στο MITO: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Αυτή η διαδρομή του host διαχειρίζεται ήδη από το MITO",
+  "La carpeta del host ya existe: {p1}": "Ο φάκελος του host υπάρχει ήδη: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Οι σύνδεσμοι στον host ενημερώθηκαν στη νέα διαδρομή: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Δεν ήταν δυνατή η ενημέρωση του συνδέσμου στον host {p1}: {p3}"
 }

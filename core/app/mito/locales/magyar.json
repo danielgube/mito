@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "A hálózati beállítások mentve a config.properties fájlba",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "A(z) {p0} proxy HTTP 407 hitelesítést kér ({p1}), amelyet a MITO nem támogat.",
   "La comprobación de Internet respondió HTTP {p0}.": "Az internet-ellenőrzés válasza HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Az internet sem a Windows proxyn keresztül, sem közvetlenül nem érhető el."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Az internet sem a Windows proxyn keresztül, sem közvetlenül nem érhető el.",
+  "En host · ": "A gazdagépen · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Eltávolítja a gazdagép linkjeit?\n{p1}\nA MITO adatai megmaradnak.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "A gazdagép linkjei eltávolítva. A MITO adatai megmaradnak.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "A MITO AppData egyetlen mappája sem egyezik a futtatható fájllal. Először nyissa meg az alkalmazást a MITO-ból.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} a gazdagépen: létrehoz egy linket?\nHost: {p2}\nMITO: {p4}\nHa az alkalmazás a MITO-n kívül indul (automatikus indítás, fájltársítások), ezeket az adatokat használja, de a profile környezetét nem. Linkelés előtt zárja be az alkalmazást.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "A gazdagép {p1} mappája már létezik. Átnevezésre kerül erre: {p3}, és a link törlésekor visszaáll.",
+  "Apartar y enlazar": "Félretesz és linkel",
+  "Enlace creado en el host: {p1}": "Link létrehozva a gazdagépen: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Nem sikerült eltávolítani a gazdagép linkjeit: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Adatmappa volt várható a MITO-ban: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Ezt a gazdagép-útvonalat már a MITO kezeli",
+  "La carpeta del host ya existe: {p1}": "A gazdagép mappája már létezik: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "A gazdagép linkjei frissítve az új útvonalra: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Nem sikerült frissíteni a gazdagép linkjét ({p1}): {p3}"
 }

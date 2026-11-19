@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Tinklo nustatymai įrašyti į config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Tarpinis serveris {p0} reikalauja HTTP 407 autentifikavimo ({p1}), kurio MITO nepalaiko.",
   "La comprobación de Internet respondió HTTP {p0}.": "Interneto patikra grąžino HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Nepavyko pasiekti interneto nei per Windows tarpinį serverį, nei tiesiogiai."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Nepavyko pasiekti interneto nei per Windows tarpinį serverį, nei tiesiogiai.",
+  "En host · ": "Pagrindiniame kompiuteryje · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Pašalinti saitus pagrindiniame kompiuteryje?\n{p1}\nMITO duomenys išsaugomi.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Saitai pagrindiniame kompiuteryje pašalinti. MITO duomenys išsaugomi.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Jokie MITO AppData aplankai neatitinka vykdomojo failo. Pirmiausia atidarykite programą iš MITO.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} pagrindiniame kompiuteryje: sukurti saitą?\nHost: {p2}\nMITO: {p4}\nKai programa paleidžiama ne per MITO (automatinis paleidimas, failų susiejimai), ji naudos šiuos duomenis, bet ne profile aplinką. Prieš susiedami uždarykite programą.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Pagrindinio kompiuterio aplankas {p1} jau yra. Jis bus pervadintas į {p3} ir atkurtas atsiejant.",
+  "Apartar y enlazar": "Perkelti į šalį ir susieti",
+  "Enlace creado en el host: {p1}": "Saitas sukurtas pagrindiniame kompiuteryje: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Nepavyko pašalinti saitų pagrindiniame kompiuteryje: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Tikėtasi duomenų aplanko MITO: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Šį pagrindinio kompiuterio kelią jau valdo MITO",
+  "La carpeta del host ya existe: {p1}": "Pagrindinio kompiuterio aplankas jau yra: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Saitai pagrindiniame kompiuteryje atnaujinti į naują kelią: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Nepavyko atnaujinti saito pagrindiniame kompiuteryje {p1}: {p3}"
 }

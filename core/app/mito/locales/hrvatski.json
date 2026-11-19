@@ -530,5 +530,19 @@
   "Configuración de red guardada en config.properties": "Mrežne postavke spremljene su u config.properties",
   "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Proxy {p0} zahtijeva HTTP 407 autentifikaciju ({p1}), koju MITO ne podržava.",
   "La comprobación de Internet respondió HTTP {p0}.": "Provjera interneta odgovorila je s HTTP {p0}.",
-  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internet nije dostupan ni preko Windows proxyja ni izravno."
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internet nije dostupan ni preko Windows proxyja ni izravno.",
+  "En host · ": "Na hostu · ",
+  "¿Eliminar los enlaces del host?\n{p1}\nLos datos de MITO se conservan.": "Ukloniti poveznice na hostu?\n{p1}\nPodaci MITO-a se zadržavaju.",
+  "Enlaces del host retirados. Los datos de MITO se conservan.": "Poveznice na hostu uklonjene. Podaci MITO-a se zadržavaju.",
+  "No hay carpetas en el AppData de MITO que coincidan con el ejecutable. Abre antes la aplicación desde MITO.": "Nijedna mapa u AppData MITO-a ne odgovara izvršnoj datoteci. Najprije otvorite aplikaciju iz MITO-a.",
+  "{p0} en el host: ¿crear un enlace?\nHost: {p2}\nMITO: {p4}\nSi la aplicación arranca fuera de MITO (inicio automático, asociaciones) usará estos datos, pero no el entorno del profile. Cierra la aplicación antes de enlazar.": "{p0} na hostu: stvoriti poveznicu?\nHost: {p2}\nMITO: {p4}\nKada se aplikacija pokrene izvan MITO-a (automatsko pokretanje, pridruživanja) koristit će ove podatke, ali ne i okruženje profilea. Zatvorite aplikaciju prije povezivanja.",
+  "La carpeta del host {p1} ya existe. Se renombrará a {p3} y se restaurará al desenlazar.": "Mapa na hostu {p1} već postoji. Bit će preimenovana u {p3} i vraćena pri uklanjanju poveznice.",
+  "Apartar y enlazar": "Premjesti i poveži",
+  "Enlace creado en el host: {p1}": "Poveznica stvorena na hostu: {p1}",
+  "No se pudieron retirar los enlaces del host: {p1}": "Nije moguće ukloniti poveznice na hostu: {p1}",
+  "Se esperaba una carpeta de datos en MITO: {p1}": "Očekivana je mapa s podacima u MITO-u: {p1}",
+  "Esta ruta del host ya está gestionada por MITO": "Ovom putanjom na hostu već upravlja MITO",
+  "La carpeta del host ya existe: {p1}": "Mapa na hostu već postoji: {p1}",
+  "Enlaces del host actualizados a la nueva ruta: {p1}": "Poveznice na hostu ažurirane na novu putanju: {p1}",
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Nije moguće ažurirati poveznicu na hostu {p1}: {p3}"
 }
