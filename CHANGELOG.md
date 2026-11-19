@@ -75,6 +75,14 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.2.11 — 2026-11-19
+
+### Commits incluidos
+
+- reverse integration host ([e21ff91](https://github.com/danielgube/mito/commit/e21ff91aad271b4976c6368978a87388049c43d6))
+
+[Comparar cambios](https://github.com/danielgube/mito/compare/da3d01292347135e4af6d48d303570fea7c5427f...e21ff91aad271b4976c6368978a87388049c43d6)
+
 ## 0.2.10 — 2026-11-19
 
 ### Commits incluidos
