@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Töölaua otseteid ei õnnestunud kontrollida: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Otseteed {p1} ei õnnestunud uuendada: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "MITO teisaldamise kontrolli ei õnnestunud lõpetada: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "{p1} avaldamine; viirusetõrje võib paljude failide korral seda sammu aeglustada"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "{p1} avaldamine; viirusetõrje võib paljude failide korral seda sammu aeglustada",
+  "Diagnosticando la red…": "Võrgu diagnoosimine…",
+  "CONFIGURACIÓN DE RED": "VÕRGU SEADISTUS",
+  "Proxy: {p0} ({p1})": "Puhverserver: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Otseühendus, puhverserverita",
+  "El proxy da acceso a Internet.": "Puhverserver annab juurdepääsu internetile.",
+  "La red redirige a un portal de autenticación.": "Võrk suunab autentimisportaali.",
+  "Se guardarán estas claves en config.properties:": "Need võtmed salvestatakse faili config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "Kasutajanime ja parooli ei salvestata kunagi: MITO küsib neid igal seansil, kui portaal seda nõuab.",
+  "Guardar y conectar": "Salvesta ja ühenda",
+  "configuración manual de Windows": "Windowsi käsitsi seaded",
+  "script PAC": "PAC-skript",
+  "autodetección WPAD": "WPAD-automaattuvastus",
+  "Configuración de red guardada en config.properties": "Võrgu seaded salvestati faili config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Puhverserver {p0} nõuab HTTP 407 autentimist ({p1}), mida MITO ei toeta.",
+  "La comprobación de Internet respondió HTTP {p0}.": "Interneti kontroll vastas HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internetti ei õnnestunud jõuda ei Windowsi puhverserveri kaudu ega otse."
 }

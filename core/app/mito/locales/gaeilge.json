@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Níorbh fhéidir aicearraí an deisce a sheiceáil: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Níorbh fhéidir an aicearra {p1} a nuashonrú: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "Níorbh fhéidir seiceáil athlonnaithe MITO a chríochnú: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "{p1} á fhoilsiú; féadfaidh an frithvíreas moill a chur ar an gcéim seo nuair a bhíonn go leor comhad ann"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "{p1} á fhoilsiú; féadfaidh an frithvíreas moill a chur ar an gcéim seo nuair a bhíonn go leor comhad ann",
+  "Diagnosticando la red…": "An líonra á dhiagnóisiú…",
+  "CONFIGURACIÓN DE RED": "SOCRÚ LÍONRA",
+  "Proxy: {p0} ({p1})": "Seachfhreastalaí: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Ceangal díreach, gan seachfhreastalaí",
+  "El proxy da acceso a Internet.": "Tugann an seachfhreastalaí rochtain ar an Idirlíon.",
+  "La red redirige a un portal de autenticación.": "Atreoraíonn an líonra chuig tairseach fíordheimhnithe.",
+  "Se guardarán estas claves en config.properties:": "Sábhálfar na heochracha seo in config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "Ní shábháiltear d’ainm úsáideora ná do phasfhocal riamh: iarrfaidh MITO iad i ngach seisiún ina dteastaíonn siad ón tairseach.",
+  "Guardar y conectar": "Sábháil agus ceangail",
+  "configuración manual de Windows": "socruithe láimhe Windows",
+  "script PAC": "script PAC",
+  "autodetección WPAD": "uathbhrath WPAD",
+  "Configuración de red guardada en config.properties": "Socruithe líonra sábháilte in config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Éilíonn an seachfhreastalaí {p0} fíordheimhniú HTTP 407 ({p1}), nach dtacaíonn MITO leis.",
+  "La comprobación de Internet respondió HTTP {p0}.": "D’fhreagair seiceáil an Idirlín HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Níorbh fhéidir an tIdirlíon a bhaint amach trí sheachfhreastalaí Windows ná go díreach."
 }

@@ -2,7 +2,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from async_support import AsyncTestCase
+from async_support import AsyncTestCase, click
 from unittest.mock import patch
 
 from textual.app import App
@@ -47,37 +47,37 @@ class PocketoolUiTests(AsyncTestCase):
         app = PocketoolApp(self.engine)
         with patch('mito.error_tracking.capture'):
             async with app.run_test(size=(140, 48)) as pilot:
-                await pilot.click('#pocketools-create')
+                await click(pilot, '#pocketools-create')
                 app.screen.query_one('#package-name', Input).value = 'tools'
                 await pilot.pause()
                 self.assertEqual(len(app.screen.query('#package-folder, #package-mode, #package-browse')), 0)
                 self.assertIn(str(self.source), str(app.screen.query_one('#package-destination', Static).content))
                 app.screen.query_one('#package-info', Input).value = 'My commands'
-                await pilot.click('#package-save')
+                await click(pilot, '#package-save')
                 await self.settle(app, pilot)
                 self.assertIsInstance(app.screen, PackageCommandsDialog)
                 self.assertTrue(app.screen.query_one('#commands-edit', Button).disabled)
                 self.assertTrue(app.screen.query_one('#commands-shortcut', Button).disabled)
                 self.assertEqual(len(app.screen.query('#commands-apply')), 0)
-                await pilot.click('#commands-new')
+                await click(pilot, '#commands-new')
                 self.assertIsInstance(app.screen, CommandEditor)
                 app.screen.query_one('#command-name', Input).value = 'hello'
                 app.screen.query_one('#command-content', TextArea).load_text('@echo off\necho hello\n')
-                await pilot.click('#command-save')
+                await click(pilot, '#command-save')
                 await self.settle(app, pilot)
                 self.assertTrue((self.source / 'hello.cmd').is_file())
                 self.assertTrue((self.engine.root / 'pocketools/tools/hello.cmd').is_file())
-                await pilot.click('#command-close-bottom')
+                await click(pilot, '#command-close-bottom')
                 await pilot.pause()
                 app.screen.query_one('#commands-entry', Select).value = 'hello.cmd'
-                await pilot.click('#commands-shortcut')
+                await click(pilot, '#commands-shortcut')
                 self.assertIsInstance(app.screen, ShortcutDialog)
                 self.assertEqual(len(app.screen.query('#shortcut-coupled')), 0)
                 app.screen.query_one('#shortcut-badge', Input).value = 'TEST'
                 app.screen.query_one('#shortcut-arguments', Input).value = '"hello world" -v'
-                await pilot.click('#shortcut-color-verde')
+                await click(pilot, '#shortcut-color-verde')
                 with patch('mito.pocketool_execution.shortcut', return_value=self.base / 'one - tools-hello.lnk') as link:
-                    await pilot.click('#shortcut-confirm')
+                    await click(pilot, '#shortcut-confirm')
                     await self.settle(app, pilot)
                 self.assertEqual(link.call_args.args[1:6], ('one', 'tools', 'hello.cmd', 'TEST', 'verde'))
                 self.assertEqual(link.call_args.args[6], ['hello world', '-v'])
@@ -128,17 +128,17 @@ class PocketoolUiTests(AsyncTestCase):
             async with app.run_test(size=(140, 48)) as pilot:
                 app.screen.query_one('#command-name', Input).value = 'hello'
                 app.screen.query_one('#command-content', TextArea).load_text('echo first')
-                await pilot.click('#command-save')
+                await click(pilot, '#command-save')
                 await self.settle(app, pilot)
                 (self.source / 'hello.cmd').write_text('echo external')
                 app.screen.query_one('#command-content', TextArea).load_text('echo editor')
-                await pilot.click('#command-save')
+                await click(pilot, '#command-save')
                 await self.settle(app, pilot)
                 self.assertIn('fuera del editor', str(app.screen.query_one('.pocketool-error', Static).content))
                 self.assertEqual(app.screen.query_one('#command-content', TextArea).text, 'echo editor')
-                await pilot.click('#command-close-bottom')
+                await click(pilot, '#command-close-bottom')
                 self.assertIsInstance(app.screen, DiscardDialog)
-                await pilot.click('#discard-cancel')
+                await click(pilot, '#discard-cancel')
                 self.assertIsInstance(app.screen, CommandEditor)
 
     async def test_discard_confirm_dismisses_editor_without_fatal(self):
@@ -146,9 +146,9 @@ class PocketoolUiTests(AsyncTestCase):
         app = PocketoolApp(self.engine, CommandEditor(self.engine, 'tools'))
         async with app.run_test(size=(140, 48)) as pilot:
             app.screen.query_one('#command-content', TextArea).load_text('echo changed')
-            await pilot.click('#command-close-bottom')
+            await click(pilot, '#command-close-bottom')
             self.assertIsInstance(app.screen, DiscardDialog)
-            await pilot.click('#discard-confirm')
+            await click(pilot, '#discard-confirm')
             await self.settle(app, pilot)
             self.assertNotIsInstance(app.screen, (CommandEditor, DiscardDialog))
 
@@ -157,7 +157,7 @@ class PocketoolUiTests(AsyncTestCase):
         self.engine.save_profile('two', {'workspace': 'shared-work', 'apps': [], 'env': {'API_SECRET': 'private-value'}})
         app = PocketoolApp(self.engine, PackageCommandsDialog(self.engine, 'tools', 'two'))
         async with app.run_test(size=(140, 48)) as pilot:
-            await pilot.click('#commands-new')
+            await click(pilot, '#commands-new')
             editor = app.screen.query_one('#command-content', TextArea)
             self.assertTrue(editor.text.startswith('@echo off\nchcp 65001 >nul\n'))
             self.assertIn('::MITO_PROFILE=two', editor.text)
@@ -187,14 +187,14 @@ class PocketoolUiTests(AsyncTestCase):
                 await self.settle(app, pilot)
                 self.assertTrue(app.screen.query_one('#git-file-0', Checkbox).value)
                 self.assertFalse(app.screen.query_one('#git-file-1', Checkbox).value)
-                await pilot.click('#git-push')
+                await click(pilot, '#git-push')
                 await self.settle(app, pilot)
                 self.assertEqual(commit.call_args.args[3], ['hello.cmd'])
                 self.assertTrue(commit.call_args.args[6])
                 self.assertIn('offline', str(app.screen.query_one('.pocketool-error', Static).content))
                 self.assertTrue(app.screen.query_one('#git-push', Button).disabled)
-                await pilot.click('#git-refresh')
+                await click(pilot, '#git-refresh')
                 await self.settle(app, pilot)
-                await pilot.click('#git-upload')
+                await click(pilot, '#git-upload')
                 await self.settle(app, pilot)
                 self.assertEqual(commit.call_args.args[3], [])

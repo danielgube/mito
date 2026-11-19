@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Impossibile verificare i collegamenti sul desktop: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Impossibile aggiornare il collegamento {p1}: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "Impossibile completare la verifica dello spostamento di MITO: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Pubblicazione di {p1}; l’antivirus può rallentare questo passaggio con molti file"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Pubblicazione di {p1}; l’antivirus può rallentare questo passaggio con molti file",
+  "Diagnosticando la red…": "Diagnosi della rete…",
+  "CONFIGURACIÓN DE RED": "CONFIGURAZIONE DI RETE",
+  "Proxy: {p0} ({p1})": "Proxy: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Connessione diretta, senza proxy",
+  "El proxy da acceso a Internet.": "Il proxy consente l’accesso a Internet.",
+  "La red redirige a un portal de autenticación.": "La rete reindirizza a un portale di autenticazione.",
+  "Se guardarán estas claves en config.properties:": "Queste chiavi verranno salvate in config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "Nome utente e password non vengono mai salvati: MITO li chiederà in ogni sessione in cui il portale li richiede.",
+  "Guardar y conectar": "Salva e connetti",
+  "configuración manual de Windows": "impostazioni manuali di Windows",
+  "script PAC": "script PAC",
+  "autodetección WPAD": "rilevamento automatico WPAD",
+  "Configuración de red guardada en config.properties": "Configurazione di rete salvata in config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Il proxy {p0} richiede l’autenticazione HTTP 407 ({p1}), non supportata da MITO.",
+  "La comprobación de Internet respondió HTTP {p0}.": "Il controllo di Internet ha risposto HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Impossibile raggiungere Internet né tramite il proxy di Windows né direttamente."
 }

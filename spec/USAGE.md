@@ -272,8 +272,12 @@ proxy_authentication_password_field=password
 ```
 
 Inicio comprueba Internet en segundo plano y muestra un botón de estado. Al pulsarlo,
-comprueba otra vez; si hay red pero no Internet y un portal configurado, solicita
-usuario y contraseña. Escape cancela. Una comprobación fallida no demuestra por sí
+comprueba otra vez. Si hay red pero no Internet, diagnostica la red. Prueba la ruta
+configurada, el proxy de Windows (manual, PAC o WPAD) y, si había proxy configurado,
+la conexión directa. Si una ruta funciona o redirige a un portal, propone las claves
+(`http_proxy`, `https_proxy`, `no_proxy` y el portal con sus campos) y sólo las guarda
+con **Guardar y conectar**. Después, con un portal, solicita usuario y contraseña para
+esa sesión; nunca se guardan. HTTP 407 y otras respuestas sólo se notifican. Escape cancela. Una comprobación fallida no demuestra por sí
 sola que todo Internet esté bloqueado: puede estar bloqueado el destino de prueba.
 `network.check_url`, `network.check_status` y `network.timeout_seconds` permiten
 ajustarlo; por defecto se espera HTTP 204 de Google en una petición sin redirecciones.

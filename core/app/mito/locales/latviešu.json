@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Neizdevās pārbaudīt darbvirsmas saīsnes: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Neizdevās atjaunināt saīsni {p1}: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "Neizdevās pabeigt MITO pārvietošanas pārbaudi: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Publicē {p1}; ja failu ir daudz, pretvīrusu programma var aizkavēt šo darbību"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Publicē {p1}; ja failu ir daudz, pretvīrusu programma var aizkavēt šo darbību",
+  "Diagnosticando la red…": "Tīkla diagnostika…",
+  "CONFIGURACIÓN DE RED": "TĪKLA IESTATĪŠANA",
+  "Proxy: {p0} ({p1})": "Starpniekserveris: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Tiešs savienojums bez starpniekservera",
+  "El proxy da acceso a Internet.": "Starpniekserveris nodrošina piekļuvi internetam.",
+  "La red redirige a un portal de autenticación.": "Tīkls novirza uz autentifikācijas portālu.",
+  "Se guardarán estas claves en config.properties:": "Šīs atslēgas tiks saglabātas failā config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "Lietotājvārds un parole nekad netiek saglabāti: MITO tos prasīs katrā sesijā, kad portāls to pieprasa.",
+  "Guardar y conectar": "Saglabāt un savienot",
+  "configuración manual de Windows": "Windows manuālie iestatījumi",
+  "script PAC": "PAC skripts",
+  "autodetección WPAD": "WPAD automātiskā noteikšana",
+  "Configuración de red guardada en config.properties": "Tīkla iestatījumi saglabāti failā config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Starpniekserveris {p0} pieprasa HTTP 407 autentifikāciju ({p1}), ko MITO neatbalsta.",
+  "La comprobación de Internet respondió HTTP {p0}.": "Interneta pārbaude atbildēja ar HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internetu neizdevās sasniegt ne caur Windows starpniekserveri, ne tieši."
 }

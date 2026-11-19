@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from async_support import AsyncTestCase
+from async_support import AsyncTestCase, click
 from unittest.mock import patch
 
 from textual.widgets import Button, DataTable, Select, Static
@@ -258,7 +258,7 @@ class LanguageUITests(AsyncTestCase):
                 await pilot.pause()
                 row = next(row for row in app.screen.query(SettingRow) if row.key == 'mito.language')
                 row.query_one(Select).value = 'english'
-                await pilot.click('#configuration-save')
+                await click(pilot, '#configuration-save')
                 await pilot.pause()
                 self.assertEqual(Translator.from_root(root).language, 'english')
                 self.assertEqual(str(app.query_one('#configuration', Button).label), 'Configuración')

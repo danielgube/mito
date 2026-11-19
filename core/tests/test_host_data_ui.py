@@ -2,7 +2,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from async_support import AsyncTestCase
+from async_support import AsyncTestCase, click
 from unittest.mock import patch
 
 from textual.widgets import Button
@@ -29,11 +29,11 @@ class HostDataUITests(AsyncTestCase):
             with patch('mito.network.Network.check', return_value=True), patch('mito.host_apps.choose_file', return_value=str(exe)), patch('mito.host_data.host_folder', side_effect=lambda kind: host/host_data.KINDS[kind]), patch('mito.host_data.candidates', side_effect=lambda root, identity, kind: [data if kind == 'data' else cache]) as search:
                 async with app.run_test(size=(150,45)) as pilot:
                     await pilot.pause()
-                    await pilot.click('#host-add')
+                    await click(pilot, '#host-add')
                     await pilot.pause()
                     self.assertIsInstance(app.screen, HostDataConfirm)
                     self.assertIn('Host data:', app.screen.message)
-                    await pilot.click('#host-data-accept')
+                    await click(pilot, '#host-data-accept')
                     # Junction creation happens in a worker before the next dialog.
                     for _ in range(40):
                         await pilot.pause(0.1)
@@ -49,12 +49,12 @@ class HostDataUITests(AsyncTestCase):
                     self.assertFalse(host_data.linked(engine.root, identity, 'cache'))
                     self.assertEqual([call.args[2] for call in search.call_args_list], ['data', 'cache'])
                     with patch('mito.host_data.choose_folder') as picker:
-                        await pilot.click(f'#host-cache-{identity}')
+                        await click(pilot, f'#host-cache-{identity}')
                         await pilot.pause()
                         self.assertIsInstance(app.screen, HostDataConfirm)
                         self.assertIn(str(cache), app.screen.message)
                         picker.assert_not_called()
-                        await pilot.click('#host-data-accept')
+                        await click(pilot, '#host-data-accept')
                         await app.workers.wait_for_complete()
                         await pilot.pause()
                         self.assertTrue(host_data.linked(engine.root, identity, 'cache'))
@@ -85,21 +85,21 @@ class HostDataUITests(AsyncTestCase):
                     await pilot.pause()
                     button = f'#host-data-{identity}'
                     self.assertIn('unlink', str(app.query_one(button, Button).label))
-                    await pilot.click(button)
+                    await click(pilot, button)
                     await pilot.pause()
                     self.assertIsInstance(app.screen, HostDataConfirm)
-                    await pilot.click('#host-data-accept')
+                    await click(pilot, '#host-data-accept')
                     await pilot.pause()
                     self.assertIsInstance(app.screen, HostDataConfirm)
                     await pilot.press('escape')
                     await app.workers.wait_for_complete()
                     await pilot.pause()
                     self.assertEqual((local/'portable').read_text(), 'local')
-                    await pilot.click(button)
+                    await click(pilot, button)
                     await pilot.pause()
-                    await pilot.click('#host-data-accept')
+                    await click(pilot, '#host-data-accept')
                     await pilot.pause()
-                    await pilot.click('#host-data-accept')
+                    await click(pilot, '#host-data-accept')
                     await app.workers.wait_for_complete()
                     await pilot.pause()
                     self.assertTrue(local.is_junction())
@@ -109,9 +109,9 @@ class HostDataUITests(AsyncTestCase):
                     await app.refresh_home()
                     await pilot.pause()
                     self.assertEqual(str(app.query_one(button, Button).label), 'Data · link')
-                    await pilot.click(button)
+                    await click(pilot, button)
                     await pilot.pause()
-                    await pilot.click('#host-data-accept')
+                    await click(pilot, '#host-data-accept')
                     await app.workers.wait_for_complete()
                     await pilot.pause()
                     self.assertFalse(local.exists())

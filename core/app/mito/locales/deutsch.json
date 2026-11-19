@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Die Desktopverknüpfungen konnten nicht geprüft werden: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Die Verknüpfung {p1} konnte nicht aktualisiert werden: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "Die Prüfung der MITO-Verschiebung konnte nicht abgeschlossen werden: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "{p1} wird veröffentlicht; der Virenschutz kann diesen Schritt bei vielen Dateien verzögern"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "{p1} wird veröffentlicht; der Virenschutz kann diesen Schritt bei vielen Dateien verzögern",
+  "Diagnosticando la red…": "Netzwerk wird diagnostiziert…",
+  "CONFIGURACIÓN DE RED": "NETZWERKEINRICHTUNG",
+  "Proxy: {p0} ({p1})": "Proxy: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Direkte Verbindung, kein Proxy",
+  "El proxy da acceso a Internet.": "Der Proxy ermöglicht den Internetzugang.",
+  "La red redirige a un portal de autenticación.": "Das Netzwerk leitet zu einem Anmeldeportal weiter.",
+  "Se guardarán estas claves en config.properties:": "Diese Schlüssel werden in config.properties gespeichert:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "Benutzername und Passwort werden nie gespeichert: MITO fragt sie in jeder Sitzung ab, in der das Portal sie verlangt.",
+  "Guardar y conectar": "Speichern und verbinden",
+  "configuración manual de Windows": "manuelle Windows-Einstellungen",
+  "script PAC": "PAC-Skript",
+  "autodetección WPAD": "WPAD-Erkennung",
+  "Configuración de red guardada en config.properties": "Netzwerkeinstellungen in config.properties gespeichert",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Der Proxy {p0} verlangt HTTP-407-Authentifizierung ({p1}), die MITO nicht unterstützt.",
+  "La comprobación de Internet respondió HTTP {p0}.": "Die Internetprüfung antwortete mit HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Das Internet war weder über den Windows-Proxy noch direkt erreichbar."
 }

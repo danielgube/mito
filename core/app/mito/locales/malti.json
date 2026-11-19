@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Ma setgħux jiġu ċċekkjati x-shortcuts tad-desktop: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Ma setax jiġi aġġornat ix-shortcut {p1}: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "Ma setgħetx titlesta l-verifika taċ-ċaqliq ta’ MITO: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Qed jiġi ppubblikat {p1}; l-antivirus jista’ jdewwem dan il-pass meta jkun hemm ħafna fajls"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Qed jiġi ppubblikat {p1}; l-antivirus jista’ jdewwem dan il-pass meta jkun hemm ħafna fajls",
+  "Diagnosticando la red…": "Qed issir id-dijanjożi tan-netwerk…",
+  "CONFIGURACIÓN DE RED": "KONFIGURAZZJONI TAN-NETWERK",
+  "Proxy: {p0} ({p1})": "Proxy: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Konnessjoni diretta, mingħajr proxy",
+  "El proxy da acceso a Internet.": "Il-proxy jagħti aċċess għall-Internet.",
+  "La red redirige a un portal de autenticación.": "In-netwerk jirrindirizza lejn portal ta’ awtentikazzjoni.",
+  "Se guardarán estas claves en config.properties:": "Dawn iċ-ċwievet se jiġu ssejvjati f’config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "L-isem tal-utent u l-password qatt ma jiġu ssejvjati: MITO jitlobhom f’kull sessjoni meta l-portal jeħtieġhom.",
+  "Guardar y conectar": "Issejvja u qabbad",
+  "configuración manual de Windows": "settings manwali tal-Windows",
+  "script PAC": "skript PAC",
+  "autodetección WPAD": "skoperta awtomatika WPAD",
+  "Configuración de red guardada en config.properties": "Il-konfigurazzjoni tan-netwerk ġiet issejvjata f’config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Il-proxy {p0} jeħtieġ awtentikazzjoni HTTP 407 ({p1}), li MITO ma jappoġġjax.",
+  "La comprobación de Internet respondió HTTP {p0}.": "Il-verifika tal-Internet wieġbet HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Ma setax jintlaħaq l-Internet la permezz tal-proxy tal-Windows u lanqas direttament."
 }

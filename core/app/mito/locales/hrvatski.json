@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Nije moguće provjeriti prečace na radnoj površini: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Nije moguće ažurirati prečac {p1}: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "Nije moguće dovršiti provjeru premještanja MITO-a: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Objavljivanje {p1}; antivirusni program može usporiti ovaj korak kad ima mnogo datoteka"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Objavljivanje {p1}; antivirusni program može usporiti ovaj korak kad ima mnogo datoteka",
+  "Diagnosticando la red…": "Dijagnostika mreže…",
+  "CONFIGURACIÓN DE RED": "POSTAVKE MREŽE",
+  "Proxy: {p0} ({p1})": "Proxy: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Izravna veza, bez proxyja",
+  "El proxy da acceso a Internet.": "Proxy omogućuje pristup internetu.",
+  "La red redirige a un portal de autenticación.": "Mreža preusmjerava na portal za autentifikaciju.",
+  "Se guardarán estas claves en config.properties:": "Ovi ključevi bit će spremljeni u config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "Korisničko ime i lozinka nikad se ne spremaju: MITO će ih tražiti u svakoj sesiji u kojoj ih portal zahtijeva.",
+  "Guardar y conectar": "Spremi i poveži",
+  "configuración manual de Windows": "ručne postavke sustava Windows",
+  "script PAC": "PAC skripta",
+  "autodetección WPAD": "automatsko otkrivanje WPAD",
+  "Configuración de red guardada en config.properties": "Mrežne postavke spremljene su u config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Proxy {p0} zahtijeva HTTP 407 autentifikaciju ({p1}), koju MITO ne podržava.",
+  "La comprobación de Internet respondió HTTP {p0}.": "Provjera interneta odgovorila je s HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internet nije dostupan ni preko Windows proxyja ni izravno."
 }

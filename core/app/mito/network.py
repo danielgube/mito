@@ -4,10 +4,12 @@ import ctypes
 import http.cookiejar
 import json
 import os
+import re
 import subprocess
 import urllib.error
 import urllib.parse
 import urllib.request
+from dataclasses import dataclass, field
 from html.parser import HTMLParser
 
 from .storage import YitoError
@@ -71,6 +73,7 @@ def opener(root, environment=None, *handlers):
 
 
 class Form(HTMLParser):
+    """Forms with a password field: [action, fields, has_password, user_field, password_field]."""
     def __init__(self, password_field):
         super().__init__()
         self.password_field = password_field
@@ -80,12 +83,17 @@ class Form(HTMLParser):
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
         if tag == 'form':
-            self.current = [attrs.get('action', ''), {}, False]
+            self.current = [attrs.get('action', ''), {}, False, '', '']
         elif tag == 'input' and self.current is not None:
             name = attrs.get('name')
             if name:
+                kind = (attrs.get('type') or 'text').lower()
                 self.current[1][name] = attrs.get('value', '')
-                self.current[2] |= name == self.password_field or attrs.get('type') == 'password'
+                if name == self.password_field or kind == 'password':
+                    self.current[2] = True
+                    self.current[4] = self.current[4] or name
+                elif not self.current[3] and kind in ('text', 'email'):
+                    self.current[3] = name
 
     def handle_endtag(self, tag):
         if tag == 'form' and self.current is not None:
@@ -165,6 +173,197 @@ class Network:
             return self.check()
         except (OSError, ValueError):
             return False
+
+
+# Python cannot evaluate PAC/WPAD; .NET resolves the same route Windows uses.
+SYSTEM_PROXY_SCRIPT = r"""
+$ErrorActionPreference = 'Stop'
+$target = [Uri]$env:MITO_PROXY_TARGET
+$registry = @{}
+try { $registry = Get-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings' } catch { }
+$result = @{ url = ''; source = 'wpad'; override = [string]$registry.ProxyOverride }
+if ($registry.ProxyEnable -eq 1 -and $registry.ProxyServer) { $result.source = 'manual' }
+elseif ($registry.AutoConfigURL) { $result.source = 'pac' }
+$resolver = [Net.WebRequest]::GetSystemWebProxy()
+if (-not $resolver.IsBypassed($target)) {
+    $proxy = $resolver.GetProxy($target)
+    if ($proxy -and $proxy.AbsoluteUri -ne $target.AbsoluteUri -and $proxy.Scheme -in @('http', 'https')) {
+        $result.url = '{0}://{1}:{2}' -f $proxy.Scheme, $proxy.Host, $proxy.Port
+    }
+}
+[Console]::OutputEncoding = New-Object Text.UTF8Encoding
+$result | ConvertTo-Json -Compress
+"""
+REDIRECTS = (301, 302, 303, 307, 308)
+
+
+def no_proxy_from_override(override):
+    """Windows ProxyOverride to no_proxy: exact names and suffixes only, like the bootstrap."""
+    items = ['localhost', '127.0.0.1', '::1']
+    for entry in re.split(r'[;,\s]+', override or ''):
+        entry = entry.strip().lower()
+        if not entry or entry == '<local>':
+            continue
+        if entry.startswith('*.'):
+            entry = entry[1:]
+        if '*' in entry or '/' in entry or entry in items:
+            continue
+        items.append(entry)
+    return ','.join(items)
+
+
+def system_proxy(target, run=subprocess.run):
+    """The proxy Windows would use for target, or None for a direct route."""
+    if os.name != 'nt':
+        return None
+    try:
+        result = run(['powershell.exe', '-NoLogo', '-NoProfile', '-NonInteractive', '-Command', '-'],
+            input=SYSTEM_PROXY_SCRIPT, capture_output=True, encoding='utf-8', timeout=30,
+            env=dict(os.environ, MITO_PROXY_TARGET=target), creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+        data = json.loads(result.stdout) if result.returncode == 0 and result.stdout.strip() else {}
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
+    url = data.get('url') or ''
+    try:
+        validate_url(url)
+    except YitoError:
+        return None
+    return {'url': url, 'source': data.get('source', 'wpad'), 'no_proxy': no_proxy_from_override(data.get('override', ''))}
+
+
+@dataclass
+class Probe:
+    status: int = 0
+    location: str = ''
+    authenticate: str = ''
+    error: str = ''
+    url: str = ''
+
+    def kind(self, expected):
+        if self.status == expected:
+            return 'ok'
+        if self.status == 407:
+            return 'auth'
+        if self.status in REDIRECTS and self.location:
+            return 'portal'
+        return 'unreachable' if self.status == 0 else 'blocked'
+
+
+def probe(url, proxy, timeout):
+    """One request through proxy ('' = direct) without following redirects."""
+    route = urllib.request.ProxyHandler({'http': proxy, 'https': proxy} if proxy else {})
+    client = urllib.request.build_opener(route, NoRedirect())
+    try:
+        with client.open(url, timeout=timeout) as response:
+            return Probe(response.status, url=url)
+    except urllib.error.HTTPError as exc:
+        result = Probe(exc.code, exc.headers.get('Location', ''), ', '.join(sorted({value.split()[0] for value in exc.headers.get_all('Proxy-Authenticate') or [] if value.split()})), url=url)
+        exc.close()
+        return result
+    except (OSError, ValueError) as exc:
+        # HTTPS through a proxy fails in CONNECT: http.client only keeps the status text.
+        reason = str(getattr(exc, 'reason', exc))
+        match = re.search(r'Tunnel connection failed: (\d{3})', reason)
+        return Probe(int(match.group(1)) if match else 0, error=type(exc).__name__, url=url)
+
+
+@dataclass
+class Diagnosis:
+    kind: str
+    proxy: str = ''
+    source: str = ''
+    status: int = 0
+    authenticate: str = ''
+    portal: str = ''
+    changes: dict = field(default_factory=dict)
+
+
+def classify(network, proxy):
+    """Probe the check URL; an HTTPS check is retried over HTTP to reveal portals and 407."""
+    result = probe(network.url, proxy, network.timeout)
+    kind = result.kind(network.expected)
+    parsed = urllib.parse.urlsplit(network.url)
+    if kind != 'ok' and parsed.scheme == 'https':
+        plain = probe(urllib.parse.urlunsplit(('http', parsed.netloc, parsed.path, parsed.query, '')), proxy, network.timeout)
+        if plain.kind(network.expected) in ('auth', 'portal'):
+            result, kind = plain, plain.kind(network.expected)
+    return result, kind
+
+
+def portal_fields(url, proxy, timeout):
+    """HTML field names of the portal login form; never credentials."""
+    route = urllib.request.ProxyHandler({'http': proxy, 'https': proxy} if proxy else {})
+    try:
+        with urllib.request.build_opener(route, NoRedirect()).open(url, timeout=timeout) as page:
+            parser = Form('password')
+            parser.feed(page.read(1024 * 1024).decode('utf-8', errors='replace'))
+    except (OSError, ValueError):
+        return {}
+    if not parser.forms:
+        return {}
+    values = {}
+    user, password = parser.forms[0][3], parser.forms[0][4]
+    if user and user != 'username':
+        values['proxy_authentication_username_field'] = user
+    if password and password != 'password':
+        values['proxy_authentication_password_field'] = password
+    return values
+
+
+def diagnose(root, network=None, resolve=system_proxy):
+    """Find a working route when the check fails and propose config.properties changes.
+
+    Order: the configured route, the route Windows uses (manual, PAC or WPAD) and,
+    when a configured proxy no longer exists, a direct connection. Nothing is saved here."""
+    network = network or Network(root)
+    if network.check():
+        return Diagnosis('ok')
+    if not network.local_network():
+        return Diagnosis('offline')
+    config = network.config
+    configured = 'https_proxy' in config or 'http_proxy' in config
+    candidates = []
+    if configured:
+        candidates.append((config.get('https_proxy', config.get('http_proxy', '')), 'config.properties', None))
+    found = resolve(network.url)
+    if found and not any(found['url'] == proxy for proxy, _, _ in candidates):
+        candidates.append((found['url'], found['source'], found['no_proxy']))
+    if not any(proxy == '' for proxy, _, _ in candidates) and (configured or not found):
+        # Without proxy keys the direct route is already the default: nothing to save.
+        candidates.append(('', 'direct', '' if configured else None))
+    results = []
+    for proxy, source, no_proxy in candidates:
+        result, kind = classify(network, proxy)
+        results.append((kind, proxy, source, no_proxy, result))
+        if kind == 'ok':
+            break
+    rank = {'ok': 0, 'portal': 1, 'auth': 2, 'blocked': 3, 'unreachable': 4}
+    kind, proxy, source, no_proxy, result = min(results, key=lambda item: rank[item[0]])
+    diagnosis = Diagnosis(kind, proxy, source, result.status, result.authenticate)
+    if no_proxy is not None and kind in ('ok', 'portal'):
+        diagnosis.changes.update({'http_proxy': proxy, 'https_proxy': proxy, 'no_proxy': no_proxy})
+    if kind == 'portal':
+        try:
+            diagnosis.portal = validate_url(urllib.parse.urljoin(result.url, result.location)).geturl()
+        except YitoError:
+            diagnosis.kind = 'blocked'
+            diagnosis.changes.clear()
+            return diagnosis
+        if not config.get('proxy_authentication_url'):
+            diagnosis.changes['proxy_authentication_url'] = diagnosis.portal
+            diagnosis.changes.update(portal_fields(diagnosis.portal, proxy, network.timeout))
+        if config.get('enable_proxy_authentication', 'false').lower() != 'true':
+            diagnosis.changes['enable_proxy_authentication'] = 'true'
+    return diagnosis
+
+
+def apply(engine, changes):
+    """Save detected network keys through the configuration editor contract."""
+    from .configuration import Configuration
+    configuration = Configuration(engine)
+    values = dict(configuration.values)
+    values.update(changes)
+    configuration.save(values.items())
 
 
 def prompt_credentials(failed=False, translate=tr):

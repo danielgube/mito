@@ -754,11 +754,73 @@ class YitoApp(App):
     def network_result(self, network, online, local, prompt):
         button = self.query_one("#network-status", Button)
         button.label = tr('Internet accesible') if online else tr('Internet no accesible') if local else tr('Sin conexión de red')
-        if prompt and not online and local and network and network.enabled:
-            from .network_ui import ProxyDialog
-            self.push_screen(ProxyDialog(network), lambda _: self.check_network())
+        if prompt and not online and local and network:
+            button.label = tr('Diagnosticando la red…')
+            self.diagnose_network()
         elif prompt and not online:
-            self.notify(tr('Configura el portal de autenticación en config.properties') if local else tr('Conecta el equipo a una red'), severity="warning")
+            self.notify(tr('Conecta el equipo a una red'), severity="warning")
+
+    @work(thread=True, exclusive=True, group="network", exit_on_error=False)
+    def diagnose_network(self):
+        from .network import diagnose
+        try:
+            result = diagnose(self.engine.root)
+        except Exception as exc:
+            capture(self.engine.root, exc, operation='network.diagnose')
+            result = None
+        self.call_from_thread(self.network_diagnosis, result)
+
+    def network_diagnosis(self, diagnosis):
+        """Offer the detected route, then ask portal credentials only for this session."""
+        from .network import Network
+        from .network_ui import NetworkSetupDialog, ProxyDialog
+        from .storage import YitoError
+        if diagnosis is None or diagnosis.kind == 'ok' and not diagnosis.changes:
+            self.check_network()
+            return
+        if diagnosis.kind == 'offline':
+            self.check_network()
+            self.notify(tr('Conecta el equipo a una red'), severity="warning")
+            return
+
+        def login():
+            try:
+                network = Network(self.engine.root)
+            except YitoError as exc:
+                self.notify(str(exc), severity='error')
+                self.check_network()
+                return
+            if network.enabled:
+                self.push_screen(ProxyDialog(network), lambda _: self.check_network())
+            else:
+                self.check_network()
+
+        def saved(accepted):
+            if not accepted:
+                self.check_network()
+                return
+            from .network import apply
+            try:
+                apply(self.engine, diagnosis.changes)
+            except (OSError, YitoError) as exc:
+                self.notify(str(exc), severity='error')
+                self.check_network()
+                return
+            self.write_log(tr('Configuración de red guardada en config.properties'))
+            login() if diagnosis.kind == 'portal' else self.check_network()
+
+        if diagnosis.changes:
+            self.push_screen(NetworkSetupDialog(diagnosis), saved)
+        elif diagnosis.kind == 'portal':
+            login()
+        else:
+            self.check_network()
+            if diagnosis.kind == 'auth':
+                self.notify(tr('El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.', p0=diagnosis.proxy, p1=diagnosis.authenticate or 'Basic'), severity='warning', timeout=10)
+            elif diagnosis.kind == 'blocked':
+                self.notify(tr('La comprobación de Internet respondió HTTP {p0}.', p0=diagnosis.status), severity='warning', timeout=10)
+            else:
+                self.notify(tr('No se pudo llegar a Internet ni con el proxy de Windows ni directamente.'), severity='warning', timeout=10)
 
     def current_profile(self):
         value = self.query_one('#profile', Select).value

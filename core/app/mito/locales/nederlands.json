@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Kan de bureaubladsnelkoppelingen niet controleren: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Kan de snelkoppeling {p1} niet bijwerken: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "Kan de controle van de verplaatsing van MITO niet voltooien: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "{p1} publiceren; de virusscanner kan deze stap vertragen bij veel bestanden"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "{p1} publiceren; de virusscanner kan deze stap vertragen bij veel bestanden",
+  "Diagnosticando la red…": "Netwerk wordt gediagnosticeerd…",
+  "CONFIGURACIÓN DE RED": "NETWERKINSTELLING",
+  "Proxy: {p0} ({p1})": "Proxy: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Directe verbinding, geen proxy",
+  "El proxy da acceso a Internet.": "De proxy geeft toegang tot internet.",
+  "La red redirige a un portal de autenticación.": "Het netwerk leidt om naar een authenticatieportaal.",
+  "Se guardarán estas claves en config.properties:": "Deze sleutels worden opgeslagen in config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "Je gebruikersnaam en wachtwoord worden nooit opgeslagen: MITO vraagt ze in elke sessie waarin het portaal ze vereist.",
+  "Guardar y conectar": "Opslaan en verbinden",
+  "configuración manual de Windows": "handmatige Windows-instellingen",
+  "script PAC": "PAC-script",
+  "autodetección WPAD": "WPAD-detectie",
+  "Configuración de red guardada en config.properties": "Netwerkinstellingen opgeslagen in config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Proxy {p0} vereist HTTP 407-authenticatie ({p1}), die MITO niet ondersteunt.",
+  "La comprobación de Internet respondió HTTP {p0}.": "De internetcontrole antwoordde met HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internet was niet bereikbaar via de Windows-proxy of rechtstreeks."
 }

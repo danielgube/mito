@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Bližnjic na namizju ni bilo mogoče preveriti: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Bližnjice {p1} ni bilo mogoče posodobiti: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "Preverjanja premika MITO ni bilo mogoče dokončati: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Objavljanje {p1}; protivirusni program lahko ta korak upočasni, če je datotek veliko"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Objavljanje {p1}; protivirusni program lahko ta korak upočasni, če je datotek veliko",
+  "Diagnosticando la red…": "Diagnosticiranje omrežja…",
+  "CONFIGURACIÓN DE RED": "NASTAVITEV OMREŽJA",
+  "Proxy: {p0} ({p1})": "Proxy: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Neposredna povezava brez proxyja",
+  "El proxy da acceso a Internet.": "Proxy omogoča dostop do interneta.",
+  "La red redirige a un portal de autenticación.": "Omrežje preusmerja na portal za preverjanje pristnosti.",
+  "Se guardarán estas claves en config.properties:": "Ti ključi bodo shranjeni v config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "Uporabniško ime in geslo se nikoli ne shranita: MITO ju bo zahteval v vsaki seji, ko ju portal zahteva.",
+  "Guardar y conectar": "Shrani in poveži",
+  "configuración manual de Windows": "ročne nastavitve sistema Windows",
+  "script PAC": "skript PAC",
+  "autodetección WPAD": "samodejno zaznavanje WPAD",
+  "Configuración de red guardada en config.properties": "Omrežne nastavitve shranjene v config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Proxy {p0} zahteva preverjanje pristnosti HTTP 407 ({p1}), ki ga MITO ne podpira.",
+  "La comprobación de Internet respondió HTTP {p0}.": "Preverjanje interneta je vrnilo HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Interneta ni bilo mogoče doseči niti prek proxyja Windows niti neposredno."
 }

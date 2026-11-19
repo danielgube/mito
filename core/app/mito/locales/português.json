@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Não foi possível verificar os atalhos da área de trabalho: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Não foi possível atualizar o atalho {p1}: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "Não foi possível concluir a verificação da deslocação do MITO: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "A publicar {p1}; o antivírus pode atrasar este passo quando há muitos ficheiros"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "A publicar {p1}; o antivírus pode atrasar este passo quando há muitos ficheiros",
+  "Diagnosticando la red…": "A diagnosticar a rede…",
+  "CONFIGURACIÓN DE RED": "CONFIGURAÇÃO DE REDE",
+  "Proxy: {p0} ({p1})": "Proxy: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Ligação direta, sem proxy",
+  "El proxy da acceso a Internet.": "O proxy dá acesso à Internet.",
+  "La red redirige a un portal de autenticación.": "A rede redireciona para um portal de autenticação.",
+  "Se guardarán estas claves en config.properties:": "Estas chaves serão guardadas em config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "O seu utilizador e palavra-passe nunca são guardados: o MITO pedi-los-á em cada sessão em que o portal os exija.",
+  "Guardar y conectar": "Guardar e ligar",
+  "configuración manual de Windows": "definições manuais do Windows",
+  "script PAC": "script PAC",
+  "autodetección WPAD": "deteção automática WPAD",
+  "Configuración de red guardada en config.properties": "Configuração de rede guardada em config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "O proxy {p0} exige autenticação HTTP 407 ({p1}), que o MITO não suporta.",
+  "La comprobación de Internet respondió HTTP {p0}.": "A verificação da Internet respondeu HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Não foi possível chegar à Internet nem pelo proxy do Windows nem diretamente."
 }

@@ -42,6 +42,10 @@ de publicación remota. Las decisiones vigentes están en
 
 ### Añadido
 
+- El botón de Internet de Inicio configura la red cuando no hay conexión. Prueba la
+  ruta configurada, el proxy de Windows (manual, PAC o WPAD) y la conexión directa, y
+  propone guardar el proxy o el portal detectados. Si el portal lo exige, pide usuario
+  y contraseña sólo para la sesión; nunca se guardan.
 - MITO detecta al arrancar que su carpeta se ha movido o copiado: reescribe sus
   accesos del escritorio tras un traslado, deja de reclamar los del original en una
   copia y aparta (sin borrar) las persistencias que el copiador convirtió en carpetas.

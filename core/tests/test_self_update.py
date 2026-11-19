@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import unittest
 
-from async_support import AsyncTestCase
+from async_support import AsyncTestCase, click
 from unittest.mock import patch
 import zipfile
 
@@ -392,18 +392,18 @@ class SelfUpdateUITests(AsyncTestCase):
                     await app.workers.wait_for_complete()
                     self.assertFalse(app.query_one('#self-update', Button).display)
                     archive = offline_release(root, Path(tmp) / 'payload')
-                    await pilot.click('#home-button')
+                    await click(pilot, '#home-button')
                     await app.workers.wait_for_complete()
                     await pilot.pause()
                     self.assertIn('Offline', str(app.query_one('#self-update', Button).label))
-                    await pilot.click('#self-update')
+                    await click(pilot, '#self-update')
                     await pilot.pause()
                     text = '\n'.join(str(widget.content) for widget in app.screen.query(Static))
                     self.assertIn(str(archive.resolve()), text)
                     self.assertIn('sin conexión', text)
                     await pilot.press('escape')
                     archive.unlink()
-                    await pilot.click('#home-button')
+                    await click(pilot, '#home-button')
                     await app.workers.wait_for_complete()
                     self.assertFalse(app.query_one('#self-update', Button).display)
 
@@ -453,7 +453,7 @@ class SelfUpdateUITests(AsyncTestCase):
                 app.mito_update_checked(updater.release_info(release(digest=None), '1.0.0'))
                 self.assertTrue(button.display)
                 await pilot.pause()
-                await pilot.click('#self-update')
+                await click(pilot, '#self-update')
                 await pilot.pause()
                 text = '\n'.join(str(s.content) for s in app.screen.query(Static))
                 self.assertIn('sin verificación de integridad', text)
@@ -462,8 +462,8 @@ class SelfUpdateUITests(AsyncTestCase):
                     await pilot.press('escape')
                     await pilot.pause()
                     prepare.assert_not_called()
-                    await pilot.click('#self-update')
-                    await pilot.click('#self-update-confirm')
+                    await click(pilot, '#self-update')
+                    await click(pilot, '#self-update-confirm')
                     await pilot.pause()
                     prepare.assert_called_once()
                     self.assertTrue(app.busy)

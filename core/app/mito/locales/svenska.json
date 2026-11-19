@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Det gick inte att kontrollera skrivbordsgenvägarna: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Det gick inte att uppdatera genvägen {p1}: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "Det gick inte att slutföra kontrollen av MITO-flytten: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Publicerar {p1}; antivirusprogrammet kan fördröja det här steget när det finns många filer"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Publicerar {p1}; antivirusprogrammet kan fördröja det här steget när det finns många filer",
+  "Diagnosticando la red…": "Diagnostiserar nätverket…",
+  "CONFIGURACIÓN DE RED": "NÄTVERKSINSTÄLLNING",
+  "Proxy: {p0} ({p1})": "Proxy: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Direktanslutning, ingen proxy",
+  "El proxy da acceso a Internet.": "Proxyn ger åtkomst till internet.",
+  "La red redirige a un portal de autenticación.": "Nätverket omdirigerar till en autentiseringsportal.",
+  "Se guardarán estas claves en config.properties:": "Dessa nycklar sparas i config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "Ditt användarnamn och lösenord sparas aldrig: MITO frågar efter dem i varje session där portalen kräver det.",
+  "Guardar y conectar": "Spara och anslut",
+  "configuración manual de Windows": "manuella Windows-inställningar",
+  "script PAC": "PAC-skript",
+  "autodetección WPAD": "WPAD-identifiering",
+  "Configuración de red guardada en config.properties": "Nätverksinställningar sparade i config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Proxyn {p0} kräver HTTP 407-autentisering ({p1}), som MITO inte stöder.",
+  "La comprobación de Internet respondió HTTP {p0}.": "Internetkontrollen svarade HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Det gick inte att nå internet varken via Windows-proxyn eller direkt."
 }

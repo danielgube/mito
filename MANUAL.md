@@ -117,8 +117,9 @@ La barra lateral contiene:
 - **Pocketools:** sincroniza paquetes de comandos compartidos.
 - **MCP - disabled/enabled:** controla el servidor local para agentes.
 - **MCP · Jobs:** monitor opcional de trabajos del servidor.
-- **Estado de Internet:** vuelve a comprobar la conexión y, si procede, abre la
-  autenticación del portal corporativo.
+- **Estado de Internet:** vuelve a comprobar la conexión. Sin Internet, diagnostica
+  la red, propone guardar el proxy o el portal detectados y, si el portal lo exige,
+  pide usuario y contraseña sólo para esa sesión.
 
 La zona inferior muestra el log de la sesión. **Copiar log** envía el texto completo
 al portapapeles; los errores se resaltan en rojo en pantalla.
@@ -401,9 +402,20 @@ proxy_authentication_password_field=password
 ```
 
 El botón de Internet ejecuta una comprobación breve. Si hay red local pero falta
-Internet y existe un portal configurado, MITO solicita usuario y contraseña en un
-diálogo; sólo se conservan en memoria. El POST permanece en el mismo origen, valida
-TLS y no reenvía credenciales mediante redirecciones.
+Internet, MITO diagnostica la red. Prueba en orden:
+1. La ruta de `config.properties`.
+2. El proxy que usa Windows (manual, script PAC o WPAD).
+3. Si había un proxy configurado, la conexión directa, por si el equipo cambió de red.
+
+Si encuentra una ruta que funciona o un portal de autenticación, muestra las claves
+que guardaría en `config.properties` y pide confirmación con **Guardar y conectar**.
+Cancelar no escribe nada.
+
+Con un portal, solicita usuario y contraseña en un diálogo. Sólo se conservan en
+memoria durante el intento y se vuelven a pedir en cada sesión que el portal lo
+exija. El POST permanece en el mismo origen, valida TLS y no reenvía credenciales
+mediante redirecciones. Si el proxy exige HTTP 407, o la comprobación responde con
+otro código, se indica sin cambiar nada.
 
 El flujo está pensado para portales que autorizan la conexión del equipo. No
 implementa HTTP 407 Basic/NTLM, SSO interactivo ni CAPTCHA. Los hijos reciben

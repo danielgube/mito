@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from async_support import AsyncTestCase
+from async_support import AsyncTestCase, click, until
 from unittest.mock import AsyncMock, Mock, patch
 from urllib.error import HTTPError
 import json
@@ -36,7 +36,7 @@ class ComponentDailyUITests(AsyncTestCase):
                     await app.workers.wait_for_complete()
                     self.assertEqual(components.call_count, 1)
                     self.assertEqual(remote.call_count, 1)
-                    await pilot.click('#check-updates')
+                    await click(pilot, '#check-updates')
                     await app.workers.wait_for_complete()
                     self.assertEqual(components.call_count, 2)
                     self.assertEqual(remote.call_count, 2)
@@ -65,7 +65,7 @@ class ComponentDailyUITests(AsyncTestCase):
                     await app.workers.wait_for_complete()
                     app.action_search()
                     app.begin('install', None, 'main/tool')
-                    await pilot.pause()
+                    await until(pilot, lambda: isinstance(app.screen, InstallVersionDialog))
                     self.assertIsInstance(app.screen, InstallVersionDialog)
                     self.assertEqual((app.screen.previous, app.screen.version), ('1.0', '2.0'))
                     self.assertFalse(published)
@@ -75,9 +75,9 @@ class ComponentDailyUITests(AsyncTestCase):
                     # A newer source version must be checked again on the next click.
                     write_json(source/'tool.json', dict(newer, version='3.0'))
                     app.begin('install', None, 'main/tool')
-                    await pilot.pause()
+                    await until(pilot, lambda: isinstance(app.screen, InstallVersionDialog))
                     self.assertIsInstance(app.screen, InstallVersionDialog)
-                    await pilot.click('#install-version-confirm')
+                    await click(pilot, '#install-version-confirm')
                     await app.workers.wait_for_complete()
                     self.assertEqual(published[0]['manifest']['version'], '3.0')
                     # Unchanged versions proceed without another version dialog.

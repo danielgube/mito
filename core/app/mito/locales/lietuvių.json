@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Nepavyko patikrinti darbalaukio nuorodų: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Nepavyko atnaujinti nuorodos {p1}: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "Nepavyko užbaigti MITO perkėlimo patikros: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Skelbiama {p1}; kai failų daug, antivirusinė programa gali sulėtinti šį veiksmą"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Skelbiama {p1}; kai failų daug, antivirusinė programa gali sulėtinti šį veiksmą",
+  "Diagnosticando la red…": "Diagnozuojamas tinklas…",
+  "CONFIGURACIÓN DE RED": "TINKLO SĄRANKA",
+  "Proxy: {p0} ({p1})": "Tarpinis serveris: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Tiesioginis ryšys be tarpinio serverio",
+  "El proxy da acceso a Internet.": "Tarpinis serveris suteikia prieigą prie interneto.",
+  "La red redirige a un portal de autenticación.": "Tinklas nukreipia į autentifikavimo portalą.",
+  "Se guardarán estas claves en config.properties:": "Šie raktai bus įrašyti į config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "Naudotojo vardas ir slaptažodis niekada neįrašomi: MITO jų paprašys kiekvienoje sesijoje, kai portalas to reikalaus.",
+  "Guardar y conectar": "Įrašyti ir prisijungti",
+  "configuración manual de Windows": "rankiniai Windows nustatymai",
+  "script PAC": "PAC scenarijus",
+  "autodetección WPAD": "WPAD automatinis aptikimas",
+  "Configuración de red guardada en config.properties": "Tinklo nustatymai įrašyti į config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Tarpinis serveris {p0} reikalauja HTTP 407 autentifikavimo ({p1}), kurio MITO nepalaiko.",
+  "La comprobación de Internet respondió HTTP {p0}.": "Interneto patikra grąžino HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Nepavyko pasiekti interneto nei per Windows tarpinį serverį, nei tiesiogiai."
 }

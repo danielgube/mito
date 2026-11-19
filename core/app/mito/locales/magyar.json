@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Nem sikerült ellenőrizni az asztali parancsikonokat: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Nem sikerült frissíteni a(z) {p1} parancsikont: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "Nem sikerült befejezni a MITO áthelyezésének ellenőrzését: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "{p1} közzététele; sok fájl esetén a víruskereső lelassíthatja ezt a lépést"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "{p1} közzététele; sok fájl esetén a víruskereső lelassíthatja ezt a lépést",
+  "Diagnosticando la red…": "Hálózat diagnosztizálása…",
+  "CONFIGURACIÓN DE RED": "HÁLÓZATI BEÁLLÍTÁS",
+  "Proxy: {p0} ({p1})": "Proxy: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Közvetlen kapcsolat, proxy nélkül",
+  "El proxy da acceso a Internet.": "A proxy hozzáférést biztosít az internethez.",
+  "La red redirige a un portal de autenticación.": "A hálózat hitelesítési portálra irányít át.",
+  "Se guardarán estas claves en config.properties:": "Ezek a kulcsok a config.properties fájlba kerülnek:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "A felhasználónév és a jelszó soha nem kerül mentésre: a MITO minden munkamenetben bekéri, amikor a portál megköveteli.",
+  "Guardar y conectar": "Mentés és csatlakozás",
+  "configuración manual de Windows": "Windows kézi beállításai",
+  "script PAC": "PAC-szkript",
+  "autodetección WPAD": "WPAD automatikus észlelés",
+  "Configuración de red guardada en config.properties": "A hálózati beállítások mentve a config.properties fájlba",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "A(z) {p0} proxy HTTP 407 hitelesítést kér ({p1}), amelyet a MITO nem támogat.",
+  "La comprobación de Internet respondió HTTP {p0}.": "Az internet-ellenőrzés válasza HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Az internet sem a Windows proxyn keresztül, sem közvetlenül nem érhető el."
 }

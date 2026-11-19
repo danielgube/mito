@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Työpöydän pikakuvakkeita ei voitu tarkistaa: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Pikakuvaketta {p1} ei voitu päivittää: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "MITOn siirron tarkistusta ei voitu suorittaa loppuun: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Julkaistaan {p1}; virustorjunta voi hidastaa tätä vaihetta, kun tiedostoja on paljon"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Julkaistaan {p1}; virustorjunta voi hidastaa tätä vaihetta, kun tiedostoja on paljon",
+  "Diagnosticando la red…": "Verkkoa diagnosoidaan…",
+  "CONFIGURACIÓN DE RED": "VERKKOASETUKSET",
+  "Proxy: {p0} ({p1})": "Välityspalvelin: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Suora yhteys ilman välityspalvelinta",
+  "El proxy da acceso a Internet.": "Välityspalvelin antaa pääsyn internetiin.",
+  "La red redirige a un portal de autenticación.": "Verkko ohjaa todennusportaaliin.",
+  "Se guardarán estas claves en config.properties:": "Nämä avaimet tallennetaan tiedostoon config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "Käyttäjätunnusta ja salasanaa ei koskaan tallenneta: MITO kysyy ne jokaisessa istunnossa, jossa portaali niitä vaatii.",
+  "Guardar y conectar": "Tallenna ja yhdistä",
+  "configuración manual de Windows": "Windowsin manuaaliset asetukset",
+  "script PAC": "PAC-komentosarja",
+  "autodetección WPAD": "WPAD-automaattitunnistus",
+  "Configuración de red guardada en config.properties": "Verkkoasetukset tallennettu tiedostoon config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Välityspalvelin {p0} vaatii HTTP 407 -todennuksen ({p1}), jota MITO ei tue.",
+  "La comprobación de Internet respondió HTTP {p0}.": "Internet-tarkistus vastasi HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Internetiin ei saatu yhteyttä Windowsin välityspalvelimen kautta eikä suoraan."
 }

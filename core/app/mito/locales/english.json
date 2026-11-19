@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Could not check the desktop shortcuts: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Could not update the shortcut {p1}: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "Could not complete the MITO relocation check: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Publishing {p1}; antivirus software may delay this step when there are many files"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Publishing {p1}; antivirus software may delay this step when there are many files",
+  "Diagnosticando la red…": "Diagnosing the network…",
+  "CONFIGURACIÓN DE RED": "NETWORK SETUP",
+  "Proxy: {p0} ({p1})": "Proxy: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Direct connection, no proxy",
+  "El proxy da acceso a Internet.": "The proxy provides Internet access.",
+  "La red redirige a un portal de autenticación.": "The network redirects to an authentication portal.",
+  "Se guardarán estas claves en config.properties:": "These keys will be saved in config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "Your username and password are never saved: MITO will ask for them in each session where the portal requires them.",
+  "Guardar y conectar": "Save and connect",
+  "configuración manual de Windows": "Windows manual settings",
+  "script PAC": "PAC script",
+  "autodetección WPAD": "WPAD auto-detection",
+  "Configuración de red guardada en config.properties": "Network settings saved in config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Proxy {p0} requires HTTP 407 authentication ({p1}), which MITO does not support.",
+  "La comprobación de Internet respondió HTTP {p0}.": "The Internet check returned HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Could not reach the Internet through the Windows proxy or directly."
 }

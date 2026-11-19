@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "Преките пътища на работния плот не можаха да бъдат проверени: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "Прекият път {p1} не можа да бъде обновен: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "Проверката за преместване на MITO не можа да бъде завършена: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Публикуване на {p1}; антивирусната програма може да забави тази стъпка при много файлове"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Публикуване на {p1}; антивирусната програма може да забави тази стъпка при много файлове",
+  "Diagnosticando la red…": "Диагностика на мрежата…",
+  "CONFIGURACIÓN DE RED": "НАСТРОЙКА НА МРЕЖАТА",
+  "Proxy: {p0} ({p1})": "Прокси: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Директна връзка, без прокси",
+  "El proxy da acceso a Internet.": "Проксито дава достъп до интернет.",
+  "La red redirige a un portal de autenticación.": "Мрежата пренасочва към портал за удостоверяване.",
+  "Se guardarán estas claves en config.properties:": "Тези ключове ще бъдат записани в config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "Потребителското име и паролата никога не се записват: MITO ще ги иска във всяка сесия, в която порталът ги изисква.",
+  "Guardar y conectar": "Запиши и свържи",
+  "configuración manual de Windows": "ръчни настройки на Windows",
+  "script PAC": "PAC скрипт",
+  "autodetección WPAD": "автоматично откриване WPAD",
+  "Configuración de red guardada en config.properties": "Мрежовите настройки са записани в config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "Проксито {p0} изисква HTTP 407 удостоверяване ({p1}), което MITO не поддържа.",
+  "La comprobación de Internet respondió HTTP {p0}.": "Проверката за интернет върна HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "Интернет не беше достъпен нито през проксито на Windows, нито директно."
 }

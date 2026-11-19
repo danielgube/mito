@@ -1687,7 +1687,12 @@ El [plan original](MCP_PLAN.md) conserva decisiones y criterios previstos.
   se crea el archivo bloqueado y se comprueba que el motor no cambia os.environ.
 - IsolatedAsyncioTestCase crea su bucle con asyncio en modo depuración (verificado:
   get_debug() == True). Las 7 clases de UI heredan de tests/async_support.AsyncTestCase,
-  que lo desactiva en asyncSetUp. Pendiente medir la nueva duración.
+  que lo desactiva en asyncSetUp. Segunda ejecución: 219 s (antes 381 s), pero 4
+  pruebas de test_ui fallaron: comprobaban tras un único pilot.pause() resultados que
+  procesa un worker o un montaje asíncrono, y sólo pasaban por la lentitud del modo
+  depuración. async_support.settle (pausa, workers, pausa) sustituye esas esperas.
+- Pendiente: tercera ejecución y `--durations` en el equipo de trabajo, donde el
+  antivirus encarece cada proceso PowerShell y cada archivo temporal de las pruebas.
 
 ## Git de release desde pestañas de MITO
 
@@ -1805,6 +1810,22 @@ El [plan original](MCP_PLAN.md) conserva decisiones y criterios previstos.
   manualmente antes del cambio. Pendiente: primer arranque real con la detección y
   la regresión core/tests/test_bootstrap_proxy.py (proxy y portal locales simulados),
   no ejecutadas.
+
+## Autoconfiguración de red desde el botón Internet
+
+- Sin Internet y con red local, network.diagnose prueba la ruta de config.properties,
+  la de Windows (GetSystemWebProxy vía PowerShell: manual, PAC, WPAD) y la directa si
+  había proxy configurado. Elige por este orden: ok, portal, 407, bloqueado, inalcanzable.
+- Sólo propone claves para ok o portal: proxy y no_proxy si cambia la ruta; con portal,
+  URL y campos HTML (si no hay URL configurada) y enable_proxy_authentication.
+  NetworkSetupDialog confirma; network.apply guarda con Configuration.
+- Las credenciales del portal se piden en ProxyDialog para la sesión; nunca se guardan.
+- Límites: los del bootstrap (un proxy fijo aunque el PAC varíe, sin 407/NTLM en
+  Python, portales sin redirección vistos como bloqueados). Volver a la oficina tras
+  guardar la conexión directa requiere pulsar el botón de nuevo.
+- Pendiente: core/tests/test_network_setup.py (proxy y portal locales simulados) y
+  la ajustada test_ui.test_network_status_and_cancel_dialog, no ejecutadas; ni prueba
+  real contra el proxy o portal corporativo.
 
 ## Variables globales en config.properties
 

@@ -514,5 +514,21 @@
   "No se pudieron revisar los accesos del escritorio: {p1}": "No se pudieron revisar los accesos del escritorio: {p1}",
   "No se pudo actualizar el acceso {p1}: {p3}": "No se pudo actualizar el acceso {p1}: {p3}",
   "No se pudo completar la revisión del traslado de MITO: {p1}": "No se pudo completar la revisión del traslado de MITO: {p1}",
-  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos"
+  "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos": "Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos",
+  "Diagnosticando la red…": "Diagnosticando la red…",
+  "CONFIGURACIÓN DE RED": "CONFIGURACIÓN DE RED",
+  "Proxy: {p0} ({p1})": "Proxy: {p0} ({p1})",
+  "Conexión directa, sin proxy": "Conexión directa, sin proxy",
+  "El proxy da acceso a Internet.": "El proxy da acceso a Internet.",
+  "La red redirige a un portal de autenticación.": "La red redirige a un portal de autenticación.",
+  "Se guardarán estas claves en config.properties:": "Se guardarán estas claves en config.properties:",
+  "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.": "Tu usuario y contraseña nunca se guardan: MITO los pedirá en cada sesión que el portal lo requiera.",
+  "Guardar y conectar": "Guardar y conectar",
+  "configuración manual de Windows": "configuración manual de Windows",
+  "script PAC": "script PAC",
+  "autodetección WPAD": "autodetección WPAD",
+  "Configuración de red guardada en config.properties": "Configuración de red guardada en config.properties",
+  "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.": "El proxy {p0} exige autenticación HTTP 407 ({p1}), que MITO no admite.",
+  "La comprobación de Internet respondió HTTP {p0}.": "La comprobación de Internet respondió HTTP {p0}.",
+  "No se pudo llegar a Internet ni con el proxy de Windows ni directamente.": "No se pudo llegar a Internet ni con el proxy de Windows ni directamente."
 }

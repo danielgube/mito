@@ -811,6 +811,13 @@ para elegir su opener, también en catálogos y bootstrap Python. No cambia os.e
 Network.check espera el estado configurado sin seguir redirects y con timeout.
 UI lanza workers puntuales al inicio y al pulsar el estado, sin servicio ni polling.
 ProxyDialog solicita credenciales, limpia la contraseña y ejecuta POST fuera del hilo UI.
+Al pulsar el estado sin Internet, network.diagnose prueba la ruta configurada, la de
+Windows y, si había proxy configurado, la directa. La de Windows se obtiene con
+GetSystemWebProxy mediante PowerShell, porque urllib no evalúa PAC. Clasifica como el
+bootstrap (también la variante HTTP de la URL de comprobación) y sólo propone claves
+para una ruta que da Internet o un portal. NetworkSetupDialog las muestra, y
+network.apply las guarda mediante Configuration (mismo lock, validación y comentarios).
+Después se abre ProxyDialog si hay portal. Nada se guarda sin confirmación.
 CLI run sin --bin intercepta los accesos existentes pythonw mediante un diálogo nativo
 WinForms; sólo datos por pipes en memoria, ningún secreto en comandos ni archivos.
 Cancelar permite lanzar. Sesión CookieJar efímera; formularios sólo mismo origen,

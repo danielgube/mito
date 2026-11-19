@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from async_support import AsyncTestCase
+from async_support import AsyncTestCase, click
 from unittest.mock import patch
 from textual.widgets import Button, TextArea, Select
 from mito.engine import Engine
@@ -32,7 +32,7 @@ class MCPUITests(AsyncTestCase):
                 Configuration(engine).save([('mcp.jobs.monitor', 'true')])
                 app.refresh_mcp_monitor(); self.assertTrue(button.display)
                 button.scroll_visible(animate=False); await pilot.pause()
-                await pilot.click('#mcp-jobs-button'); await pilot.pause()
+                await click(pilot, '#mcp-jobs-button'); await pilot.pause()
                 self.assertIsInstance(app.screen, MCPJobsDialog)
                 app.mcp.state = 'enabled'
                 app.mcp.jobs = [{'job_id': 'job1', 'name': 'command_start', 'profile': 'one', 'state': 'running'}]
@@ -40,7 +40,7 @@ class MCPUITests(AsyncTestCase):
                     app.screen.refresh_state(); await pilot.pause()
                     send.assert_not_called()
                     app.screen.query_one('#mcp-job', Select).value = 'job1'
-                    await pilot.pause(); await pilot.click('#mcp-read')
+                    await pilot.pause(); await click(pilot, '#mcp-read')
                     send.assert_called_once_with({'type': 'output', 'job_id': 'job1', 'stream': 'stdout'})
                     app.mcp.events.put({'type': 'output', 'job': {'job_id': 'job1'}, 'output': {'text': 'result', 'stream': 'stdout'}})
                     await app.poll_mcp(); await pilot.pause()
@@ -58,7 +58,7 @@ class MCPUITests(AsyncTestCase):
             async with app.run_test(size=(130, 48)) as pilot:
                 await app.workers.wait_for_complete()
                 self.assertIsNone(app.mcp.thread)
-                await pilot.click('#mcp-button'); await pilot.pause()
+                await click(pilot, '#mcp-button'); await pilot.pause()
                 self.assertIsInstance(app.screen, MCPDialog)
                 text = app.screen.query_one('#mcp-config', TextArea).text
                 self.assertIn('[mcp_servers.', text); self.assertNotIn('token', text)
@@ -84,7 +84,7 @@ class MCPUITests(AsyncTestCase):
                 with patch.object(app.mcp, 'approve') as approve:
                     await app.poll_mcp(); await pilot.pause()
                     self.assertIsInstance(app.screen, UnverifiedDownloadsDialog)
-                    await pilot.click('#unverified-cancel'); await pilot.pause()
+                    await click(pilot, '#unverified-cancel'); await pilot.pause()
                     approve.assert_called_once_with('job', False)
                 engine.create_profile('two')
                 app.mcp.events.put({'type': 'changed'})
