@@ -80,6 +80,14 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.2.13 — 2026-11-19
+
+### Commits incluidos
+
+- lazy loadling versions ([5616f6b](https://github.com/danielgube/mito/commit/5616f6bfa49d433b1bb3fc6c78e70e4a8fc8642d))
+
+[Comparar cambios](https://github.com/danielgube/mito/compare/8a7bc108686f079ec58f09a646d9f36668c47286...5616f6bfa49d433b1bb3fc6c78e70e4a8fc8642d)
+
 ## 0.2.12 — 2026-11-19
 
 ### Commits incluidos
