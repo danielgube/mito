@@ -909,7 +909,8 @@ class YitoApp(App):
                     widgets.append(Button(tr('Extensiones') + (' ✓' if registered else ' ✗'), id=f'openwith-{index}', classes='open-with-button', disabled=self.busy))
                 if self.engine.can_open(lock):
                     exposed = exposure_linked(self.engine.root, installation)
-                    widgets.append(Button(tr('En host · ') + ('link' if exposed else 'unlink'), id=f'expose-{index}', classes='host-data-button', disabled=self.busy))
+                    # Estado, como Extensiones: ✓ enlazado, ✗ sin enlace (no la acción).
+                    widgets.append(Button(tr('En host · ') + ('✓' if exposed else '✗'), id=f'expose-{index}', classes='host-data-button', disabled=self.busy))
                 widgets.append(Button(tr('Info'), id=f'info-{index}', classes='component-info', disabled=self.busy))
                 candidate = available_update(self.engine,lock,catalog)
                 if candidate:
@@ -928,8 +929,8 @@ class YitoApp(App):
                 unavailable = not path.is_file()
                 widgets = [Static(f'{path.stem} · Host' + (tr(' · No disponible') if unavailable else ''), classes='host-app-name', markup=False),
                            Button(tr('Abrir'), id=f'host-open-{identity}', disabled=self.busy or unavailable or not profile),
-                           Button(tr('Cache · ') + ('link' if linked(self.engine.root, identity, 'cache') else 'unlink'), id=f'host-cache-{identity}', classes='host-data-button', disabled=self.busy),
-                           Button(tr('Data · ') + ('link' if linked(self.engine.root, identity, 'data') else 'unlink'), id=f'host-data-{identity}', classes='host-data-button', disabled=self.busy),
+                           Button(tr('Cache · ') + ('✓' if linked(self.engine.root, identity, 'cache') else '✗'), id=f'host-cache-{identity}', classes='host-data-button', disabled=self.busy),
+                           Button(tr('Data · ') + ('✓' if linked(self.engine.root, identity, 'data') else '✗'), id=f'host-data-{identity}', classes='host-data-button', disabled=self.busy),
                            Button(tr('Generar acceso directo'), id=f'host-link-{identity}', classes='app-shortcut', disabled=self.busy or unavailable or not profile),
                            Button(tr('Info'), id=f'host-info-{identity}', classes='component-info', disabled=self.busy),
                            Button(tr('Eliminar'), id=f'host-remove-{identity}', classes='component-remove', disabled=self.busy)]

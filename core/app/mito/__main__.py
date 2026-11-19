@@ -248,7 +248,8 @@ def main(argv=None):
                     except (EOFError, KeyboardInterrupt):
                         return False
                 import_profile(engine, args.source, args.name,
-                    confirm_plan=lambda records: ask([f'{r["key"]} {r["version"]}' for r in records.values()]),
+                    confirm_plan=lambda records: ask([f'{r["key"]} {r["version"]}' + (' (retenida)' if r.get('pinned') else '')
+                                                      for r in records.values()]),
                     confirm_unverified=lambda downloads: ask(['Descargas sin hash:', *downloads]))
             elif args.action == 'list':
                 print('\n'.join(engine.profiles()) or 'Todavía no hay profiles')

@@ -1761,8 +1761,18 @@ El [plan original](MCP_PLAN.md) conserva decisiones y criterios previstos.
 - Límites: sólo buckets GitHub para histórico; API sin token (60 peticiones/h); no
   se emulan checkver, jsonpath/xpath ni otros modos de autoupdate.hash; el manifiesto
   actual puede no encajar con versiones antiguas; URLs retiradas fallan al descargar.
-  Importar profiles o instalar por CLI/MCP no fija versiones; un componente retenido
-  conserva su manifiesto en esos planes.
+  Instalar por CLI/MCP no fija versiones; un componente retenido conserva su
+  manifiesto en esos planes.
+- Exportar profile escribe `apps` y, si los hay, `pinned` {bucket/app: versión} con los
+  componentes retenidos. Importar resuelve esas versiones (histórico Git, después
+  autoupdate) y las instala retenidas en el mismo plan; si una no se puede resolver, la
+  importación falla sin crear el profile. Los no retenidos siguen el catálogo local.
+  Archivos antiguos sólo con `apps` siguen siendo válidos.
+- El archivo nunca lleva integraciones con el host (aplicaciones del host, «En host»,
+  «Abrir con»): son estado de la instancia en core/state, no del profile.
+- Los botones En host, Cache y Data muestran estado como Extensiones: ✓ enlazado,
+  ✗ sin enlace. Antes «unlink» indicaba que no había enlace y se leía como una
+  integración existente (p. ej. tras importar un profile en otra máquina).
 - Pendiente: prueba real en la UI (Mattermost 5.1.x) y regresiones test_versions y
   test_components.test_install_version_pins_until_released_and_survives_dependents,
   no ejecutadas.

@@ -130,7 +130,8 @@ class ImportReviewDialog(ModalScreen[bool]):
                 state = tr('Instalar') if previous is None else tr('Ya instalado')
                 if previous and previous['manifest_sha256'] != record['manifest_sha256']:
                     state = tr('Sustituir {p1} en todos los profiles que lo usan', p1=(previous['version']))
-                yield Static(f'{record["key"]} · {record["version"]} · {state}', markup=False)
+                version = record['version'] + (f' ({tr("retenida")})' if record.get('pinned') else '')
+                yield Static(f'{record["key"]} · {version} · {state}', markup=False)
             if not self.records:
                 yield Static(tr('Se creará un profile vacío.'))
             yield Static(tr('Sin datos ni variables del origen. Se aplicarán tus variables globales locales.'))

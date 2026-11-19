@@ -84,8 +84,38 @@ class ProfileTransferTests(unittest.TestCase):
         fetch.assert_not_called()
         self.assertEqual(self.engine.profile('existing'),before)
 
+    def test_pinned_version_is_exported_and_reproduced_as_pinned(self):
+        self.engine.create_profile('source')
+        old = dict(self.manifest, version='0.9')
+        pin = {'version':'0.9','source':'git','commit':'a'*40}
+        with patch('mito.engine.download', self.fetch):
+            self.engine.install('main/tool', 'source', log=lambda _:None, manifests={'main/tool':old}, pins={'main/tool':pin})
+        # Las integraciones con el host son estado de la instancia, nunca del archivo.
+        write_json(self.engine.root/'core/state/host-exposed-links.json', {'main/tool':{'data':[{'relative':'Tool','backup':None}]}})
+        write_json(self.engine.root/'core/state/host-applications.json', {'0123456789abcdef':'C:\\Host\\app.exe'})
+        path = export_profile(self.engine,'source',self.root/'pinned.json')
+        self.assertEqual(json.loads(path.read_text()), {'apps':['main/tool'],'pinned':{'main/tool':'0.9'}})
+        self.assertNotIn('Host', path.read_text())
+        self.assertEqual(read_export(path), {'apps':['main/tool'],'pinned':{'main/tool':'0.9'}})
+        # Otra instancia: el catálogo va por la 1, pero se instala y retiene la 0.9.
+        other = Engine(self.root/'other')
+        other.initialize()
+        write_json(other.root/'core/buckets/main.json', {'apps':{'tool':self.manifest}})
+        seen = []
+        def resolve(root, catalog, key, version, log=print):
+            seen.append((key, version))
+            return old, pin
+        with patch('mito.versions.resolve', resolve), patch('mito.engine.download', self.fetch):
+            import_profile(other, path, 'copy', lambda records: seen.append(dict(records)) or True, log=lambda _:None)
+        self.assertEqual(seen[0], ('main/tool','0.9'))
+        record = other.installed()['main/tool']
+        self.assertEqual((record['version'], record['pinned']), ('0.9', pin))
+        self.assertEqual(seen[1]['main/tool']['pinned'], pin)
+
     def test_import_rejects_profiles_with_extra_data_and_invalid_identifiers(self):
-        for data in ({'apps':[], 'env':{'TOKEN':'secret'}}, {'apps':['../app']}, {'apps':['https://example.org']}, {'apps':{}}):
+        for data in ({'apps':[], 'env':{'TOKEN':'secret'}}, {'apps':['../app']}, {'apps':['https://example.org']}, {'apps':{}},
+                     {'apps':['main/tool'],'pinned':{'main/other':'1'}}, {'apps':['main/tool'],'pinned':{'main/tool':'../1'}},
+                     {'apps':['main/tool'],'pinned':{'main/tool':1}}, {'pinned':{}}):
             write_json(self.file,data)
             with self.subTest(data=data), self.assertRaises(YitoError):
                 read_export(self.file)
