@@ -26,6 +26,55 @@ class EngineTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
+    def test_install_moves_extracted_files_instead_of_copying_them(self):
+        # Copiar duplicaba la escritura de cada archivo y el análisis del antivirus.
+        self.bucket({'tool': self.manifest()})
+        with patch('mito.engine.download', self.archive_download), patch('mito.terminal.prepare'), \
+             patch('mito.engine.shutil.copy2', side_effect=AssertionError('copied instead of moved')):
+            self.engine.install('tool', 'test', lambda _: None)
+        self.assertTrue((self.root / 'core/apps/test/tool/bin/tool.exe').is_file())
+
+    def test_mutation_wait_retries_a_busy_lock_and_default_fails_cleanly(self):
+        import threading
+        import time
+        held, release = threading.Event(), threading.Event()
+        def holder():
+            with mutation(self.root, 'check.lock'):
+                held.set()
+                release.wait(5)
+        thread = threading.Thread(target=holder)
+        thread.start()
+        self.addCleanup(thread.join)
+        self.addCleanup(release.set)
+        held.wait(5)
+        # Sin espera: YitoError, nunca PermissionError al leer el byte bloqueado.
+        with self.assertRaises(YitoError):
+            with mutation(self.root, 'check.lock'):
+                pass
+        threading.Timer(0.3, release.set).start()
+        started = time.monotonic()
+        with mutation(self.root, 'check.lock', wait=5):
+            self.assertGreater(time.monotonic() - started, 0.2)
+
+    def test_portable_home_has_windows_known_user_folders(self):
+        # %USERPROFILE%\Downloads y similares deben existir: Windows no resuelve
+        # carpetas conocidas ausentes y Electron aborta al pedir 'downloads'.
+        shutil.rmtree(self.root / 'home')
+        env = self.engine.environment('test')
+        for name in ('Desktop', 'Documents', 'Downloads', 'Music', 'Pictures', 'Videos', 'Saved Games', 'AppData/LocalLow'):
+            self.assertTrue((Path(env['USERPROFILE']) / name).is_dir(), name)
+
+    def test_default_profile_only_when_instance_has_none(self):
+        with patch('mito.terminal.prepare'):
+            self.assertIsNone(self.engine.ensure_default_profile())
+            self.assertEqual(self.engine.profiles(), ['test'])
+            (self.root / 'profiles/test.json').unlink()
+            self.assertEqual(self.engine.ensure_default_profile(), 'default')
+            self.assertIsNone(self.engine.ensure_default_profile())
+        # Mismo contenido que profiles/default.json del ZIP de release.
+        self.assertEqual(read_json(self.root / 'profiles/default.json'), {'workspace': 'default', 'apps': [], 'env': {}})
+        self.assertTrue((self.root / 'workspaces/default').is_dir())
+
     def manifest(self, **changes):
         return dict({'version':'1.0', 'url':'https://example.org/tool.zip', 'hash':'a'*64, 'bin': [['bin/tool.exe', 'tool']], 'env_set': {'JAVA_HOME':'$dir'}, 'env_add_path':'bin'}, **changes)
 
@@ -378,10 +427,15 @@ class EngineTests(unittest.TestCase):
                          ('tool.jar', ['--fixed']))
         java = self.root/'home/custom-commands/java.exe'
         java.write_bytes(b'inert executable')
-        with patch('mito.engine.subprocess.call', return_value=0) as launch:
+        caller = self.root/'caller'
+        caller.mkdir()
+        with patch('mito.engine.subprocess.call', return_value=0) as launch, \
+             patch('mito.engine.os.getcwd', return_value=str(caller)):
             self.engine.launch('test','tool',binary='tool',arguments=['two words'])
         self.assertEqual(launch.call_args.args[0], [str(java), '-jar', str(payload/'tool.jar'), '--fixed', 'two words'])
-        self.assertEqual(launch.call_args.kwargs['cwd'], self.root/'workspaces/test')
+        # Un comando de consola (shim) trabaja en el directorio desde el que se invoca,
+        # nunca en el workspace: `git init` en la raíz no debe crear el repo en otro sitio.
+        self.assertEqual(launch.call_args.kwargs['cwd'], caller)
         self.assertEqual(launch.call_args.kwargs['env']['APPDATA'], str(self.root/'home/AppData/Roaming'))
         with patch('mito.engine.shutil.which', return_value=None), patch('mito.engine.subprocess.call') as launch:
             with self.assertRaisesRegex(YitoError, 'java.exe'):

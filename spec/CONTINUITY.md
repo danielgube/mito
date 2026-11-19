@@ -1672,12 +1672,120 @@ El [plan original](MCP_PLAN.md) conserva decisiones y criterios previstos.
   formulario mismo origen, cookies efímeras y comprobación final con sesión nueva.
 - Descargas y entorno de hijos usan el proxy; EAP sólo consultado, no modificado.
 - Límite: portales que autorizan la red del equipo; no HTTP 407/NTLM/SSO/CAPTCHA.
-  El primer CPython admite proxy, pero requiere autenticar el portal previamente en
-  navegador si está bloqueado. No se ha probado contra un proxy corporativo real.
+  El primer CPython admite proxy y, desde la detección del bootstrap, login de portal
+  en consola (ver sección siguiente). No se ha probado contra un portal corporativo real.
 - Validación: 70 pruebas correctas, prueba específica posterior de cancelar y
   autenticar en el diálogo, doctor correcto y comprobación real de Internet accesible.
   Portal HTTP local simulado verifica POST/campos ocultos, rechazo de redirecciones
   como prueba de Internet y ausencia de credenciales en archivos.
+
+## Directorio de trabajo de los comandos de consola
+
+- Fallo real: `git init` tecleado en C:\mito-main desde una pestaña creó el repositorio
+  en workspaces\default. Engine.launch usaba cwd=workspace para todo, también para
+  `run --bin` de los shims. Afectaba a cualquier comando de cualquier componente.
+- Ahora `--bin` hereda os.getcwd() (fallback al workspace); aplicaciones, accesos,
+  pestañas y MCP conservan el workspace. test_engine actualizado al nuevo contrato.
+- Pendiente: comprobar en una pestaña `cd /d C:\otro && git init` y la suite
+  test_engine, no ejecutadas.
+
+## Rendimiento de instalación con antivirus y lock de comprobaciones
+
+- main/git 2.56.1 (9622 archivos) en el equipo de trabajo: descarga 3 s, extracción
+  19 s, copia al payload 13 s y 79 s entre «Validando» e «Instalado». La validación
+  es trivial; el tiempo era el rename del payload, retenido por el antivirus hasta
+  analizar los archivos nuevos (medido: rename de una copia recién escrita 6,2 s,
+  el mismo 5 s después 0,0 s).
+- Engine._install_payload mueve con os.replace (fallback copy2) desde expanded-N, que
+  es temporal y del mismo staging: la mitad de escrituras y de análisis. Fase
+  «publish» en el log con aviso al usuario. El rename atómico se mantiene.
+- storage.mutation: leer el byte bloqueado por otro handle lanzaba PermissionError
+  (Errno 13) antes de intentar el lock. Ahora se trata como ocupado; wait>0 reintenta.
+  update_checks.daily espera hasta 15 s porque la UI lanza en paralelo las
+  comprobaciones de componentes y de MITO.
+- Pendiente: medir de nuevo la instalación de git y regresiones de test_engine
+  (move, mutation wait), no ejecutadas.
+
+## Traslado y copia de la instancia
+
+- core/state/instance.json guarda la raíz; relocation.check repara al arrancar en
+  otra ruta: persistencias materializadas apartadas a core/staging (sin borrar),
+  .lnk registrados reescritos (traslado) u olvidados (copia, la ruta anterior sigue
+  siendo una instancia) y aviso de Host data/cache materializados.
+- Ya portables antes del cambio: entorno, shims relativos, settings del Terminal
+  (prepare en cada lanzamiento), junctions de persistencia (prepare_payload al
+  construir el entorno), runtime con ._pth relativo.
+- Límites: .lnk no creados por MITO y rutas absolutas guardadas por las propias
+  aplicaciones no se modifican; instancias anteriores sin registro no detectan su
+  primer traslado (sólo crean el registro). Una copia y su original comparten los
+  accesos existentes hasta que la copia cree los suyos.
+- Pendiente: prueba real copiando y moviendo una instancia con Explorador, y la
+  regresión core/tests/test_relocation.py, no ejecutadas.
+
+## Versiones concretas de componentes
+
+- Catálogo → Versiones… (componente compatible, instalado o no): histórico Git del
+  bucket (GitHub) y versión escrita a mano vía autoupdate. Retención en .mito.json
+  (pinned), marcada en Inicio y liberable desde Info.
+- Comprobado manualmente: ScoopInstaller/Extras tiene 78 commits de mattermost.json;
+  versiones 4.2.0–6.4.0, sin 5.1.0 (salta de 5.0.4 a 5.1.1). 5.1.0 sólo vía
+  autoupdate; su hash sale de la página de release de GitHub si aún lo publica.
+- Límites: sólo buckets GitHub para histórico; API sin token (60 peticiones/h); no
+  se emulan checkver, jsonpath/xpath ni otros modos de autoupdate.hash; el manifiesto
+  actual puede no encajar con versiones antiguas; URLs retiradas fallan al descargar.
+  Importar profiles o instalar por CLI/MCP no fija versiones; un componente retenido
+  conserva su manifiesto en esos planes.
+- Pendiente: prueba real en la UI (Mattermost 5.1.x) y regresiones test_versions y
+  test_components.test_install_version_pins_until_released_and_survives_dependents,
+  no ejecutadas.
+
+## Eliminar componentes en uso
+
+- components.remove ejecuta check_unused sobre la instalación y sus copias por profile
+  antes de moverlas a staging; un PermissionError restante (directorio actual de un
+  proceso) se traduce al mismo mensaje tras restaurar lo movido. Sin cerrar procesos.
+- Caso real: extras/mattermost seguía abierto en la bandeja con 9 procesos.
+- Pendiente: regresión test_components.test_remove_in_use_reports_open_application_and_keeps_payload
+  y comprobación real, no ejecutadas.
+
+## Carpetas de usuario del home portable
+
+- User Shell Folders suele declarar `%USERPROFILE%\Downloads`, etc. Con USERPROFILE
+  en home, SHGetKnownFolderPath falla si la carpeta no existe; extras/mattermost 6.4.0
+  abortaba con «Failed to get 'downloads' path».
+- Engine.initialize crea en home Desktop, Documents, Downloads, Music, Pictures,
+  Videos, Favorites, Links, Contacts, Searches, Saved Games y AppData/LocalLow,
+  vacías y genéricas. Rutas absolutas del host (OneDrive) no cambian.
+- Pendiente: abrir Mattermost tras el cambio y la regresión
+  test_engine.test_portable_home_has_windows_known_user_folders, no ejecutadas.
+
+## Profile default en instancias sin profiles
+
+- El ZIP de release incluye profiles/default.json; un checkout del fuente no
+  (profiles/ está en .gitignore) y dejaba Inicio sin profile ni casillas activables.
+- Engine.ensure_default_profile crea `default` (workspace default, sin apps ni env)
+  sólo si no existe ninguno, al arrancar mito.cmd, ui o start. No afecta a CLI, MCP
+  ni tests que crean sus propios profiles. Eliminar el último profile sigue prohibido.
+- Pendiente: comprobación real en la instancia del equipo de trabajo y la regresión
+  test_engine.test_default_profile_only_when_instance_has_none, no ejecutadas.
+
+## Detección de proxy en el primer arranque
+
+- bootstrap.ps1 detecta el proxy de Windows (HTTPS_PROXY, manual, PAC, WPAD) si
+  config.properties no declara http_proxy/https_proxy, sondea la comprobación de
+  Internet y clasifica directa, HTTP 407 (con esquemas) o portal por redirección.
+- Propone y guarda con confirmación http_proxy, https_proxy, no_proxy (desde
+  ProxyOverride: `<local>` sólo como localhost/127.0.0.1/::1; comodines intermedios
+  descartados) y, con portal, su URL y campos de usuario/contraseña detectados.
+- Login de portal en consola antes de descargar, con contraseña SecureString,
+  máximo tres intentos y las reglas de Network.authenticate.
+- Límites: un solo proxy fijo aunque el PAC varíe por destino; Python no usa
+  NTLM/Negotiate ni Basic 407; portales sin redirección (200 interceptado) se
+  clasifican como bloqueados sin URL propuesta. -Approved usa el proxy sin guardar.
+- Equipo real con PAC (proxy 10.x:80, respuesta 204 sin credenciales) consultado
+  manualmente antes del cambio. Pendiente: primer arranque real con la detección y
+  la regresión core/tests/test_bootstrap_proxy.py (proxy y portal locales simulados),
+  no ejecutadas.
 
 ## Variables globales en config.properties
 

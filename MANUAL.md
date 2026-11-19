@@ -206,7 +206,7 @@ La pantalla ofrece:
 - casillas para incluir o excluir buckets, cuya selección se recuerda;
 - estado **Disponible** o **Todavía no soportado**;
 - descripción, notas y pasos relevantes del manifiesto;
-- botones para instalar y actualizar los catálogos.
+- botones para instalar, elegir otra versión y actualizar los catálogos.
 
 Las coincidencias completas y las de `bucket/app` aparecen antes que las parciales.
 Por ejemplo, `java 21 lts` prioriza componentes que contienen los tres términos.
@@ -222,6 +222,25 @@ pide confirmación antes de acceder a la red. Cancelar no descarga ni publica na
 **Actualizar catálogos** reemplaza sus snapshots, pero no actualiza instalaciones ni
 cambia activaciones. Las fuentes se configuran con `bucket.<nombre>`.
 
+### Instalar otra versión
+
+**Versiones…** permite instalar una versión concreta del componente seleccionado,
+por ejemplo una anterior compatible con tu servidor. Tiene dos fuentes:
+
+- **Histórico Git del bucket** (sólo buckets alojados en GitHub): lista las versiones
+  que el bucket publicó y usa el manifiesto real de entonces, con su URL y su hash.
+- **Otra versión** escrita a mano: se genera desde `autoupdate`, igual que
+  `scoop install app@versión`. Si el manifiesto indica cómo obtener el hash, se
+  verifica; si no, la descarga se confirma como cualquier descarga sin hash.
+
+Si escribes una versión que está en el histórico, se usa el histórico. La versión
+elegida sustituye a la instalada en la misma ruta y conserva activación y datos.
+Queda **retenida**: Inicio la marca y **Actualizar** no la sustituye. Para volver a
+recibir actualizaciones, pulsa **Liberar** en **Info**.
+
+No todas las versiones antiguas siguen disponibles: el servidor puede haber retirado
+la descarga, o el manifiesto actual puede no encajar con una versión antigua.
+
 ## Componentes instalados
 
 Cada `bucket/app` tiene una sola versión instalada y una ruta estable:
@@ -236,6 +255,7 @@ core/apps/<bucket>/<app>
 cuando existen y destinos persistentes. **Abrir** junto a una ruta la muestra en el
 Explorador; si es un archivo, abre su carpeta. Las rutas pendientes aparecen
 deshabilitadas. Consultar Info no crea datos, no activa nada y no prepara copias.
+Si la versión está retenida, Info muestra su origen y el botón **Liberar**.
 
 ### Actualizar
 
@@ -390,8 +410,13 @@ implementa HTTP 407 Basic/NTLM, SSO interactivo ni CAPTCHA. Los hijos reciben
 `HTTP_PROXY`, `HTTPS_PROXY` y `NO_PROXY`, pero cada aplicación decide si los respeta.
 MITO no modifica el proxy global de Windows.
 
-El bootstrap inicial puede usar `https_proxy`; si el portal bloquea la primera
-descarga, autentícate previamente en el navegador.
+El bootstrap inicial usa `https_proxy` si está declarado. Si no hay proxy en
+`config.properties`, detecta el de Windows (manual, script PAC o WPAD), comprueba si
+responde directamente, exige HTTP 407 o redirige a un portal, y pregunta si guardar
+`http_proxy`, `https_proxy`, `no_proxy` y el portal. Con un portal, pide usuario y
+contraseña en la consola antes de descargar; no se guardan. Para ver el proxy que
+Windows resuelve, incluido el de un PAC:
+`[Net.WebRequest]::GetSystemWebProxy().GetProxy([Uri]'https://github.com/')`.
 
 ## Pocketools
 
@@ -620,9 +645,24 @@ de binarios y persistencia por profile. Los demás comparten instalación y pers
 Desactivar o eliminar un profile conserva sus datos. Eliminar una instalación retira
 los binarios y copias, no la persistencia.
 
-MITO puede trasladarse como carpeta, pero conviene cerrar antes sus aplicaciones.
-Los enlaces persistentes se reconstruyen al activar. Regenera los `.lnk` del escritorio
-porque Windows guarda en ellos rutas absolutas.
+MITO puede moverse o copiarse como carpeta. Cierra antes sus aplicaciones. El
+entorno, los comandos, el Terminal y los enlaces persistentes se reconstruyen al
+abrir pestañas o aplicaciones. Además, MITO recuerda su ruta y, al arrancar en otra,
+lo indica en el log y repara lo que guarda rutas absolutas:
+
+- **Movida** (la ruta anterior ya no existe): reescribe hacia la nueva ruta los
+  accesos del escritorio creados por MITO.
+- **Copiada** (la ruta anterior sigue siendo una instancia): los accesos existentes
+  siguen abriendo el original y la copia deja de considerarlos suyos. Crea accesos
+  nuevos desde la copia si los necesitas.
+- Explorador y la mayoría de copiadores convierten los enlaces de persistencia en
+  carpetas normales. MITO aparta esas copias a `core/staging/relocated-persist-*`,
+  sin borrarlas, y vuelve a enlazar los datos de `home`.
+- Un enlace **Host data/cache** copiado queda como carpeta normal; MITO lo avisa y
+  puedes volver a enlazarlo desde Inicio.
+
+Los accesos `.lnk` que no creó MITO y las rutas absolutas que una aplicación guarde
+en su propia configuración no se modifican.
 
 Para convertir una instancia antigua a rutas estables:
 

@@ -84,6 +84,61 @@ class InstallVersionDialog(ModalScreen[bool]):
         self.dismiss(event.button.id == 'install-version-confirm')
 
 
+class VersionsDialog(ModalScreen[object]):
+    """Elegir una versión concreta de bucket/app: histórico Git o autoupdate."""
+    BINDINGS = [('escape', 'cancel', 'Cancelar')]
+    DEFAULT_CSS = """
+    VersionsDialog { align: center middle; background: $background 70%; }
+    #versions-dialog { width: 76; height: auto; max-height: 90%; padding: 1 2; border: round #b5dc64; background: #153429; }
+    #versions-dialog Static { height: auto; margin-bottom: 1; }
+    #versions-dialog Select, #versions-dialog Input { margin-bottom: 1; }
+    #versions-actions { height: auto; align-horizontal: right; }
+    #versions-actions Button { margin-left: 1; }
+    """
+
+    def __init__(self, key, current, installed, versions, autoupdate, history_available):
+        super().__init__()
+        self.key, self.current, self.installed = key, current, installed
+        self.versions, self.autoupdate, self.history_available = versions, autoupdate, history_available
+
+    def compose(self):
+        with VerticalScroll(id='versions-dialog'):
+            yield DialogHeader(tr('VERSIONES DEL COMPONENTE'), 'versions-close')
+            yield Static(f'{self.key}\n' + tr('Catálogo: {p1} · Instalada: {p3}', p1=self.current, p3=self.installed or '—'), markup=False)
+            if self.versions:
+                yield Static(tr('Versiones publicadas en el histórico Git del bucket, con el manifiesto y el hash de entonces.'))
+                yield Select([(f'{item["version"]} · {item["date"]}', item['version']) for item in self.versions],
+                             prompt=tr('Selecciona o escribe una versión'), id='versions-list')
+            else:
+                yield Static(tr('No hay versiones en el histórico Git del bucket (sólo buckets de GitHub).'))
+            if self.autoupdate:
+                yield Static(tr('Otra versión se genera desde autoupdate, como scoop install app@versión. Si no se obtiene su hash, se pedirá confirmación.'))
+                yield Input(placeholder=tr('Otra versión, por ejemplo 1.2.3'), id='versions-input')
+            yield Static(tr('La versión elegida sustituye a la instalada y queda retenida: Actualizar no la cambiará hasta liberarla en Info.'))
+            with Horizontal(id='versions-actions'):
+                yield Button(tr('Cancelar'), id='versions-cancel')
+                yield Button(tr('Instalar'), id='versions-confirm', variant='success')
+
+    def action_cancel(self):
+        self.dismiss(None)
+
+    def on_button_pressed(self, event: Button.Pressed):
+        event.stop()
+        if event.button.id != 'versions-confirm':
+            self.dismiss(None)
+            return
+        version = ''
+        if self.query('#versions-input'):
+            version = self.query_one('#versions-input', Input).value.strip()
+        if not version and self.query('#versions-list'):
+            selected = self.query_one('#versions-list', Select).value
+            version = selected if isinstance(selected, str) else ''
+        if not version:
+            self.notify(tr('Selecciona o escribe una versión'), severity='warning')
+            return
+        self.dismiss(version)
+
+
 class OpenApplicationDialog(ModalScreen[object]):
     BINDINGS = [('escape', 'cancel', 'Cancelar')]
     DEFAULT_CSS = """
@@ -347,6 +402,16 @@ class ComponentInfoDialog(ModalScreen):
                 with Vertical(id='info-content-body'):
                     yield Static(f'{self.lock["key"]} · {self.lock["version"]}\n{self.scope}', markup=False)
                     yield Static(self.manifest.get('description') or tr('Sin descripción.'), id='info-description', markup=False)
+                    pinned = self.lock.get('pinned')
+                    if pinned:
+                        # Origen técnico sin traducir: git (con commit), autoupdate o catalog.
+                        source = str(pinned.get('source', '?')) + (f' {pinned["commit"][:10]}' if pinned.get('commit') else '')
+                        with Vertical(classes='info-group'):
+                            yield Static(tr('VERSIÓN RETENIDA'), classes='info-group-title')
+                            with Horizontal(classes='info-path'):
+                                with Vertical(classes='info-path-text'):
+                                    yield Static(tr('{p1} elegida desde {p3}. Actualizar no la sustituirá.', p1=self.lock['version'], p3=source), markup=False)
+                                yield Button(tr('Liberar'), id='info-release-version')
                     with Vertical(classes='info-group'):
                         yield Static(tr('RUTAS DEL COMPONENTE'), classes='info-group-title')
                         for index, (label, path) in enumerate(self.paths):
@@ -397,6 +462,8 @@ class ComponentInfoDialog(ModalScreen):
         event.stop()
         if event.button.id == 'info-close':
             self.dismiss()
+        elif event.button.id == 'info-release-version':
+            self.dismiss('release-version')
         elif event.button.id.startswith(('info-open-', 'info-env-open-')):
             from .persistence import open_location
             from .storage import YitoError
@@ -564,6 +631,7 @@ class YitoApp(App):
                         yield Static(tr('Selecciona una aplicación.'), id='details', markup=False)
                     with Horizontal(id='catalog-actions'):
                         yield Button(tr('Instalar'), id='install', variant='success', disabled=True)
+                        yield Button(tr('Versiones…'), id='versions', disabled=True)
                         yield Button(tr('Manifiesto'), id='manifest', disabled=True)
                         yield Button(tr('Actualizar catálogos'), id='refresh')
                         yield Button(tr('Volver a Inicio'), id='back')
@@ -583,6 +651,9 @@ class YitoApp(App):
             self.query_one('#profile', Select).value = self.initial_profile if self.initial_profile in names else names[0]
         self.refresh_terminal_default()
         await self.refresh_home()
+        from .relocation import pop_notice
+        for message in pop_notice(self.engine.root):
+            self.write_log(message)
         from .terminal_identity import apply_safely
         apply_safely(self.engine.root)
         self.check_network()
@@ -715,7 +786,8 @@ class YitoApp(App):
             catalog = dict(self.engine.catalog.all())
             for index, (installation, lock) in enumerate(self.inventory.items()):
                 self.row_ids[str(index)] = installation
-                widgets = [Checkbox(f'{lock["key"]}   ·   {lock["version"]}', value=installation in active, name=installation, id=f'active-{index}', disabled=not profile or self.busy)]
+                label = f'{lock["key"]}   ·   {lock["version"]}' + (f'   ·   {tr("retenida")}' if lock.get('pinned') else '')
+                widgets = [Checkbox(label, value=installation in active, name=installation, id=f'active-{index}', disabled=not profile or self.busy)]
                 self.checkbox_states[widgets[0]] = (profile, installation in active)
                 if installation in active and self.engine.can_open(lock):
                     widgets += [Button(tr('Abrir'), id=f'open-{index}', disabled=self.busy), Button(tr('Generar acceso directo'), id=f'link-{index}', classes='app-shortcut', disabled=self.busy)]
@@ -800,6 +872,7 @@ class YitoApp(App):
         self.selected = None
         self.catalog_installed = set(self.engine.installed())
         self.query_one('#install', Button).disabled = True
+        self.query_one('#versions', Button).disabled = True
         self.query_one('#manifest', Button).disabled = True
         rows = rank_entries(self.entries, term, self.disabled_buckets)
         self.query_one('#details', Static).update(tr('Selecciona una aplicación.') if rows else tr('Sin resultados en los buckets seleccionados.'))
@@ -830,6 +903,8 @@ class YitoApp(App):
             self.query_one('#manifest', Button).disabled = False
             installed = self.selected in self.catalog_installed
             self.query_one('#install', Button).disabled = self.busy or installed or status != 'Compatible'
+            # Instalado o no: elegir otra versión sustituye la instalación actual.
+            self.query_one('#versions', Button).disabled = self.busy or status != 'Compatible'
             notes = m.get('notes', [])
             notes = '\n'.join(str(note) for note in notes) if isinstance(notes, list) else str(notes)
             availability = tr('Instalado') if installed else tr(status)
@@ -964,12 +1039,15 @@ class YitoApp(App):
             self.push_screen(ManageProfileDialog(profile, bool(profile) and len(self.engine.profiles()) > 1),
                              lambda result: self.manage_profile_result(profile, result))
             return
-        if action not in ('create', 'refresh', 'install') and not action.startswith(('remove-', 'update-', 'info-')) and not profile:
+        if action not in ('create', 'refresh', 'install', 'versions') and not action.startswith(('remove-', 'update-', 'info-')) and not profile:
             self.notify(tr('Selecciona un profile'), severity='warning')
             return
         if action.startswith('info-'):
             installation = self.row_ids[action.removeprefix('info-')]
-            self.push_screen(ComponentInfoDialog(self.engine.root,self.inventory[installation],profile))
+            def closed(result):
+                if result == 'release-version':
+                    self.begin('release-version', profile, installation)
+            self.push_screen(ComponentInfoDialog(self.engine.root,self.inventory[installation],profile), closed)
             return
         if action.startswith('remove-'):
             from .components import users
@@ -983,6 +1061,8 @@ class YitoApp(App):
             self.begin('update-component',profile,self.row_ids[action.removeprefix('update-')])
             return
         if action == 'install' and (not self.selected or self.query_one('#install', Button).disabled):
+            return
+        if action == 'versions' and (not self.selected or self.query_one('#versions', Button).disabled):
             return
         target = self.row_ids.get(action.removeprefix('open-')) if action.startswith('open-') else self.selected
         if action.startswith('open-'):
@@ -1130,6 +1210,32 @@ class YitoApp(App):
 
         self.engine.install(target, log=log, confirm_unverified=confirm, confirm_plan=review)
 
+    async def choose_version(self, key, current, installed, versions, autoupdate, history_available):
+        return await self.push_screen_wait(VersionsDialog(key, current, installed, versions, autoupdate, history_available))
+
+    def install_version_from_catalog(self, target, log, confirm):
+        from .versions import history, history_versions, resolve
+        from .components import install_version
+        _, manifest = self.engine.catalog.resolve(target)
+        log(tr('Consultando versiones de {p1}…', p1=target))
+        found = None
+        try:
+            found = history(self.engine.root, self.engine.catalog, target)
+        except Exception as exc:
+            capture(self.engine.root, exc, operation='versions.history', component=target)
+            log(tr('No se pudo consultar el histórico del bucket: {p1}', p1=exc))
+        installed = self.engine.installed().get(target)
+        version = self.call_from_thread(self.choose_version, target, str(manifest.get('version', '?')),
+                                        installed['version'] if installed else None, history_versions(found),
+                                        isinstance(manifest.get('autoupdate'), dict), found is not None)
+        if not version:
+            log(tr('Selección de versión cancelada'))
+            return
+        # {} evita repetir la consulta del histórico si ya falló o no existe.
+        chosen, pin = resolve(self.engine.root, self.engine.catalog, target, version,
+                              found=found if found is not None else {}, log=log)
+        install_version(self.engine, target, chosen, pin, log=log, confirm_unverified=confirm)
+
     async def confirm_host_data(self, message, label=None):
         from .host_apps_ui import HostDataConfirm
         return await self.push_screen_wait(HostDataConfirm(message, label))
@@ -1230,6 +1336,11 @@ class YitoApp(App):
                 update(self.engine, target, log, confirm_unverified=confirm)
             elif action == 'install':
                 self.install_from_catalog(target, log, confirm)
+            elif action == 'versions':
+                self.install_version_from_catalog(target, log, confirm)
+            elif action == 'release-version':
+                from .components import release_version
+                release_version(self.engine, target, log)
             elif action == 'delete-profile':
                 removed = profile
                 profile = self.engine.delete_profile(profile)

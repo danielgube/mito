@@ -11,6 +11,26 @@ de publicación remota. Las decisiones vigentes están en
 
 ### Corregido
 
+- Los comandos de los componentes (`git`, `node`, `java`…) se ejecutaban siempre en el
+  workspace del profile, ignorando la carpeta actual: `git init` en `C:\proyecto`
+  creaba el repositorio en `workspaces\<profile>`. Ahora trabajan en el directorio
+  desde el que se invocan; aplicaciones y accesos siguen abriendo en el workspace.
+- La instalación mueve los archivos extraídos al payload en lugar de copiarlos: evita
+  escribir dos veces cada archivo y que el antivirus vuelva a analizarlos antes de
+  publicar. El log indica la fase «Publicando», que el antivirus puede retrasar.
+- La comprobación de actualizaciones de MITO fallaba con «[Errno 13] Permission
+  denied» al coincidir con la de componentes: el lock trataba un byte bloqueado como
+  error de permisos. Ahora espera brevemente y, sin espera, da el mensaje de lock ocupado.
+- Una instancia sin profiles, como un checkout del código fuente, crea el profile
+  `default` vacío al abrir el gestor (`mito.cmd`, `ui`, `start`). Hasta ahora sólo
+  lo incluía el ZIP de release y los componentes instalados no podían activarse.
+- El home portable crea las carpetas de usuario conocidas de Windows (Desktop,
+  Documents, Downloads, Music, Pictures, Videos, etc.). Sin ellas, aplicaciones
+  Electron como Mattermost abortaban con «Failed to get 'downloads' path».
+- Eliminar un componente comprueba antes si sus archivos están en uso, igual que
+  Actualizar, y pide cerrar la aplicación (también desde la bandeja) en lugar de
+  mostrar «[WinError 5] Acceso denegado». No se modifica nada si falla.
+
 - El catálogo identifica componentes instalados y deshabilita Instalar, con
   independencia de su activación por profile o versión instalada.
 
@@ -19,10 +39,21 @@ de publicación remota. Las decisiones vigentes están en
 
 ### Añadido
 
+- MITO detecta al arrancar que su carpeta se ha movido o copiado: reescribe sus
+  accesos del escritorio tras un traslado, deja de reclamar los del original en una
+  copia y aparta (sin borrar) las persistencias que el copiador convirtió en carpetas.
+- **Versiones…** en el catálogo instala una versión concreta de un componente: desde
+  el histórico Git del bucket (manifiesto y hash reales) o generada con `autoupdate`
+  como `scoop install app@versión`. La versión elegida sustituye a la instalada y
+  queda retenida frente a Actualizar hasta pulsar **Liberar** en Info.
 - Extracción MSI mediante lectura de tablas y CAB internos, sin ejecutar la
   instalación ni acciones del paquete. Conserva instalación en staging, inventario,
   activación por profile, actualización y eliminación genéricos. Medios externos,
   archivos sin comprimir y CAB divididos permanecen fuera de alcance.
+- El primer arranque detecta el proxy de Windows (manual, script PAC o WPAD) cuando
+  `config.properties` no declara proxy, clasifica la conexión (directa, HTTP 407 o
+  portal) y ofrece guardar `http_proxy`, `https_proxy`, `no_proxy` y el portal
+  detectado. Si hay portal, permite autenticarse en consola antes de descargar.
 
 ### Documentación
 

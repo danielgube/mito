@@ -297,9 +297,30 @@ Los procesos reciben HTTP_PROXY/HTTPS_PROXY/NO_PROXY, pero cada aplicación deci
 si respeta esas variables. Las descargas de MITO sí usan el proxy configurado y
 mantienen la verificación de hashes. No se modifica el proxy global de Windows.
 
-El bootstrap inicial de CPython admite https_proxy; si el portal bloquea esa primera
-descarga, autentícate previamente en el navegador. El diálogo de MITO requiere el
-runtime instalado. Desde Python, también las descargas del bootstrap usan el proxy.
+El bootstrap inicial usa `https_proxy` si está declarado; un valor vacío fuerza
+conexión directa. Si `config.properties` no declara `http_proxy` ni `https_proxy`,
+detecta el proxy con Windows (`HTTPS_PROXY` del entorno, configuración manual,
+script PAC o WPAD), ya que Python no evalúa PAC, y comprueba `network.check_url`:
+
+- HTTP 204: el proxy da acceso directo a Internet.
+- HTTP 407: indica los esquemas (Basic, NTLM, Negotiate). Si la sesión de Windows
+  basta, PowerShell la usa, pero las descargas de Python pueden fallar.
+- Redirección: portal de autenticación; propone su URL y los campos del formulario.
+
+Muestra las claves y pregunta si guardarlas (`[S/n]`). Si no se guardan, el proxy
+sólo se usa durante esa preparación. Con un portal configurado o detectado y sin
+Internet, pide usuario y contraseña en la consola (contraseña oculta, hasta tres
+intentos, vacío para omitir) con las mismas reglas de origen, HTTPS y comprobación
+final que el diálogo de MITO. Se guarda un único proxy: si el PAC devuelve proxies
+distintos por destino, sólo vale el resuelto para la descarga de Python. El
+actualizador (`-Approved`) nunca pregunta: usa el proxy detectado sin guardarlo.
+Desde Python, también las descargas del bootstrap usan el proxy.
+
+Para ver el proxy de Windows en una consola, incluido el resuelto por PAC:
+
+```powershell
+[Net.WebRequest]::GetSystemWebProxy().GetProxy([Uri]'https://github.com/')
+```
 
 ## Crear releases
 

@@ -19,9 +19,17 @@ class Engine:
         self.root = root.resolve()
         self.catalog = Catalog(self.root)
 
+    # Las carpetas conocidas de Windows suelen declararse como %USERPROFILE%\<nombre>.
+    # Con USERPROFILE en home, SHGetKnownFolderPath falla si no existen (p. ej. Electron
+    # aborta con "Failed to get 'downloads' path"). Se crean vacías, sin excepciones por app.
+    USER_FOLDERS = ('Desktop', 'Documents', 'Downloads', 'Music', 'Pictures', 'Videos',
+                    'Favorites', 'Links', 'Contacts', 'Searches', 'Saved Games', 'AppData/LocalLow')
+
     def initialize(self):
         for relative in ('home', 'home/AppData/Roaming', 'home/AppData/Local', 'home/tmp', 'home/custom-commands', 'profiles', 'workspaces', 'core/cache', 'core/staging', 'core/state', 'core/apps'):
             inside(self.root, relative).mkdir(parents=True, exist_ok=True)
+        for relative in self.USER_FOLDERS:
+            inside(self.root / 'home', relative).mkdir(parents=True, exist_ok=True)
 
     def profiles(self):
         return sorted(p.stem for p in (self.root / 'profiles').glob('*.json'))
@@ -128,6 +136,19 @@ class Engine:
             prepare(self)
         return name
 
+    def ensure_default_profile(self):
+        """Una instancia sin profiles (checkout del fuente o profiles/ vacío) recibe
+        el mismo profile default vacío que incluye el ZIP de release."""
+        if self.profiles():
+            return None
+        try:
+            return self.create_profile('default')
+        except YitoError:
+            # Otro proceso lo creó entre la comprobación y el lock.
+            if self.profiles():
+                return None
+            raise
+
     def delete_profile(self, name):
         name = identifier(name)
         with mutation(self.root):
@@ -140,19 +161,32 @@ class Engine:
             prepare(self)
         return self.profiles()[0]
 
-    def installation_plan(self, requested, profile=None, log=lambda message: None):
+    def installation_plan(self, requested, profile=None, log=lambda message: None, manifests=None, pins=None):
         with mutation(self.root):
-            return self._installation_plan(requested, profile, log)
+            return self._installation_plan(requested, profile, log, manifests, pins)
 
-    def _installation_plan(self, requested, profile, log):
+    def _installation_plan(self, requested, profile, log, manifests=None, pins=None):
+        """manifests sustituye el manifiesto del catálogo para claves concretas (versión
+        elegida); pins marca esas claves como retenidas. Una versión ya retenida conserva
+        su manifiesto instalado aunque el catálogo avance, también como dependencia."""
         self.initialize()
         data = self.profile(profile) if profile else {'apps': []}
         records = {}
         plan = []
         visiting, visited = set(), set()
+        current = self.installed()
+        manifests, pins = manifests or {}, pins or {}
+        retained = {}
 
         def resolve(name):
             key, manifest = self.catalog.resolve(name)
+            if key in manifests:
+                manifest = manifests[key]
+                if key in pins:
+                    retained[key] = pins[key]
+            elif key in current and current[key].get('pinned'):
+                manifest = current[key]['manifest']
+                retained[key] = current[key]['pinned']
             if key in visiting:
                 raise YitoError(tr('Dependencia circular: {p1}', p1=(key)))
             if key in visited:
@@ -180,12 +214,13 @@ class Engine:
             relative = f'core/apps/{identifier(bucket)}/{identifier(app)}'
             destination = inside(self.root, relative)
             record = {'key': key, 'version': manifest['version'], 'manifest_sha256': digest, 'path': relative, 'manifest': manifest}
+            if key in retained:
+                record['pinned'] = retained[key]
             installation = self.install_id(key, record)
             records[installation] = record
             if installation not in data['apps']:
                 data['apps'].append(installation)
             installs.append((key, manifest, destination))
-        current = self.installed()
         from .components import validate_update_layout
         for key, manifest, destination in installs:
             if key in current:
@@ -208,14 +243,14 @@ class Engine:
                 'resource_sources': resource_sources,
                 'profiles': {name: self.profile(name) for name in self.profiles()}}
 
-    def install(self, requested, profile=None, log=print, confirm_unverified=None, confirm_plan=None):
-        prepared = self.installation_plan(requested, profile, log)
+    def install(self, requested, profile=None, log=print, confirm_unverified=None, confirm_plan=None, manifests=None, pins=None):
+        prepared = self.installation_plan(requested, profile, log, manifests, pins)
         if confirm_plan is not None and not confirm_plan(prepared['records']):
             raise YitoError(tr('Importación cancelada'))
         if prepared['unverified'] and (confirm_unverified is None or not confirm_unverified(prepared['unverified'])):
             raise YitoError(tr('Instalación cancelada: descargas sin hash no confirmadas'))
         with mutation(self.root):
-            current = self._installation_plan(requested, profile, lambda message: None)
+            current = self._installation_plan(requested, profile, lambda message: None, manifests, pins)
             if current != prepared:
                 raise YitoError('STATE_CONFLICT: installation plan changed; retry and review again')
             from .components import publish_plan
@@ -269,7 +304,14 @@ class Engine:
                 copied = 0
                 def copy_file(source_file, target_file):
                     nonlocal copied
-                    result = shutil.copy2(source_file, target_file)
+                    # expanded-N es temporal y está en el mismo staging: mover evita
+                    # reescribir cada archivo y que el antivirus vuelva a escanearlo
+                    # antes de permitir publicar la carpeta.
+                    try:
+                        os.replace(source_file, target_file)
+                        result = target_file
+                    except OSError:
+                        result = shutil.copy2(source_file, target_file)
                     copied += 1
                     if copied % 1000 == 0 or copied == total:
                         log(tr('Archivos {p1}: {p2}/{p3}', p1=key, p2=copied, p3=total))
@@ -298,7 +340,11 @@ class Engine:
             destination.parent.mkdir(parents=True, exist_ok=True)
             if destination.exists():
                 raise YitoError(tr('Instalación incompleta existente: {p1}', p1=(destination)))
-            payload.rename(destination)
+            # Windows puede retener el renombrado hasta que el antivirus termine de
+            # analizar los archivos recién escritos; se indica para que no parezca colgado.
+            log(tr('Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos', p1=key))
+            with step(self.root, 'install', 'publish', key):
+                payload.rename(destination)
             log(tr('Instalado {p1} {p3}', p1=(key), p3=(manifest['version'])))
 
     @staticmethod
@@ -524,23 +570,32 @@ class Engine:
                 raise YitoError(tr('Modo de lanzamiento no válido'))
             from .terminal import launch_component
             return launch_component(self, profile, key, self.application_name(lock, shortcut), arguments, shortcut=shortcut)
+        # Un comando de consola (shim de bin) trabaja donde se invoca, como cualquier
+        # comando del PATH: `git init` en C:\proyecto debe actuar en C:\proyecto.
+        # Aplicaciones y accesos directos se abren en el workspace del profile.
+        cwd = workspace
+        if binary:
+            try:
+                cwd = Path(os.getcwd())
+            except OSError:
+                cwd = workspace
         if owned:
             from .processes import ProcessJob
             group = ProcessJob()
             try:
-                process = group.spawn(command, cwd=workspace, env=env, creationflags=0)
+                process = group.spawn(command, cwd=cwd, env=env, creationflags=0)
                 result = process.wait()
                 group.wait_empty()
                 return result
             finally:
                 group.close()
         if new_terminal:
-            subprocess.Popen(command, cwd=workspace, env=env, creationflags=subprocess.CREATE_NEW_CONSOLE)
+            subprocess.Popen(command, cwd=cwd, env=env, creationflags=subprocess.CREATE_NEW_CONSOLE)
             return 0
         if app and not binary:
-            subprocess.Popen(command, cwd=workspace, env=env)
+            subprocess.Popen(command, cwd=cwd, env=env)
             return 0
-        return subprocess.call(command, cwd=workspace, env=env)
+        return subprocess.call(command, cwd=cwd, env=env)
 
     def shell(self, profile, arguments=(), shell_type='cmd'):
         env = self.environment(profile)

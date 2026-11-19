@@ -14,7 +14,7 @@ def validate_update_layout(old, manifest):
         raise YitoError(tr('La actualización cambia persist o el aislamiento por profile; requiere una migración de datos explícita.'))
 
 
-def check_unused(folder):
+def check_unused(folder, removing=False):
     """Probe Windows delete access, without traversing persistent junctions."""
     import os
     if os.name != 'nt':
@@ -32,6 +32,8 @@ def check_unused(folder):
             path = Path(parent)/name
             handle = kernel.CreateFileW(str(path), 0x10000, 7, None, 3, 0, None)
             if handle == ctypes.c_void_p(-1).value:
+                if removing:
+                    raise YitoError(tr('Cierra la aplicación antes de eliminar; archivo en uso o sin permiso de eliminación: {p1}', p1=(path)))
                 raise YitoError(tr('Cierra la aplicación antes de actualizar; archivo en uso o sin permiso de eliminación: {p1}', p1=(path)))
             kernel.CloseHandle(handle)
 
@@ -50,6 +52,9 @@ def version_key(value):
 
 
 def available_update(engine, lock, catalog=None):
+    # Una versión elegida explícitamente queda retenida hasta liberarla en Info.
+    if lock.get('pinned'):
+        return None
     if catalog is None:
         catalog = dict(engine.catalog.all())
     manifest = catalog.get(lock['key'])
@@ -94,6 +99,9 @@ def remove(engine, installation, log=print):
                     if not copy.resolve().is_relative_to((engine.root/'core/profile-apps').resolve()) or copy.is_junction() or copy.is_symlink():
                         raise YitoError(tr('Copia de profile fuera de su directorio'))
                     targets.append(copy)
+        # Como al actualizar: una app abierta (también en la bandeja) bloquea sus archivos.
+        for target in targets:
+            check_unused(target, removing=True)
         stage.mkdir()
         moved=[]
         try:
@@ -101,9 +109,12 @@ def remove(engine, installation, log=print):
                 stored=stage/str(index)
                 target.rename(stored)
                 moved.append((target,stored))
-        except Exception:
+        except Exception as exc:
             for target,stored in reversed(moved):stored.rename(target)
             stage.rmdir()
+            if isinstance(exc, PermissionError):
+                # Carpeta abierta como directorio actual o con un handle no detectado arriba.
+                raise YitoError(tr('Cierra la aplicación antes de eliminar; archivo en uso o sin permiso de eliminación: {p1}', p1=(exc.filename or payload))) from exc
             raise
         changed=[]
         try:
@@ -126,6 +137,34 @@ def remove(engine, installation, log=print):
         log(tr('Eliminado {p1} {p3}. Datos persistentes conservados.', p1=(lock['key']), p3=(lock['version'])))
 
 
+def install_version(engine, key, manifest, pin, log=print, confirm_unverified=None):
+    """Instala una versión concreta de bucket/app (histórico o autoupdate) y la retiene.
+    Sustituye la instalación actual en su ruta estable, como Actualizar."""
+    current = engine.installed().get(key)
+    if current:
+        validate_update_layout(current, manifest)
+    engine.install(key, log=log, confirm_unverified=confirm_unverified, manifests={key: manifest}, pins={key: pin})
+    installed = engine.installed()[key]
+    log(tr('{p1} {p3} instalado y retenido: Actualizar no lo sustituirá hasta liberarlo en Info.',
+           p1=key, p3=installed['version']))
+    return key
+
+
+def release_version(engine, installation, log=print):
+    """Quita la retención; el payload y su versión no cambian."""
+    with mutation(engine.root):
+        lock = engine.installed().get(installation)
+        if not lock:
+            raise YitoError(tr('El componente ya no está instalado'))
+        marker = inside(engine.root, lock['path']) / '.mito.json'
+        metadata = read_json(marker)
+        if metadata['record'].pop('pinned', None) is None:
+            return False
+        write_json(marker, metadata)
+    log(tr('Versión liberada: {p1} {p3}. Actualizar volverá a proponer la versión del catálogo.', p1=lock['key'], p3=lock['version']))
+    return True
+
+
 def update(engine, installation, log=print, confirm_unverified=None):
     old = engine.installed().get(installation)
     if not old:
@@ -146,7 +185,8 @@ def publish_plan(engine, records, current, profile, data, log):
     """Caller holds mutation lock. Stage the entire plan before replacing stable paths."""
     from .isolation import isolated, payload_path, prepare_payload
     changed = {key: record for key, record in records.items()
-               if key not in current or current[key]['manifest_sha256'] != record['manifest_sha256']}
+               if key not in current or current[key]['manifest_sha256'] != record['manifest_sha256']
+               or current[key].get('pinned') != record.get('pinned')}
     profiles = {name: engine.profile(name) for name in engine.profiles()}
     affected = {name for name, value in profiles.items() if set(value['apps']) & (changed.keys() & current.keys())}
     if profile:

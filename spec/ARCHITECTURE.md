@@ -316,7 +316,9 @@ El formato se contrastó con
 y [BurnReader.cs](https://github.com/wixtoolset/wix3/blob/develop/src/tools/wix/BurnReader.cs).
 
 HOME, USERPROFILE, APPDATA, LOCALAPPDATA, TEMP, TMP, HOMEDRIVE y HOMEPATH se
-construyen desde una única raíz `home/`. Los profiles no pueden redefinirlas. `env` se aplica después de env_set y puede
+construyen desde una única raíz `home/`. Engine.initialize crea allí las carpetas de
+usuario conocidas (Desktop, Documents, Downloads…, AppData/LocalLow), porque Windows
+no resuelve `%USERPROFILE%\<carpeta>` inexistentes. Los profiles no pueden redefinirlas. `env` se aplica después de env_set y puede
 sobrescribir variables de componentes; sus valores son literales, sin expansión ni
 ejecución. PATH y MITO_* también están reservadas. Nombres sin distinción de
 mayúsculas, valores de cadena y limpieza al cambiar de profile en procesos hijos.
@@ -326,6 +328,10 @@ Engine.context_variables lee sin activar componentes las variables de rutas gest
 MITO_PROFILE, MITO_ROOT, MITO_WORKSPACE y las de home/AppData/temporales. La construcción
 del entorno reutiliza esos valores. MITO_WORKSPACE es workspaces/<workspace del profile>,
 absoluto y recalculado al cambiar profile o mover la instancia; comparte la reserva MITO_*.
+Directorio de trabajo: las pestañas, las aplicaciones (Abrir, accesos .lnk) y los
+trabajos MCP empiezan en el workspace. Los comandos de consola (`run --bin`, invocados
+por los shims de bin) heredan el directorio actual de quien los llama, como cualquier
+comando del PATH; sólo si no se puede leer se usa el workspace.
 El editor Pocketools usa esta lectura para comentar las plantillas CMD/PS1 del profile
 de referencia, sin copiar variables personalizadas ni activar componentes al abrirlo.
 
@@ -702,6 +708,8 @@ y los archivos de arranque,
 con configuración pública y profile default nuevos. No lee datos del home ni
 incluye herramientas instaladas. Verifica el ZIP y escribe un SHA-256; no sobrescribe
 una release existente. Bootstrap descarga las dependencias fijadas al primer arranque.
+Si una instancia no tiene profiles (checkout del fuente), mito.cmd, ui y start crean
+ese mismo profile default vacío mediante Engine.ensure_default_profile.
 
 
 `publish.py` implementa `release [mayor|minor|hotfix]`, tomando la mayor versión
@@ -809,6 +817,18 @@ Cancelar permite lanzar. Sesión CookieJar efímera; formularios sólo mismo ori
 POST HTTPS por defecto y redirecciones de POST nunca reenviadas. Comprobación final
 independiente del CookieJar. No implementa autenticación HTTP 407 ni cookies en hijos.
 
+bootstrap.ps1 (Initialize-YitoProxy) resuelve el proxy antes de descargar CPython.
+config.properties manda: https_proxy vacío fuerza conexión directa y cualquier clave
+de proxy desactiva la detección. Sin ellas usa HTTPS_PROXY del entorno o
+GetSystemWebProxy (manual, PAC, WPAD) para la URL de Python, porque urllib no evalúa
+PAC. Sondea network.check_url sin redirects (y su variante HTTP si falla) y clasifica
+ok, 407 con esquemas, portal por Location, bloqueado o inalcanzable. NTLM/Negotiate
+se reintenta con credenciales de Windows sólo para PowerShell. Las claves propuestas
+(proxy, no_proxy desde ProxyOverride, portal y campos detectados) se guardan sólo
+con confirmación y conservando el resto del archivo; si no, pasan a Python como
+HTTP(S)_PROXY/NO_PROXY del proceso. El login de portal en consola replica
+Network.authenticate en PowerShell. -Approved nunca pregunta ni guarda.
+
 Los ZIP se validan y extraen con Python. Si la lectura encuentra un método de
 compresión no implementado, archives.extract_7zip reutiliza el extractor privado,
 con listado previo, límites y rechazo de enlaces. No se relajan hashes ni rutas.
@@ -827,6 +847,43 @@ instalaciones, reúne descargas sin hash de payloads ausentes, incluidas depende
 y pide una única confirmación antes de descargar. Sin callback o con rechazo cancela
 sin cambiar profiles ni publicar payloads. UI espera un ModalScreen desde el worker;
 CLI pide confirmación por stdin. components.update transmite el mismo callback.
+
+## Traslado y copia de la instancia
+
+relocation.check se ejecuta en cada arranque de la CLI (salvo bootstrap) tras
+initialize. Compara core/state/instance.json con la raíz actual; sin registro sólo
+lo crea. Si difiere, bajo mutation: aparta a core/staging/relocated-persist-* las
+carpetas reales donde .mito-persist.json espera un junction (copias materializadas;
+nunca se borran) y revisa los .lnk registrados en core/state/application-shortcuts
+y mito-shortcuts leyendo su TargetPath. Si la ruta anterior sigue siendo una
+instancia (copia), retira de esta instancia los registros que apuntan a ella; si no
+(traslado), los reescribe con la nueva raíz y el icono regenerado. Avisa de Host
+data/cache materializados. Los mensajes van al log y a core/state/relocation-notice.json,
+que la UI muestra una vez al abrirse. Un fallo no impide arrancar: el registro no
+se actualiza y se reintenta. Entorno, shims, settings del Terminal y junctions de
+persistencia ya se regeneraban al lanzar.
+
+## Versiones concretas y retención
+
+versions.py resuelve otra versión de bucket/app sin adaptadores por aplicación.
+Primero el histórico Git del bucket (sólo GitHub): API commits?path=bucket/<app>.json
+(hasta 5 páginas), versiones deducidas de los mensajes y, para la elegida, el commit
+más reciente que la menciona y cuyo manifiesto (raw por SHA) declara esa versión;
+así se recogen correcciones «app@x: Fix hash». Después autoupdate, como
+`scoop install app@versión`: sustituye $version, $majorVersion… (sin distinguir
+mayúsculas) en los campos de autoupdate y sus arquitecturas, retira el hash de cada
+URL cambiada y lo recalcula con autoupdate.hash en modo extract (url + regex/find,
+$basename, $sha256…). jsonpath/xpath u otros modos y variables de checkver ($match…)
+no se emulan: sin hash, la descarga pasa por la confirmación habitual; con $match en
+URLs se rechaza.
+
+components.install_version llama a Engine.install con manifests={key: manifiesto} y
+pins={key: origen}. El registro de .mito.json guarda pinned {version, source,
+commit}. Mientras exista, available_update no propone versiones y el plan de
+instalación conserva el manifiesto instalado aunque el componente aparezca como
+dependencia. Cambiar sólo la retención también republica el payload.
+release_version la quita sin tocar binarios. Sigue habiendo una versión por
+componente, en la misma ruta; profiles y accesos no fijan versión.
 
 ## Intercambio de profiles sin datos
 

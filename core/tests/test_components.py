@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -5,7 +6,7 @@ from unittest.mock import patch
 from mito.engine import Engine
 from mito.catalog import fingerprint
 from mito.storage import YitoError, write_json
-from mito.components import available_update, remove, update, version_key
+from mito.components import available_update, install_version, release_version, remove, update, version_key
 
 
 class ComponentTests(unittest.TestCase):
@@ -220,6 +221,44 @@ class ComponentTests(unittest.TestCase):
         records = [read_json(p) for p in registry.parent.glob('*.json')]
         self.assertEqual(records, [{'path':str(path), 'profile':'one', 'app':'main/tool',
             'badge':'TEST', 'coupled':True, 'arguments':['--name','two words']}])
+
+    def test_install_version_pins_until_released_and_survives_dependents(self):
+        quiet=lambda _:None
+        newer=dict(self.old['manifest'],version='2.0')
+        write_json(self.root/'core/buckets/main.json',{'apps':{'tool':newer}})
+        self.assertEqual(available_update(self.engine,self.old)['version'],'2.0')
+        older=dict(self.old['manifest'],version='1.5')
+        pin={'version':'1.5','source':'git','commit':'a'*40}
+        install_version(self.engine,'main/tool',older,pin,log=quiet)
+        lock=self.engine.installed()['main/tool']
+        self.assertEqual((lock['version'],lock['pinned']),('1.5',pin))
+        self.assertIsNone(available_update(self.engine,lock))
+        for name in self.engine.profiles():self.assertIn(self.old_id,self.engine.profile(name)['apps'])
+        # Una dependencia instalada después no sustituye la versión retenida por la del catálogo.
+        dependent={'version':'1.0','url':'http://example.org/dep.zip','hash':'0'*64,'depends':'main/tool'}
+        write_json(self.root/'core/buckets/main.json',{'apps':{'tool':newer,'dep':dependent}})
+        self.engine.install('main/dep',log=quiet)
+        self.assertEqual(self.engine.installed()['main/tool']['version'],'1.5')
+        self.assertTrue(release_version(self.engine,'main/tool',log=quiet))
+        lock=self.engine.installed()['main/tool']
+        self.assertNotIn('pinned',lock)
+        self.assertEqual(lock['version'],'1.5')
+        self.assertEqual(available_update(self.engine,lock)['version'],'2.0')
+        self.assertFalse(release_version(self.engine,'main/tool',log=quiet))
+
+    @unittest.skipUnless(os.name == 'nt', 'Bloqueo de archivos de Windows')
+    def test_remove_in_use_reports_open_application_and_keeps_payload(self):
+        # Un archivo abierto sin FILE_SHARE_DELETE equivale a la app abierta en la bandeja.
+        payload=self.root/self.old['path']
+        locked=next(path for path in payload.rglob('*') if path.is_file() and path.name != '.mito.json')
+        with locked.open('rb'):
+            with self.assertRaises(YitoError) as raised:remove(self.engine,self.old_id,log=lambda _:None)
+        self.assertIn('antes de eliminar', str(raised.exception))
+        self.assertTrue(payload.exists())
+        self.assertIn(self.old_id,self.engine.profile('one')['apps'])
+        self.assertFalse(list((self.root/'core/staging').glob('remove-*')))
+        remove(self.engine,self.old_id,log=lambda _:None)
+        self.assertFalse(payload.exists())
 
     def test_failed_remove_profile_write_restores_payload(self):
         with patch.object(self.engine,'save_profile',side_effect=OSError('write failed')):

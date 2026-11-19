@@ -71,22 +71,34 @@ def write_json(path: Path, value):
 
 
 @contextlib.contextmanager
-def mutation(root: Path, name='mutation.lock'):
-    """OS lock: released even when the process crashes."""
+def mutation(root: Path, name='mutation.lock', wait=0.0):
+    """OS lock: released even when the process crashes.
+
+    wait > 0 reintenta durante esos segundos (locks breves, como las comprobaciones
+    diarias que la UI lanza en paralelo); por defecto falla en el acto."""
     state = root / 'core/state'
     state.mkdir(parents=True, exist_ok=True)
     with (state / identifier(name)).open('a+b') as stream:
         stream.seek(0)
         if os.name == 'nt':
             import msvcrt
-            if not stream.read(1):
-                stream.write(b'0')
-                stream.flush()
-            stream.seek(0)
-            try:
-                msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
-            except OSError as exc:
-                raise YitoError(tr('Otra instancia está modificando MITO. Espera a que termine.')) from exc
+            import time
+            deadline = time.monotonic() + max(0.0, wait)
+            while True:
+                try:
+                    # Leer un byte bloqueado por otro handle da PermissionError: también
+                    # significa «ocupado», no un error de permisos real.
+                    stream.seek(0)
+                    if not stream.read(1):
+                        stream.write(b'0')
+                        stream.flush()
+                    stream.seek(0)
+                    msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+                    break
+                except OSError as exc:
+                    if time.monotonic() >= deadline:
+                        raise YitoError(tr('Otra instancia está modificando MITO. Espera a que termine.')) from exc
+                    time.sleep(0.1)
         else:
             import fcntl
             fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)

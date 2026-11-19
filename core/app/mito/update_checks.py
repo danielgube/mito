@@ -12,7 +12,9 @@ def daily(root, name, key, operation, *, force=False):
     identity = hashlib.sha256(json.dumps(key, sort_keys=True).encode()).hexdigest()
     path = inside(root, 'core/state/' + name + '-check.json')
     token = uuid.uuid4().hex
-    with mutation(root, 'update-checks.lock'):
+    # Componentes y MITO se comprueban en paralelo al abrir la UI; el lock sólo cubre
+    # la lectura/escritura del registro, así que basta con esperar un momento.
+    with mutation(root, 'update-checks.lock', wait=15):
         try:
             previous = read_json(path)
         except (OSError, ValueError):
@@ -23,7 +25,7 @@ def daily(root, name, key, operation, *, force=False):
         record = {'day': day, 'key': identity, 'token': token, 'result': None}
         write_json(path, record)
     result = operation()
-    with mutation(root, 'update-checks.lock'):
+    with mutation(root, 'update-checks.lock', wait=15):
         if read_json(path).get('token') == token:
             write_json(path, dict(record, result=result))
     return result

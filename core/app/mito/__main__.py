@@ -3,6 +3,7 @@ import json
 import sys
 
 from .engine import Engine
+from .i18n import tr
 from .storage import YitoError, mutation, root_path
 from .error_tracking import capture, flush, resume, report_threads
 from . import diagnostics
@@ -136,6 +137,27 @@ def main(argv=None):
             return 0
         resume(root)
         engine.initialize()
+        if args.command in (None, 'ui', 'start'):
+            # Nunca se borra el último profile; sólo el primer arranque puede no tener ninguno.
+            engine.ensure_default_profile()
+        if args.command != 'bootstrap':
+            # Instancia movida o copiada: se repara una vez, antes de construir entornos.
+            from .relocation import check as check_relocation, save_notice
+            messages = []
+            def relocation_log(message):
+                diagnostics.write(root, 'info', 'relocation', message)
+                messages.append(message)
+                if args.command not in (None, 'ui'):
+                    print(message)
+            try:
+                check_relocation(engine, relocation_log)
+            except Exception as exc:
+                # Nunca impide arrancar; se reintenta en el siguiente arranque.
+                capture(root, exc, operation='relocation')
+                relocation_log(tr('No se pudo completar la revisión del traslado de MITO: {p1}', p1=exc))
+            if messages:
+                # La UI puede ejecutarse en otro proceso (start → Terminal): la lee al abrirse.
+                save_notice(root, messages)
         if args.command in ('shell', 'mcp-server') or getattr(args, 'owned', False):
             from .terminal_identity import apply_safely
             apply_safely(root)
