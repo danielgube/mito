@@ -11,6 +11,9 @@ de publicación remota. Las decisiones vigentes están en
 
 ### Corregido
 
+- `mito release` fallaba con «[WinError 2]» en las pestañas de MITO: llamaba a `git`
+  sin shell y allí es un shim `.cmd`. Ahora resuelve `git.exe` del host o de un
+  componente instalado, y los errores de Git incluyen su causa.
 - Los comandos de los componentes (`git`, `node`, `java`…) se ejecutaban siempre en el
   workspace del profile, ignorando la carpeta actual: `git init` en `C:\proyecto`
   creaba el repositorio en `workspaces\<profile>`. Ahora trabajan en el directorio

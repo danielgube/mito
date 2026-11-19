@@ -86,6 +86,22 @@ class PublishTests(unittest.TestCase):
             updated_changelog(result, '0.1.11', 'Notas', '2026-09-16')
         self.assertIn('## 1.0.0', updated_changelog('# Changelog\n', '1.0.0', 'Notas', 'fecha'))
 
+    def test_git_uses_resolved_executable_and_reports_cause(self):
+        # En una pestaña de MITO `git` es un shim .cmd: CreateProcess sin shell no lo encuentra.
+        import subprocess
+        from mito import publish as module
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            executable = str(root / 'core/apps/main/git/cmd/git.exe')
+            ok = subprocess.CompletedProcess([], 0, stdout='abc\n', stderr='')
+            failed = subprocess.CompletedProcess([], 128, stdout='', stderr='hint\nfatal: unable to access: schannel failure\n')
+            with patch('mito.pocketools.git_executable', return_value=executable), \
+                 patch('mito.publish.subprocess.run', side_effect=[ok, failed]) as run:
+                self.assertEqual(module.git(root, 'rev-parse', 'HEAD'), 'abc')
+                self.assertEqual(run.call_args.args[0], [executable, 'rev-parse', 'HEAD'])
+                with self.assertRaisesRegex(YitoError, 'schannel failure'):
+                    module.git(root, 'push')
+
     def test_numeric_increment(self):
         self.assertEqual(next_version('0.1.0',[]),'0.1.1')
         self.assertEqual(next_version('0.1.9',[{'tag_name':'v0.1.10'}]),'0.1.11')

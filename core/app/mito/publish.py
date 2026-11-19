@@ -52,12 +52,23 @@ def updated_changelog(original, version, notes, day):
     return prefix + entry + original[position:]
 
 
+def git_command(root):
+    """git.exe del host o de un componente instalado. En una pestaña de MITO `git` es
+    un shim .cmd que CreateProcess no encuentra sin shell (WinError 2)."""
+    from .engine import Engine
+    from .pocketools import git_executable
+    return git_executable(Engine(root))
+
+
 def git(root, *args, input=None):
-    result = subprocess.run(['git', *args], cwd=root, input=input, capture_output=True,
+    result = subprocess.run([git_command(root), *args], cwd=root, input=input, capture_output=True,
                             text=True, encoding='utf-8', timeout=120,
                             env=dict(os.environ, GIT_TERMINAL_PROMPT='0'))
     if result.returncode:
-        raise YitoError(f'Git {args[0]} falló; comprueba conexión, permisos y estado del repositorio')
+        # Git no imprime credenciales; la última línea indica la causa (red, TLS, permisos).
+        detail = next((line.strip() for line in reversed((result.stderr or '').splitlines()) if line.strip()), '')
+        raise YitoError(f'Git {args[0]} falló; comprueba conexión, permisos y estado del repositorio'
+                        + (f': {detail}' if detail else ''))
     return result.stdout.strip()
 
 

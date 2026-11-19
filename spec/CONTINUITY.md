@@ -1679,6 +1679,15 @@ El [plan original](MCP_PLAN.md) conserva decisiones y criterios previstos.
   Portal HTTP local simulado verifica POST/campos ocultos, rechazo de redirecciones
   como prueba de Internet y ausencia de credenciales en archivos.
 
+## Git de release desde pestañas de MITO
+
+- `mito release` daba WinError 2: publish.git ejecutaba 'git' sin shell y en una
+  pestaña sólo existe el shim git.cmd. Ahora usa pocketools.git_executable (host o
+  bin de un componente instalado) y añade la última línea de stderr al error.
+- Red corporativa: Git del componente necesita http.sslBackend=schannel y
+  schannelCheckRevoke=false para github.com en home/.gitconfig (CRL bloqueadas).
+- Pendiente: `mito release` real y test_publish, no ejecutados.
+
 ## Directorio de trabajo de los comandos de consola
 
 - Fallo real: `git init` tecleado en C:\mito-main desde una pestaña creó el repositorio
