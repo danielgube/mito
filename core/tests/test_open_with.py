@@ -5,7 +5,7 @@ from unittest.mock import patch
 import uuid
 import winreg
 
-from async_support import AsyncTestCase, click, until
+from async_support import AsyncTestCase, until
 from mito import open_with
 from mito.storage import YitoError
 
@@ -50,6 +50,14 @@ class OpenWithTests(unittest.TestCase):
         except FileNotFoundError:
             return None
 
+    def marked(self, path, name):
+        """OpenWithProgids entries are empty REG_NONE values: QueryValueEx returns None data."""
+        try:
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, self.base + r'\Classes' + '\\' + path) as key:
+                return winreg.QueryValueEx(key, name)[1] == winreg.REG_NONE
+        except FileNotFoundError:
+            return False
+
     def test_extensions_are_normalized_and_validated(self):
         self.assertEqual(open_with.extensions('PDF, .epub;djvu pdf'), ['.pdf', '.epub', '.djvu'])
         for text in ('', '  ', 'a/b', '..pdf', 'x' * 20):
@@ -65,13 +73,13 @@ class OpenWithTests(unittest.TestCase):
         self.assertIn('run --profile default --app main/foliate --shortcut Foliate', command)
         self.assertTrue(command.endswith(' -- "%1"'))
         self.assertEqual(self.value(progid + r'\Application', 'ApplicationName'), 'default - main-foliate - Foliate')
-        self.assertIsNotNone(self.value(r'.pdf\OpenWithProgids', progid))
-        self.assertIsNotNone(self.value(r'.epub\OpenWithProgids', progid))
+        self.assertTrue(self.marked(r'.pdf\OpenWithProgids', progid))
+        self.assertTrue(self.marked(r'.epub\OpenWithProgids', progid))
         self.assertEqual(open_with.entries(self.root, 'default', 'main/foliate'), [record])
         # Registering again replaces the previous extensions.
         open_with.register(self.engine, 'default', 'main/foliate', 'djvu', shortcut='Foliate')
-        self.assertIsNone(self.value(r'.pdf\OpenWithProgids', progid))
-        self.assertIsNotNone(self.value(r'.djvu\OpenWithProgids', progid))
+        self.assertFalse(self.marked(r'.pdf\OpenWithProgids', progid))
+        self.assertTrue(self.marked(r'.djvu\OpenWithProgids', progid))
 
     def test_inactive_component_or_unknown_entry_is_rejected(self):
         with self.assertRaises(YitoError):
@@ -85,8 +93,8 @@ class OpenWithTests(unittest.TestCase):
         second = open_with.register(self.engine, 'work', 'main/foliate', 'pdf')
         open_with.unregister(self.root, lambda record: record['profile'] == 'default', log=lambda message: None)
         self.assertIsNone(self.value(first['progid']))
-        self.assertIsNone(self.value(r'.pdf\OpenWithProgids', first['progid']))
-        self.assertIsNotNone(self.value(r'.pdf\OpenWithProgids', second['progid']))
+        self.assertFalse(self.marked(r'.pdf\OpenWithProgids', first['progid']))
+        self.assertTrue(self.marked(r'.pdf\OpenWithProgids', second['progid']))
         self.assertEqual(list(open_with.registry(self.root)), [second['progid']])
 
     def test_apply_adds_replaces_and_removes_extensions(self):
@@ -95,8 +103,8 @@ class OpenWithTests(unittest.TestCase):
         progid = open_with.entries(self.root, 'default', 'main/foliate')[0]['progid']
         # Adding a second extension later keeps the first one.
         open_with.apply(self.engine, 'default', 'main/foliate', {'Foliate': ['.docx', '.pdf']}, quiet)
-        self.assertIsNotNone(self.value(r'.docx\OpenWithProgids', progid))
-        self.assertIsNotNone(self.value(r'.pdf\OpenWithProgids', progid))
+        self.assertTrue(self.marked(r'.docx\OpenWithProgids', progid))
+        self.assertTrue(self.marked(r'.pdf\OpenWithProgids', progid))
         with patch('mito.open_with.register') as register:
             open_with.apply(self.engine, 'default', 'main/foliate', {'Foliate': ['.docx', '.pdf']}, quiet)
             register.assert_not_called()
@@ -124,7 +132,7 @@ class OpenWithTests(unittest.TestCase):
 class OpenWithDialogTests(AsyncTestCase):
     async def test_dialog_lists_adds_from_common_and_text_and_removes(self):
         from textual.app import App
-        from textual.widgets import DataTable, Input, Select
+        from textual.widgets import Button, DataTable, Input, Select
         from mito.open_with_ui import OpenWithDialog
         results = []
 
@@ -134,27 +142,29 @@ class OpenWithDialogTests(AsyncTestCase):
                                                 {'Foliate': ['.docx']}), results.append)
 
         app = Host()
-        async with app.run_test() as pilot:
-            await until(pilot, lambda: app.screen.query('#open-with-table'))
+        # Default 80×24 clips the dialog; buttons are pressed, not clicked, so the
+        # assertions do not depend on the terminal layout.
+        async with app.run_test(size=(120, 50)) as pilot:
+            self.assertTrue(await until(pilot, lambda: app.screen.query('#open-with-table')))
             screen = app.screen
             table = screen.query_one('#open-with-table', DataTable)
-            await until(pilot, lambda: table.row_count == 1)
-            self.assertEqual(table.row_count, 1)
+            self.assertTrue(await until(pilot, lambda: table.row_count == 1))
             screen.query_one('#open-with-common', Select).value = '.pdf'
-            await until(pilot, lambda: table.row_count == 2)
+            self.assertTrue(await until(pilot, lambda: table.row_count == 2))
             screen.query_one('#open-with-extensions', Input).value = 'mp3, AVI'
-            await click(pilot, '#open-with-add')
-            await until(pilot, lambda: table.row_count == 4)
+            screen.query_one('#open-with-add', Button).press()
+            self.assertTrue(await until(pilot, lambda: table.row_count == 4))
             table.move_cursor(row=0)
-            await click(pilot, '#open-with-remove')
-            await until(pilot, lambda: table.row_count == 3)
-            await click(pilot, '#open-with-confirm')
-            await until(pilot, lambda: results)
+            await pilot.pause()
+            screen.query_one('#open-with-remove', Button).press()
+            self.assertTrue(await until(pilot, lambda: table.row_count == 3))
+            screen.query_one('#open-with-confirm', Button).press()
+            self.assertTrue(await until(pilot, lambda: results))
         self.assertEqual(results, [{'Foliate': ['.pdf', '.mp3', '.avi']}])
 
     async def test_preset_adds_its_extensions_without_duplicates(self):
         from textual.app import App
-        from textual.widgets import DataTable, Select
+        from textual.widgets import Button, DataTable, Select
         from mito.open_with import PRESETS, extensions
         from mito.open_with_ui import OpenWithDialog
         for name, values in PRESETS:
@@ -168,13 +178,13 @@ class OpenWithDialogTests(AsyncTestCase):
                                                 {'Office': ['.docx']}), results.append)
 
         app = Host()
-        async with app.run_test() as pilot:
-            await until(pilot, lambda: app.screen.query('#open-with-table'))
+        async with app.run_test(size=(120, 50)) as pilot:
+            self.assertTrue(await until(pilot, lambda: app.screen.query('#open-with-table')))
             table = app.screen.query_one('#open-with-table', DataTable)
             app.screen.query_one('#open-with-preset', Select).value = ' '.join(word)
-            await until(pilot, lambda: table.row_count == len(word))
-            await click(pilot, '#open-with-confirm')
-            await until(pilot, lambda: results)
+            self.assertTrue(await until(pilot, lambda: table.row_count == len(word)))
+            app.screen.query_one('#open-with-confirm', Button).press()
+            self.assertTrue(await until(pilot, lambda: results))
         self.assertEqual(results, [{'Office': list(word)}])
 
 

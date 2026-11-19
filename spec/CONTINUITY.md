@@ -2262,3 +2262,9 @@ No hay repositorio Git inicializado ni publicación remota creada por esta tarea
   extensiones asociadas en el profile) o «Extensiones ✗» (sin ellas), con ancho
   propio de 20 columnas para las traducciones largas. El diálogo mantiene el título
   «Abrir con» porque describe el menú de Windows donde aparecen.
+- Corrección de las regresiones de «Abrir con» tras la ejecución del usuario
+  (400 pruebas, 3 fallos y 1 error, todos en test_open_with.py). Los valores de
+  OpenWithProgids son REG_NONE vacíos y winreg devuelve None como dato aunque
+  existan: el test ahora comprueba el tipo, sin cambiar el código. El diálogo no
+  cabía en el terminal de 80×24 de run_test: ahora es desplazable (max-height 100%)
+  y los tests usan 120×50 y Button.press. Pendiente de repetir la ejecución.

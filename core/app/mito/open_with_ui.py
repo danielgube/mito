@@ -11,7 +11,7 @@ class OpenWithDialog(ModalScreen[object]):
     BINDINGS = [('escape', 'cancel', 'Cancelar')]
     DEFAULT_CSS = """
     OpenWithDialog { align: center middle; background: $background 70%; }
-    #open-with-dialog { width: 76; height: auto; padding: 1 2; border: round #b5dc64; background: #153429; }
+    #open-with-dialog { width: 76; height: auto; max-height: 100%; overflow-y: auto; padding: 1 2; border: round #b5dc64; background: #153429; }
     #open-with-dialog Static { height: auto; margin-bottom: 1; }
     #open-with-dialog Horizontal { height: auto; }
     #open-with-dialog Button { margin-left: 1; }
