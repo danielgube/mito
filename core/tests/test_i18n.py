@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+
+from async_support import AsyncTestCase
 from unittest.mock import patch
 
 from textual.widgets import Button, DataTable, Select, Static
@@ -153,7 +155,7 @@ class BundleTests(unittest.TestCase):
                          "$title = 'User''s $folder'")
 
 
-class LanguageUITests(unittest.IsolatedAsyncioTestCase):
+class LanguageUITests(AsyncTestCase):
     async def test_english_interface_dialogs_catalog_and_worker_messages(self):
         from mito.configuration_ui import ConfigurationDialog
         from mito.host_apps_ui import HostDataConfirm, HostInfoDialog, RemoveHostDialog

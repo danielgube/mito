@@ -1679,6 +1679,16 @@ El [plan original](MCP_PLAN.md) conserva decisiones y criterios previstos.
   Portal HTTP local simulado verifica POST/campos ocultos, rechazo de redirecciones
   como prueba de Internet y ausencia de credenciales en archivos.
 
+## Suite: duración y fallos al ejecutarla desde una pestaña
+
+- Primera ejecución completa vía `mito release`: 377 pruebas en 381 s, 1 fallo y
+  1 error, ambos de las pruebas: el fixture de remove-in-use no tenía archivos, y
+  test_verified_install exigía MITO_PROFILE ausente (la pestaña ya la define). Ahora
+  se crea el archivo bloqueado y se comprueba que el motor no cambia os.environ.
+- IsolatedAsyncioTestCase crea su bucle con asyncio en modo depuración (verificado:
+  get_debug() == True). Las 7 clases de UI heredan de tests/async_support.AsyncTestCase,
+  que lo desactiva en asyncSetUp. Pendiente medir la nueva duración.
+
 ## Git de release desde pestañas de MITO
 
 - `mito release` daba WinError 2: publish.git ejecutaba 'git' sin shell y en una

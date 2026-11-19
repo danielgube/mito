@@ -2,6 +2,8 @@ from datetime import date
 from pathlib import Path
 import tempfile
 import unittest
+
+from async_support import AsyncTestCase
 from unittest.mock import AsyncMock, Mock, patch
 from urllib.error import HTTPError
 import json
@@ -13,7 +15,7 @@ from mito import self_update, update_checks
 from test_self_update import fixture, release, offline_release
 
 
-class ComponentDailyUITests(unittest.IsolatedAsyncioTestCase):
+class ComponentDailyUITests(AsyncTestCase):
     async def test_manual_button_refreshes_components_and_mito_again(self):
         from textual.widgets import Button
         from mito.ui import YitoApp

@@ -250,7 +250,8 @@ class ComponentTests(unittest.TestCase):
     def test_remove_in_use_reports_open_application_and_keeps_payload(self):
         # Un archivo abierto sin FILE_SHARE_DELETE equivale a la app abierta en la bandeja.
         payload=self.root/self.old['path']
-        locked=next(path for path in payload.rglob('*') if path.is_file() and path.name != '.mito.json')
+        locked=payload/'tool.exe'
+        locked.write_bytes(b'fixture')
         with locked.open('rb'):
             with self.assertRaises(YitoError) as raised:remove(self.engine,self.old_id,log=lambda _:None)
         self.assertIn('antes de eliminar', str(raised.exception))

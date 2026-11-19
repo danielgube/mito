@@ -1,6 +1,8 @@
 from pathlib import Path
 import tempfile
 import unittest
+
+from async_support import AsyncTestCase
 from unittest.mock import patch
 
 from textual.app import App
@@ -26,7 +28,7 @@ class PocketoolApp(App):
         pass
 
 
-class PocketoolUiTests(unittest.IsolatedAsyncioTestCase):
+class PocketoolUiTests(AsyncTestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)

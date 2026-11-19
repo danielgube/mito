@@ -6,6 +6,8 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+
+from async_support import AsyncTestCase
 from unittest.mock import patch
 import zipfile
 
@@ -377,7 +379,7 @@ class SelfUpdateTests(unittest.TestCase):
             self.assertEqual((root / 'config.properties').read_text(), 'user configuration')
 
 
-class SelfUpdateUITests(unittest.IsolatedAsyncioTestCase):
+class SelfUpdateUITests(AsyncTestCase):
     async def test_home_discovers_new_offline_zip_and_dialog_shows_source(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / 'instance'

@@ -2,6 +2,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from async_support import AsyncTestCase
+
 from textual.widgets import DataTable, Input, ContentSwitcher, Checkbox, Select, Button, Static
 from unittest.mock import patch
 from mito.catalog import fingerprint
@@ -10,7 +12,7 @@ from mito.storage import write_json, read_json
 from mito.ui import YitoApp, OpenApplicationDialog
 
 
-class UITests(unittest.IsolatedAsyncioTestCase):
+class UITests(AsyncTestCase):
     def test_checkbox_states_have_distinct_red_and_green_colors(self):
         self.assertIn('Checkbox > .toggle--button { color: #8A4B50; }', YitoApp.CSS)
         self.assertIn('Checkbox.-on > .toggle--button { color: #69FF64; }', YitoApp.CSS)

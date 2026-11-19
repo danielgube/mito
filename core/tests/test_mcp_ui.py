@@ -2,6 +2,8 @@ import asyncio
 from pathlib import Path
 import tempfile
 import unittest
+
+from async_support import AsyncTestCase
 from unittest.mock import patch
 from textual.widgets import Button, TextArea, Select
 from mito.engine import Engine
@@ -9,7 +11,7 @@ from mito.ui import YitoApp, UnverifiedDownloadsDialog
 from mito.mcp_ui import MCPDialog, MCPJobsDialog
 
 
-class MCPUITests(unittest.IsolatedAsyncioTestCase):
+class MCPUITests(AsyncTestCase):
     async def test_jobs_monitor_is_optional_and_separate(self):
         from mito.configuration import Configuration
         from mito.configuration_ui import ConfigurationDialog

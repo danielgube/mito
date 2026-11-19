@@ -1,6 +1,8 @@
 from pathlib import Path
 import tempfile
 import unittest
+
+from async_support import AsyncTestCase
 from unittest.mock import patch
 
 from textual.widgets import Button
@@ -10,7 +12,7 @@ from mito.host_apps_ui import HostDataConfirm
 from mito.ui import YitoApp
 
 
-class HostDataUITests(unittest.IsolatedAsyncioTestCase):
+class HostDataUITests(AsyncTestCase):
     async def test_add_offers_roaming_then_local_and_accepts_independently(self):
         with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp).resolve()

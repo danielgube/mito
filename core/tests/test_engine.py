@@ -115,10 +115,14 @@ class EngineTests(unittest.TestCase):
         lock = next(iter(self.engine.selected(self.engine.profile('test')).values()))
         self.assertFalse(Path(lock['path']).is_absolute())
         self.assertTrue((self.root/lock['path']/'bin/tool.exe').exists())
+        # La suite puede ejecutarse desde una pestaña de MITO, que ya define MITO_PROFILE:
+        # se comprueba que el motor no modifica el entorno del proceso, no que esté vacío.
+        inherited = os.environ.get('MITO_PROFILE')
         env = self.engine.environment('test')
         self.assertEqual(env['JAVA_HOME'], str(self.root/lock['path']))
         self.assertEqual(env['USERPROFILE'], str(self.root/'home'))
-        self.assertEqual(os.environ.get('MITO_PROFILE'), None)
+        self.assertEqual(env['MITO_PROFILE'], 'test')
+        self.assertEqual(os.environ.get('MITO_PROFILE'), inherited)
 
     def test_profile_env_overrides_components_without_leaking_to_next_profile(self):
         self.bucket({'tool': self.manifest()})
