@@ -80,6 +80,14 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.2.14 — 2026-11-19
+
+### Commits incluidos
+
+- import/export improved ([af6b683](https://github.com/danielgube/mito/commit/af6b683949da90ee8e9f6cd37511e0ff6a8e9435))
+
+[Comparar cambios](https://github.com/danielgube/mito/compare/ab68f78bb3dd7152229cda45e95dc08ec53ca991...af6b683949da90ee8e9f6cd37511e0ff6a8e9435)
+
 ## 0.2.13 — 2026-11-19
 
 ### Commits incluidos
