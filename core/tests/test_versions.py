@@ -81,6 +81,41 @@ class VersionTests(unittest.TestCase):
         # Un único listado (menos de 100 commits) y un único manifiesto descargado.
         self.assertEqual(len(requested), 2)
 
+    def test_history_loads_in_batches_and_searches_older_typed_versions(self):
+        size = versions.HISTORY_PAGE
+        def page_commits(page):
+            start = (page - 1) * size
+            return [{'sha': f'{start + i:040x}', 'commit': {'message': f'app: Update to version 1.0.{1000 - start - i}',
+                                                           'author': {'date': '2024-01-01T00:00:00Z'}}} for i in range(size)]
+        pages = []
+        old = dict(MANIFEST, version='1.0.880')
+
+        def fetch(root, url, max_bytes=0):
+            if url.startswith('https://api.github.com/'):
+                page = int(url.rsplit('page=', 1)[1])
+                pages.append(page)
+                return json.dumps(page_commits(page))
+            if url.startswith('https://raw.githubusercontent.com/Owner/Bucket/'):
+                return json.dumps(old)
+            raise AssertionError(url)
+
+        with patch.object(versions, 'fetch_text', side_effect=fetch):
+            found = versions.history(self.root, self.catalog, 'extras/app')
+            # Una sola página basta para las primeras 20 versiones.
+            self.assertEqual(pages, [1])
+            self.assertEqual(len(versions.history_versions(found, versions.HISTORY_BATCH)), 20)
+            self.assertTrue(versions.has_more(found))
+            # Lo ya descargado cubre la segunda tanda; la tercera pide otra página.
+            versions.load_versions(self.root, found, 40)
+            self.assertEqual(pages, [1])
+            versions.load_versions(self.root, found, 60)
+            self.assertEqual(pages, [1, 2])
+            # Una versión escrita que no está en lo cargado se busca más atrás.
+            manifest, pin = versions.resolve(self.root, self.catalog, 'extras/app', '1.0.880', found=found, log=lambda _: None)
+        self.assertEqual(pages, [1, 2, 3])
+        self.assertEqual(manifest['version'], '1.0.880')
+        self.assertEqual(pin['source'], 'git')
+
     def test_local_bucket_has_no_history(self):
         write_json(self.root / 'core/buckets/local.json', {'schema': 1, 'source': str(self.root), 'apps': {'app': MANIFEST}})
         self.assertIsNone(versions.history(self.root, self.catalog, 'local/app'))

@@ -91,15 +91,29 @@ class VersionsDialog(ModalScreen[object]):
     VersionsDialog { align: center middle; background: $background 70%; }
     #versions-dialog { width: 76; height: auto; max-height: 90%; padding: 1 2; border: round #b5dc64; background: #153429; }
     #versions-dialog Static { height: auto; margin-bottom: 1; }
-    #versions-dialog Select, #versions-dialog Input { margin-bottom: 1; }
+    #versions-dialog Select, #versions-dialog Input, #versions-more { margin-bottom: 1; }
     #versions-actions { height: auto; align-horizontal: right; }
     #versions-actions Button { margin-left: 1; }
     """
 
-    def __init__(self, key, current, installed, versions, autoupdate, history_available):
+    def __init__(self, key, current, installed, found, autoupdate, history_available, loader=None):
+        from .versions import HISTORY_BATCH, history_versions
         super().__init__()
         self.key, self.current, self.installed = key, current, installed
-        self.versions, self.autoupdate, self.history_available = versions, autoupdate, history_available
+        self.found, self.loader, self.limit = found, loader, HISTORY_BATCH
+        self.versions = history_versions(found, self.limit)
+        self.autoupdate, self.history_available = autoupdate, history_available
+
+    def version_options(self):
+        return [(f'{item["version"]} · {item["date"]}', item['version']) for item in self.versions]
+
+    def more_available(self):
+        from .versions import has_more, history_versions
+        return self.loader is not None and (has_more(self.found) or len(history_versions(self.found)) > len(self.versions))
+
+    def more_label(self):
+        from .versions import HISTORY_BATCH
+        return tr('Cargar {p1} más', p1=HISTORY_BATCH) if self.more_available() else tr('Sin más versiones')
 
     def compose(self):
         with VerticalScroll(id='versions-dialog'):
@@ -107,8 +121,8 @@ class VersionsDialog(ModalScreen[object]):
             yield Static(f'{self.key}\n' + tr('Catálogo: {p1} · Instalada: {p3}', p1=self.current, p3=self.installed or '—'), markup=False)
             if self.versions:
                 yield Static(tr('Versiones publicadas en el histórico Git del bucket, con el manifiesto y el hash de entonces.'))
-                yield Select([(f'{item["version"]} · {item["date"]}', item['version']) for item in self.versions],
-                             prompt=tr('Selecciona o escribe una versión'), id='versions-list')
+                yield Select(self.version_options(), prompt=tr('Selecciona o escribe una versión'), id='versions-list')
+                yield Button(self.more_label(), id='versions-more', disabled=not self.more_available())
             else:
                 yield Static(tr('No hay versiones en el histórico Git del bucket (sólo buckets de GitHub).'))
             if self.autoupdate:
@@ -122,8 +136,43 @@ class VersionsDialog(ModalScreen[object]):
     def action_cancel(self):
         self.dismiss(None)
 
+    def load_more(self):
+        from .versions import HISTORY_BATCH
+        button = self.query_one('#versions-more', Button)
+        button.disabled = True
+        button.label = tr('Cargando…')
+        wanted = self.limit + HISTORY_BATCH
+
+        def fetch():
+            error = None
+            try:
+                self.loader(self.found, wanted)
+            except Exception as exc:
+                error = exc
+            self.app.call_from_thread(self.show_more, wanted, error)
+        self.run_worker(fetch, thread=True, group='versions-more', exit_on_error=False)
+
+    def show_more(self, wanted, error):
+        from .versions import history_versions
+        if error is not None:
+            self.notify(tr('No se pudo consultar el histórico del bucket: {p1}', p1=error), severity='error')
+        else:
+            self.limit = wanted
+            self.versions = history_versions(self.found, self.limit)
+            select = self.query_one('#versions-list', Select)
+            selected = select.value
+            select.set_options(self.version_options())
+            if isinstance(selected, str) and any(item['version'] == selected for item in self.versions):
+                select.value = selected
+        button = self.query_one('#versions-more', Button)
+        button.label = self.more_label()
+        button.disabled = not self.more_available()
+
     def on_button_pressed(self, event: Button.Pressed):
         event.stop()
+        if event.button.id == 'versions-more':
+            self.load_more()
+            return
         if event.button.id != 'versions-confirm':
             self.dismiss(None)
             return
@@ -1294,11 +1343,11 @@ class YitoApp(App):
 
         self.engine.install(target, log=log, confirm_unverified=confirm, confirm_plan=review)
 
-    async def choose_version(self, key, current, installed, versions, autoupdate, history_available):
-        return await self.push_screen_wait(VersionsDialog(key, current, installed, versions, autoupdate, history_available))
+    async def choose_version(self, key, current, installed, found, autoupdate, history_available, loader=None):
+        return await self.push_screen_wait(VersionsDialog(key, current, installed, found, autoupdate, history_available, loader))
 
     def install_version_from_catalog(self, target, log, confirm):
-        from .versions import history, history_versions, resolve
+        from .versions import history, load_versions, resolve
         from .components import install_version
         _, manifest = self.engine.catalog.resolve(target)
         log(tr('Consultando versiones de {p1}…', p1=target))
@@ -1310,8 +1359,9 @@ class YitoApp(App):
             log(tr('No se pudo consultar el histórico del bucket: {p1}', p1=exc))
         installed = self.engine.installed().get(target)
         version = self.call_from_thread(self.choose_version, target, str(manifest.get('version', '?')),
-                                        installed['version'] if installed else None, history_versions(found),
-                                        isinstance(manifest.get('autoupdate'), dict), found is not None)
+                                        installed['version'] if installed else None, found,
+                                        isinstance(manifest.get('autoupdate'), dict), found is not None,
+                                        lambda current, wanted: load_versions(self.engine.root, current, wanted))
         if not version:
             log(tr('Selección de versión cancelada'))
             return

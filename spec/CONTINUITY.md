@@ -1751,6 +1751,10 @@ El [plan original](MCP_PLAN.md) conserva decisiones y criterios previstos.
 - Catálogo → Versiones… (componente compatible, instalado o no): histórico Git del
   bucket (GitHub) y versión escrita a mano vía autoupdate. Retención en .mito.json
   (pinned), marcada en Inicio y liberable desde Info.
+- El histórico se consulta por tandas: al abrir sólo las páginas (50 commits) necesarias
+  para 20 versiones; «Cargar 20 más» amplía en segundo plano (máx. 4 páginas por tanda).
+  Una versión escrita a mano que no aparezca en lo cargado se busca más atrás antes de
+  recurrir a autoupdate. Tope total: 10 páginas (500 commits). Pendiente de validar en UI.
 - Comprobado manualmente: ScoopInstaller/Extras tiene 78 commits de mattermost.json;
   versiones 4.2.0–6.4.0, sin 5.1.0 (salta de 5.0.4 a 5.1.1). 5.1.0 sólo vía
   autoupdate; su hash sale de la página de release de GitHub si aún lo publica.

@@ -21,7 +21,10 @@ from .storage import YitoError, identifier, read_json
 from .transfer import download
 
 GITHUB = re.compile(r'https?://github\.com/([\w-]+)/([\w.-]+?)(?:\.git)?/?')
-HISTORY_PAGES = 5
+HISTORY_BATCH = 20   # versiones que se muestran por tanda
+HISTORY_PAGE = 50    # commits por consulta a la API de GitHub
+BATCH_PAGES = 4      # consultas máximas por tanda
+HISTORY_PAGES = 10   # tope total: 500 commits
 GIT_ATTEMPTS = 6
 MAX_TEXT = 8 * 1024 * 1024
 VERSION_FIELDS = ('underscoreVersion', 'dashVersion', 'cleanVersion', 'majorVersion', 'minorVersion',
@@ -80,31 +83,51 @@ def mentions(message, version):
     return re.search(r'(?<![0-9A-Za-z.])v?' + re.escape(version) + r'(?![0-9A-Za-z]|\.[0-9A-Za-z])', first) is not None
 
 
-def history(root, catalog, key):
-    """Commits del manifiesto en el bucket, del más reciente al más antiguo."""
+def fetch_page(root, found):
+    """Descarga la siguiente página de commits del manifiesto y la añade a found."""
+    page = found['page'] + 1
+    query = urllib.parse.urlencode({'path': found['path'], 'per_page': HISTORY_PAGE, 'page': page})
+    batch = json.loads(fetch_text(root, f'https://api.github.com/repos/{found["owner"]}/{found["repo"]}/commits?{query}'))
+    if not isinstance(batch, list):
+        raise YitoError(tr('No se pudo consultar el histórico del bucket: {p1}', p1='GitHub API'))
+    for item in batch:
+        commit = item.get('commit') or {}
+        found['commits'].append({'sha': str(item.get('sha', '')), 'message': str(commit.get('message', '')),
+                                 'date': str((commit.get('author') or {}).get('date', ''))[:10]})
+    found['page'] = page
+    found['complete'] = len(batch) < HISTORY_PAGE or page >= HISTORY_PAGES
+    return found
+
+
+def has_more(found):
+    """True si quedan commits por consultar en el histórico (dentro del tope)."""
+    return bool(found) and not found.get('complete', True)
+
+
+def load_versions(root, found, wanted, max_pages=BATCH_PAGES):
+    """Amplía found hasta reunir `wanted` versiones únicas o agotar el histórico."""
+    pages = 0
+    while has_more(found) and pages < max_pages and len(history_versions(found)) < wanted:
+        fetch_page(root, found)
+        pages += 1
+    return found
+
+
+def history(root, catalog, key, wanted=HISTORY_BATCH):
+    """Commits recientes del manifiesto en el bucket, del más reciente al más antiguo.
+    Sólo se consultan las páginas necesarias para `wanted` versiones; load_versions amplía."""
     found = repository(catalog, key)
     if not found:
         return None
     owner, repo, app = found
     for path in (f'bucket/{app}.json', f'{app}.json'):
-        commits = []
-        for page in range(1, HISTORY_PAGES + 1):
-            query = urllib.parse.urlencode({'path': path, 'per_page': 100, 'page': page})
-            batch = json.loads(fetch_text(root, f'https://api.github.com/repos/{owner}/{repo}/commits?{query}'))
-            if not isinstance(batch, list):
-                raise YitoError(tr('No se pudo consultar el histórico del bucket: {p1}', p1='GitHub API'))
-            for item in batch:
-                commit = item.get('commit') or {}
-                commits.append({'sha': str(item.get('sha', '')), 'message': str(commit.get('message', '')),
-                                'date': str((commit.get('author') or {}).get('date', ''))[:10]})
-            if len(batch) < 100:
-                break
-        if commits:
-            return {'owner': owner, 'repo': repo, 'path': path, 'commits': commits}
-    return {'owner': owner, 'repo': repo, 'path': f'bucket/{app}.json', 'commits': []}
+        found = fetch_page(root, {'owner': owner, 'repo': repo, 'path': path, 'commits': [], 'page': 0, 'complete': False})
+        if found['commits']:
+            return load_versions(root, found, wanted)
+    return {'owner': owner, 'repo': repo, 'path': f'bucket/{app}.json', 'commits': [], 'page': 0, 'complete': True}
 
 
-def history_versions(found):
+def history_versions(found, limit=None):
     """Versiones únicas deducidas de los mensajes, de la más reciente a la más antigua."""
     result, seen = [], set()
     for commit in (found or {}).get('commits', []):
@@ -112,7 +135,16 @@ def history_versions(found):
         if version and version not in seen:
             seen.add(version)
             result.append({'version': version, 'date': commit['date']})
+            if limit is not None and len(result) >= limit:
+                break
     return result
+
+
+def search_history(root, found, version):
+    """Sigue consultando el histórico hasta que un commit mencione la versión o se agote."""
+    while has_more(found) and not any(mentions(commit['message'], version) for commit in found['commits']):
+        fetch_page(root, found)
+    return found
 
 
 def manifest_from_history(root, found, version):
@@ -275,6 +307,13 @@ def resolve(root, catalog, key, version, found=None, log=print):
     if found is None:
         try:
             found = history(root, catalog, key)
+        except Exception as exc:
+            log(tr('No se pudo consultar el histórico del bucket: {p1}', p1=exc))
+    if found and has_more(found) and not any(mentions(c['message'], version) for c in found['commits']):
+        # Versión escrita a mano que no está en las tandas cargadas: buscar más atrás.
+        log(tr('Buscando {p1} en el histórico del bucket…', p1=version))
+        try:
+            search_history(root, found, version)
         except Exception as exc:
             log(tr('No se pudo consultar el histórico del bucket: {p1}', p1=exc))
     if found and found.get('commits'):
