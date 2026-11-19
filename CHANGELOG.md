@@ -71,6 +71,18 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.2.10 — 2026-11-19
+
+### Commits incluidos
+
+- Proxy en el bootstrap, versiones de componentes, traslado de instancia y correcciones ([655e17b](https://github.com/danielgube/mito/commit/655e17b74f19de0b53465d62088633b2fef2e99c))
+- Release: resolver git\.exe en lugar del shim de la pestaña ([fae84ff](https://github.com/danielgube/mito/commit/fae84ffb8204fca40f42ee8eccc2c0a8cfd08dc8))
+- Pruebas: corregir dos fallos y desactivar la depuración de asyncio en la UI ([a3c47d7](https://github.com/danielgube/mito/commit/a3c47d709998a752bb2babb089761d21e105e676))
+- tests hotfixeds and internet improved automation ([eff92c0](https://github.com/danielgube/mito/commit/eff92c0671f1473d0cd1a9416eef8ebeeb9d9eb7))
+- tests hotfixeds 2 ([bc7ee8e](https://github.com/danielgube/mito/commit/bc7ee8e5510af76a2bfd3342160518cc935cd43c))
+
+[Comparar cambios](https://github.com/danielgube/mito/compare/f3e940abe37b65f1f4f5b494ae26eeb325a370dd...bc7ee8e5510af76a2bfd3342160518cc935cd43c)
+
 ## 0.2.9 — 2026-09-28
 
 ### Commits incluidos
