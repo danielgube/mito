@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Este caminho do host já é gerido pelo MITO",
   "La carpeta del host ya existe: {p1}": "A pasta do host já existe: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Ligações no host atualizadas para o novo caminho: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Não foi possível atualizar a ligação no host {p1}: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Não foi possível atualizar a ligação no host {p1}: {p3}",
+  "Abrir con": "Abrir com",
+  "Extensiones (por ejemplo: pdf epub)": "Extensões (por exemplo: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Aparecerá em «Abrir com» no menu de contexto desses ficheiros e abrirá com o ambiente do profile. A aplicação predefinida não é alterada.",
+  "Registrar": "Registar",
+  "Extensión no válida: {p1}": "Extensão inválida: {p1}",
+  "Indica al menos una extensión": "Indique pelo menos uma extensão",
+  "Registro de «Abrir con» no válido": "Registo «Abrir com» inválido",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Não foi possível remover «Abrir com» {p1}: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Registado em «Abrir com» para {p1}. Pode demorar alguns segundos a aparecer no Explorador.",
+  "Quitar": "Remover",
+  "Retirado de «Abrir con».": "Removido de «Abrir com».",
+  "Extensiones registradas": "Extensões registadas",
+  "Habituales": "Comuns",
+  "Presets": "Predefinições",
+  "Extensiones": "Extensões"
 }

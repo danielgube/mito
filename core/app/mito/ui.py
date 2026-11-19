@@ -557,6 +557,7 @@ class YitoApp(App):
     .host-component.component-row-dark { background: #593300; }
     .host-component.component-row-light { background: #8f5000; }
     .component .host-data-button { width: 18; min-width: 18; margin-left: 1; }
+    .component .open-with-button { width: 20; min-width: 20; margin-left: 1; }
     .host-app-name { width: 1fr; height: 1; padding-left: 5; content-align: left middle; color: #FFF; }
     '''
 
@@ -846,6 +847,7 @@ class YitoApp(App):
             rows = []
             from .components import available_update
             from .host_exposure import linked as exposure_linked
+            from .open_with import entries as open_with_entries
             catalog = dict(self.engine.catalog.all())
             for index, (installation, lock) in enumerate(self.inventory.items()):
                 self.row_ids[str(index)] = installation
@@ -854,6 +856,8 @@ class YitoApp(App):
                 self.checkbox_states[widgets[0]] = (profile, installation in active)
                 if installation in active and self.engine.can_open(lock):
                     widgets += [Button(tr('Abrir'), id=f'open-{index}', disabled=self.busy), Button(tr('Generar acceso directo'), id=f'link-{index}', classes='app-shortcut', disabled=self.busy)]
+                    registered = bool(open_with_entries(self.engine.root, profile, installation))
+                    widgets.append(Button(tr('Extensiones') + (' ✓' if registered else ' ✗'), id=f'openwith-{index}', classes='open-with-button', disabled=self.busy))
                 if self.engine.can_open(lock):
                     exposed = exposure_linked(self.engine.root, installation)
                     widgets.append(Button(tr('En host · ') + ('link' if exposed else 'unlink'), id=f'expose-{index}', classes='host-data-button', disabled=self.busy))
@@ -1126,6 +1130,17 @@ class YitoApp(App):
         if action.startswith('expose-'):
             self.begin('host-expose', profile, self.row_ids[action.removeprefix('expose-')])
             return
+        if action.startswith('openwith-'):
+            from .open_with import entries as open_with_entries
+            from .open_with_ui import OpenWithDialog
+            target = self.row_ids[action.removeprefix('openwith-')]
+            lock = self.inventory[target]
+            current = {record.get('shortcut'): record['extensions']
+                       for record in open_with_entries(self.engine.root, profile, target)}
+            self.push_screen(OpenWithDialog(lock['key'], self.engine.application_entries(lock), current),
+                lambda result: self.begin('open-with', profile, target, arguments=result)
+                if result is not None else None)
+            return
         if action.startswith('update-'):
             self.begin('update-component',profile,self.row_ids[action.removeprefix('update-')])
             return
@@ -1371,6 +1386,9 @@ class YitoApp(App):
                             folder = choose_folder(kind)
                             if folder:
                                 self.offer_host_data(target, kind, folder)
+            elif action == 'open-with':
+                from .open_with import apply
+                apply(self.engine, profile, target, arguments, log)
             elif action == 'host-expose':
                 from . import host_exposure as exposure
                 current = exposure.entries(self.engine.root, target)

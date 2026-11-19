@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Această cale a gazdei este deja gestionată de MITO",
   "La carpeta del host ya existe: {p1}": "Folderul gazdei există deja: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Legăturile de pe gazdă au fost actualizate la noua cale: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Nu s-a putut actualiza legătura de pe gazdă {p1}: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Nu s-a putut actualiza legătura de pe gazdă {p1}: {p3}",
+  "Abrir con": "Deschidere cu",
+  "Extensiones (por ejemplo: pdf epub)": "Extensii (de exemplu: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Va apărea în „Deschidere cu” din meniul contextual al acelor fișiere și se va deschide cu mediul profile-ului. Aplicația implicită nu se modifică.",
+  "Registrar": "Înregistrare",
+  "Extensión no válida: {p1}": "Extensie nevalidă: {p1}",
+  "Indica al menos una extensión": "Indicați cel puțin o extensie",
+  "Registro de «Abrir con» no válido": "Înregistrare „Deschidere cu” nevalidă",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Nu s-a putut elimina „Deschidere cu” {p1}: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Înregistrat în „Deschidere cu” pentru {p1}. Poate dura câteva secunde până apare în Explorer.",
+  "Quitar": "Eliminare",
+  "Retirado de «Abrir con».": "Eliminat din „Deschidere cu”.",
+  "Extensiones registradas": "Extensii înregistrate",
+  "Habituales": "Uzuale",
+  "Presets": "Presetări",
+  "Extensiones": "Extensii"
 }

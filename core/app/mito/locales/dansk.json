@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Denne sti på værten styres allerede af MITO",
   "La carpeta del host ya existe: {p1}": "Værtsmappen findes allerede: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Links på værten opdateret til den nye sti: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Kunne ikke opdatere linket på værten {p1}: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Kunne ikke opdatere linket på værten {p1}: {p3}",
+  "Abrir con": "Åbn med",
+  "Extensiones (por ejemplo: pdf epub)": "Filtypenavne (for eksempel: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Det vises under »Åbn med« i genvejsmenuen for disse filer og åbnes med profilens miljø. Standardprogrammet ændres ikke.",
+  "Registrar": "Registrer",
+  "Extensión no válida: {p1}": "Ugyldigt filtypenavn: {p1}",
+  "Indica al menos una extensión": "Angiv mindst ét filtypenavn",
+  "Registro de «Abrir con» no válido": "Ugyldig »Åbn med«-post",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Kunne ikke fjerne »Åbn med« {p1}: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Registreret under »Åbn med« for {p1}. Det kan tage et par sekunder, før det vises i Stifinder.",
+  "Quitar": "Fjern",
+  "Retirado de «Abrir con».": "Fjernet fra »Åbn med«.",
+  "Extensiones registradas": "Registrerede filtypenavne",
+  "Habituales": "Almindelige",
+  "Presets": "Forudindstillinger",
+  "Extensiones": "Filtypenavne"
 }

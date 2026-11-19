@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Den här sökvägen på värden hanteras redan av MITO",
   "La carpeta del host ya existe: {p1}": "Värdmappen finns redan: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Länkarna på värden uppdaterade till den nya sökvägen: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Det gick inte att uppdatera länken på värden {p1}: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Det gick inte att uppdatera länken på värden {p1}: {p3}",
+  "Abrir con": "Öppna med",
+  "Extensiones (por ejemplo: pdf epub)": "Filnamnstillägg (till exempel: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Det visas under ”Öppna med” i snabbmenyn för de filerna och öppnas med profilens miljö. Standardprogrammet ändras inte.",
+  "Registrar": "Registrera",
+  "Extensión no válida: {p1}": "Ogiltigt filnamnstillägg: {p1}",
+  "Indica al menos una extensión": "Ange minst ett filnamnstillägg",
+  "Registro de «Abrir con» no válido": "Ogiltig ”Öppna med”-post",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Det gick inte att ta bort ”Öppna med” {p1}: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Registrerat under ”Öppna med” för {p1}. Det kan ta några sekunder innan det visas i Utforskaren.",
+  "Quitar": "Ta bort",
+  "Retirado de «Abrir con».": "Borttaget från ”Öppna med”.",
+  "Extensiones registradas": "Registrerade filnamnstillägg",
+  "Habituales": "Vanliga",
+  "Presets": "Förinställningar",
+  "Extensiones": "Filtillägg"
 }

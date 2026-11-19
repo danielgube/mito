@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Túto cestu hostiteľa už spravuje MITO",
   "La carpeta del host ya existe: {p1}": "Priečinok hostiteľa už existuje: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Prepojenia v hostiteľovi aktualizované na novú cestu: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Prepojenie v hostiteľovi {p1} sa nepodarilo aktualizovať: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Prepojenie v hostiteľovi {p1} sa nepodarilo aktualizovať: {p3}",
+  "Abrir con": "Otvoriť pomocou",
+  "Extensiones (por ejemplo: pdf epub)": "Prípony (napríklad: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Zobrazí sa v ponuke „Otvoriť pomocou“ v kontextovej ponuke týchto súborov a otvorí sa s prostredím profilu. Predvolená aplikácia sa nemení.",
+  "Registrar": "Zaregistrovať",
+  "Extensión no válida: {p1}": "Neplatná prípona: {p1}",
+  "Indica al menos una extensión": "Zadajte aspoň jednu príponu",
+  "Registro de «Abrir con» no válido": "Neplatný záznam „Otvoriť pomocou“",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Nepodarilo sa odstrániť „Otvoriť pomocou“ {p1}: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Zaregistrované v „Otvoriť pomocou“ pre {p1}. Zobrazenie v Prieskumníkovi môže trvať niekoľko sekúnd.",
+  "Quitar": "Odstrániť",
+  "Retirado de «Abrir con».": "Odstránené z „Otvoriť pomocou“.",
+  "Extensiones registradas": "Zaregistrované prípony",
+  "Habituales": "Bežné",
+  "Presets": "Predvoľby",
+  "Extensiones": "Prípony"
 }

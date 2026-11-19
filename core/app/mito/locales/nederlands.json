@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Dit pad op de host wordt al door MITO beheerd",
   "La carpeta del host ya existe: {p1}": "De hostmap bestaat al: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Koppelingen op de host bijgewerkt naar het nieuwe pad: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Kon de koppeling op de host {p1} niet bijwerken: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Kon de koppeling op de host {p1} niet bijwerken: {p3}",
+  "Abrir con": "Openen met",
+  "Extensiones (por ejemplo: pdf epub)": "Extensies (bijvoorbeeld: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Het verschijnt onder ‘Openen met’ in het snelmenu van die bestanden en opent met de omgeving van het profile. De standaardtoepassing wordt niet gewijzigd.",
+  "Registrar": "Registreren",
+  "Extensión no válida: {p1}": "Ongeldige extensie: {p1}",
+  "Indica al menos una extensión": "Geef minstens één extensie op",
+  "Registro de «Abrir con» no válido": "Ongeldige ‘Openen met’-registratie",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Kon ‘Openen met’ {p1} niet verwijderen: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Geregistreerd onder ‘Openen met’ voor {p1}. Het kan enkele seconden duren voordat het in Verkenner verschijnt.",
+  "Quitar": "Verwijderen",
+  "Retirado de «Abrir con».": "Verwijderd uit ‘Openen met’.",
+  "Extensiones registradas": "Geregistreerde extensies",
+  "Habituales": "Veelgebruikt",
+  "Presets": "Voorinstellingen",
+  "Extensiones": "Extensies"
 }

@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Ovom putanjom na hostu već upravlja MITO",
   "La carpeta del host ya existe: {p1}": "Mapa na hostu već postoji: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Poveznice na hostu ažurirane na novu putanju: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Nije moguće ažurirati poveznicu na hostu {p1}: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Nije moguće ažurirati poveznicu na hostu {p1}: {p3}",
+  "Abrir con": "Otvori pomoću",
+  "Extensiones (por ejemplo: pdf epub)": "Proširenja (na primjer: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Pojavit će se u „Otvori pomoću” u kontekstnom izborniku tih datoteka i otvarat će se s okruženjem profilea. Zadana aplikacija se ne mijenja.",
+  "Registrar": "Registriraj",
+  "Extensión no válida: {p1}": "Nevažeće proširenje: {p1}",
+  "Indica al menos una extensión": "Unesite barem jedno proširenje",
+  "Registro de «Abrir con» no válido": "Nevažeći zapis „Otvori pomoću”",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Nije moguće ukloniti „Otvori pomoću” {p1}: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Registrirano u „Otvori pomoću” za {p1}. Može potrajati nekoliko sekundi da se pojavi u Exploreru.",
+  "Quitar": "Ukloni",
+  "Retirado de «Abrir con».": "Uklonjeno iz „Otvori pomoću”.",
+  "Extensiones registradas": "Registrirana proširenja",
+  "Habituales": "Uobičajena",
+  "Presets": "Predlošci",
+  "Extensiones": "Proširenja"
 }

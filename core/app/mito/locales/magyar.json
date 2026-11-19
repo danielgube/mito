@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Ezt a gazdagép-útvonalat már a MITO kezeli",
   "La carpeta del host ya existe: {p1}": "A gazdagép mappája már létezik: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "A gazdagép linkjei frissítve az új útvonalra: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Nem sikerült frissíteni a gazdagép linkjét ({p1}): {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Nem sikerült frissíteni a gazdagép linkjét ({p1}): {p3}",
+  "Abrir con": "Társítás",
+  "Extensiones (por ejemplo: pdf epub)": "Kiterjesztések (például: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Megjelenik ezeknek a fájloknak a helyi menüjében a „Társítás” alatt, és a profile környezetével nyílik meg. Az alapértelmezett alkalmazás nem változik.",
+  "Registrar": "Regisztrálás",
+  "Extensión no válida: {p1}": "Érvénytelen kiterjesztés: {p1}",
+  "Indica al menos una extensión": "Adjon meg legalább egy kiterjesztést",
+  "Registro de «Abrir con» no válido": "Érvénytelen „Társítás” bejegyzés",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Nem sikerült eltávolítani a(z) {p1} „Társítás” bejegyzést: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Regisztrálva a „Társítás” alá ezekhez: {p1}. Néhány másodpercbe telhet, mire megjelenik a Fájlkezelőben.",
+  "Quitar": "Eltávolítás",
+  "Retirado de «Abrir con».": "Eltávolítva a „Társítás” menüből.",
+  "Extensiones registradas": "Regisztrált kiterjesztések",
+  "Habituales": "Gyakoriak",
+  "Presets": "Előbeállítások",
+  "Extensiones": "Kiterjesztések"
 }

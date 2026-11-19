@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "To pot gostitelja že upravlja MITO",
   "La carpeta del host ya existe: {p1}": "Mapa gostitelja že obstaja: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Povezave na gostitelju posodobljene na novo pot: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Povezave na gostitelju {p1} ni bilo mogoče posodobiti: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Povezave na gostitelju {p1} ni bilo mogoče posodobiti: {p3}",
+  "Abrir con": "Odpri z",
+  "Extensiones (por ejemplo: pdf epub)": "Pripone (na primer: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Prikazalo se bo v »Odpri z« v priročnem meniju teh datotek in se odprlo z okoljem profila. Privzeta aplikacija se ne spremeni.",
+  "Registrar": "Registriraj",
+  "Extensión no válida: {p1}": "Neveljavna pripona: {p1}",
+  "Indica al menos una extensión": "Vnesite vsaj eno pripono",
+  "Registro de «Abrir con» no válido": "Neveljaven zapis »Odpri z«",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "»Odpri z« {p1} ni bilo mogoče odstraniti: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Registrirano v »Odpri z« za {p1}. Prikaz v Raziskovalcu lahko traja nekaj sekund.",
+  "Quitar": "Odstrani",
+  "Retirado de «Abrir con».": "Odstranjeno iz »Odpri z«.",
+  "Extensiones registradas": "Registrirane pripone",
+  "Habituales": "Pogoste",
+  "Presets": "Prednastavitve",
+  "Extensiones": "Pripone"
 }

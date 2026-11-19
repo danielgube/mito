@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "This host path is already managed by MITO",
   "La carpeta del host ya existe: {p1}": "The host folder already exists: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Host links updated to the new path: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Could not update the host link {p1}: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Could not update the host link {p1}: {p3}",
+  "Abrir con": "Open with",
+  "Extensiones (por ejemplo: pdf epub)": "Extensions (for example: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "It will appear in “Open with” in the context menu of those files and will open with the profile environment. The default application is not changed.",
+  "Registrar": "Register",
+  "Extensión no válida: {p1}": "Invalid extension: {p1}",
+  "Indica al menos una extensión": "Enter at least one extension",
+  "Registro de «Abrir con» no válido": "Invalid “Open with” record",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Could not remove “Open with” {p1}: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Registered in “Open with” for {p1}. It may take a few seconds to appear in Explorer.",
+  "Quitar": "Remove",
+  "Retirado de «Abrir con».": "Removed from “Open with”.",
+  "Extensiones registradas": "Registered extensions",
+  "Habituales": "Common",
+  "Presets": "Presets",
+  "Extensiones": "Extensions"
 }

@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Tą ścieżką hosta już zarządza MITO",
   "La carpeta del host ya existe: {p1}": "Folder hosta już istnieje: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Zaktualizowano łącza na hoście do nowej ścieżki: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Nie można zaktualizować łącza na hoście {p1}: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Nie można zaktualizować łącza na hoście {p1}: {p3}",
+  "Abrir con": "Otwórz za pomocą",
+  "Extensiones (por ejemplo: pdf epub)": "Rozszerzenia (na przykład: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Pojawi się w „Otwórz za pomocą” w menu kontekstowym tych plików i otworzy się ze środowiskiem profile. Aplikacja domyślna nie zostanie zmieniona.",
+  "Registrar": "Zarejestruj",
+  "Extensión no válida: {p1}": "Nieprawidłowe rozszerzenie: {p1}",
+  "Indica al menos una extensión": "Podaj co najmniej jedno rozszerzenie",
+  "Registro de «Abrir con» no válido": "Nieprawidłowy wpis „Otwórz za pomocą”",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Nie można usunąć „Otwórz za pomocą” {p1}: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Zarejestrowano w „Otwórz za pomocą” dla {p1}. Pojawienie się w Eksploratorze może potrwać kilka sekund.",
+  "Quitar": "Usuń",
+  "Retirado de «Abrir con».": "Usunięto z „Otwórz za pomocą”.",
+  "Extensiones registradas": "Zarejestrowane rozszerzenia",
+  "Habituales": "Popularne",
+  "Presets": "Gotowe zestawy",
+  "Extensiones": "Rozszerzenia"
 }

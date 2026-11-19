@@ -597,6 +597,30 @@ eliminar el componente retiran la junction con rmdir y conservan los datos de MI
 una junction modificada fuera de MITO se rechaza. relocation reapunta las junctions
 que apuntan a la raíz anterior tras un traslado y deja de registrarlas tras una copia.
 
+open_with.py registra por petición explícita (botón «Extensiones ✓/✗» en
+componentes activos con ejecutable) un ProgID HKCU\Software\Classes\MITO.<16 hex>
+por profile + bucket/app + entrada. Su comando es el mismo lanzador de los accesos
+(`pythonw -m mito run --profile P --app bucket/app [--shortcut X] -- "%1"`), así
+que se aplican entorno, workspace y copias por profile. Nombre e icono se publican
+en DefaultIcon, Application (ApplicationName/ApplicationIcon) y FriendlyAppName
+para que el menú no muestre Python; el icono es el compuesto con la etiqueta.
+Las extensiones las indica el usuario (los manifiestos no declaran tipos) y se
+añaden como valores en .<ext>\OpenWithProgids. Nunca se escribe UserChoice ni la
+aplicación predeterminada. Se usa winreg, sin PowerShell, y SHChangeNotify avisa
+al Explorador. core/state/open-with.json guarda ProgID, profile, bucket/app,
+entrada y extensiones. El botón abre siempre el diálogo de gestión: tabla de
+extensiones registradas por entrada, desplegable de presets (open_with.PRESETS:
+grupos con nombre de aplicaciones conocidas como Word, Excel, 7-Zip o VLC),
+desplegable de extensiones habituales (open_with.COMMON) y texto libre validado.
+Presets y habituales son sólo sugerencias de la UI: añaden filas a la tabla, no
+eligen componente ni aplican reglas por producto; Guardar devuelve
+{entrada: [extensiones]} y open_with.apply registra, sustituye o, con lista vacía,
+retira cada entrada cambiada. Registrar de nuevo sustituye las extensiones. Sólo se
+borran ProgIDs con el patrón MITO.<hash>. Eliminar el componente o el profile
+retira sus entradas; desactivar no (como los accesos del escritorio, el lanzador
+informará del error). relocation reescribe comando e icono tras un traslado y deja
+de registrarlas tras una copia.
+
 Crear profiles, activar o instalar refresca los ajustes de Terminal sin generar enlaces.
 application_link se llama únicamente por petición explícita (botón o CLI). Usa
 Known Folder Desktop de Windows, registra la ruta creada y evita sobrescribir un

@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Šo resursdatora ceļu jau pārvalda MITO",
   "La carpeta del host ya existe: {p1}": "Resursdatora mape jau pastāv: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Saites resursdatorā atjauninātas uz jauno ceļu: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Neizdevās atjaunināt saiti resursdatorā {p1}: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Neizdevās atjaunināt saiti resursdatorā {p1}: {p3}",
+  "Abrir con": "Atvērt ar",
+  "Extensiones (por ejemplo: pdf epub)": "Paplašinājumi (piemēram: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Tas parādīsies šo failu konteksta izvēlnē sadaļā “Atvērt ar” un tiks atvērts ar profile vidi. Noklusējuma lietotne netiek mainīta.",
+  "Registrar": "Reģistrēt",
+  "Extensión no válida: {p1}": "Nederīgs paplašinājums: {p1}",
+  "Indica al menos una extensión": "Norādiet vismaz vienu paplašinājumu",
+  "Registro de «Abrir con» no válido": "Nederīgs “Atvērt ar” ieraksts",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Neizdevās noņemt “Atvērt ar” {p1}: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Reģistrēts sadaļā “Atvērt ar” paplašinājumiem {p1}. Var paiet dažas sekundes, līdz tas parādās pārlūkā Explorer.",
+  "Quitar": "Noņemt",
+  "Retirado de «Abrir con».": "Noņemts no “Atvērt ar”.",
+  "Extensiones registradas": "Reģistrētie paplašinājumi",
+  "Habituales": "Bieži lietotie",
+  "Presets": "Sagataves",
+  "Extensiones": "Paplašinājumi"
 }

@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Този път в хоста вече се управлява от MITO",
   "La carpeta del host ya existe: {p1}": "Папката в хоста вече съществува: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Връзките в хоста са обновени към новия път: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Връзката в хоста {p1} не можа да бъде обновена: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Връзката в хоста {p1} не можа да бъде обновена: {p3}",
+  "Abrir con": "Отваряне с",
+  "Extensiones (por ejemplo: pdf epub)": "Разширения (например: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Ще се появи в „Отваряне с“ в контекстното меню на тези файлове и ще се отваря със средата на profile. Приложението по подразбиране не се променя.",
+  "Registrar": "Регистриране",
+  "Extensión no válida: {p1}": "Невалидно разширение: {p1}",
+  "Indica al menos una extensión": "Въведете поне едно разширение",
+  "Registro de «Abrir con» no válido": "Невалиден запис за „Отваряне с“",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "„Отваряне с“ {p1} не можа да бъде премахнато: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Регистрирано в „Отваряне с“ за {p1}. Може да отнеме няколко секунди, докато се появи в Explorer.",
+  "Quitar": "Премахване",
+  "Retirado de «Abrir con».": "Премахнато от „Отваряне с“.",
+  "Extensiones registradas": "Регистрирани разширения",
+  "Habituales": "Често използвани",
+  "Presets": "Готови набори",
+  "Extensiones": "Разширения"
 }

@@ -56,6 +56,9 @@ Lee README.md, spec/ARCHITECTURE.md y spec/CONTINUITY.md antes de modificar cont
 - «En host» es la inversa explícita: junctions del AppData real del host hacia
   home/AppData de MITO para apps arrancadas por el host. Sólo datos, sin entorno;
   candidatos por nombre de ejecutable declarado; nunca borrar carpetas del host.
+- «Abrir con» registra explícitamente en HKCU un ProgID MITO.<hash> por profile y
+  componente que lanza `mito run`, con extensiones elegidas por el usuario.
+  Nunca cambia la aplicación predeterminada ni toca ProgIDs ajenos.
 - Los iconos usan el compositor Pillow adaptado de EAP: ICO multirresolución y
   etiqueta superpuesta de hasta 4 caracteres, por defecto MITO.
 - Inicio muestra todas las instalaciones con checkboxes de activación por profile.

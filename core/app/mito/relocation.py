@@ -12,6 +12,8 @@ reconstruyen al abrir pestañas o aplicaciones. Quedan fuera de esa reconstrucci
 - Enlaces Host data/cache materializados: se avisa; la UI ya los muestra sin enlazar.
 - Datos en host: tras un traslado las junctions del AppData del host se reapuntan;
   tras una copia siguen siendo del original y esta instancia deja de registrarlas.
+- «Abrir con»: tras un traslado se reescriben comando e icono en HKCU; tras una
+  copia siguen lanzando el original y esta instancia deja de registrarlos.
 """
 from __future__ import annotations
 
@@ -93,7 +95,8 @@ def check(engine, log=print):
                    'persist': set_aside_materialized_persist(root, log),
                    'shortcuts': repair_shortcuts(engine, old, copied, log),
                    'host_links': materialized_host_links(root),
-                   'host_exposed': exposed_host_links(root, old, copied, log)}
+                   'host_exposed': exposed_host_links(root, old, copied, log),
+                   'open_with': open_with_entries(engine, old, copied, log)}
         remember(root)
     if copied:
         log(tr('MITO se ha copiado desde {p1}. Esta copia usa sus propias rutas; los accesos del escritorio siguen siendo del original.', p1=old))
@@ -158,6 +161,16 @@ def exposed_host_links(root, old, copied, log=print):
         return relocate(root, old, copied, log)
     except (OSError, ValueError, YitoError) as exc:
         log(tr('No se pudieron retirar los enlaces del host: {p1}', p1=exc))
+        return 0
+
+
+def open_with_entries(engine, old, copied, log=print):
+    """Entradas «Abrir con» del registro de Windows que lanzan esta instancia."""
+    from .open_with import relocate
+    try:
+        return relocate(engine, old, copied, log)
+    except (OSError, ValueError, YitoError) as exc:
+        log(tr('No se pudo retirar «Abrir con» {p1}: {p3}', p1='open-with', p3=exc))
         return 0
 
 

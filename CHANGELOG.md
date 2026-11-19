@@ -46,6 +46,11 @@ de publicación remota. Las decisiones vigentes están en
   los datos de la app en MITO, para que una app arrancada fuera de MITO (por ejemplo,
   con el inicio automático de Windows) use los mismos datos. Sólo comparte datos, no
   el entorno del profile; las carpetas existentes del host se apartan y se restauran.
+- Botón «Extensiones» en MIS COMPONENTES (✓ con extensiones asociadas, ✗ sin ellas): añade el componente al menú «Abrir
+  con» del Explorador para las extensiones indicadas. Se abre con el entorno del
+  profile y no cambia la aplicación predeterminada. Las extensiones se gestionan en
+  una tabla con presets (Word, Excel, PowerPoint, PDF / eBook, 7-Zip, VLC,
+  IrfanView, Notepad++), un desplegable de habituales y texto libre.
 - El botón de Internet de Inicio configura la red cuando no hay conexión. Prueba la
   ruta configurada, el proxy de Windows (manual, PAC o WPAD) y la conexión directa, y
   propone guardar el proxy o el portal detectados. Si el portal lo exige, pide usuario

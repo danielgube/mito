@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "MITO hallitsee jo tätä isännän polkua",
   "La carpeta del host ya existe: {p1}": "Isännän kansio on jo olemassa: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Isännän linkit päivitetty uuteen polkuun: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Isännän linkkiä {p1} ei voitu päivittää: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Isännän linkkiä {p1} ei voitu päivittää: {p3}",
+  "Abrir con": "Avaa sovelluksessa",
+  "Extensiones (por ejemplo: pdf epub)": "Tunnisteet (esimerkiksi: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Se näkyy näiden tiedostojen pikavalikon kohdassa ”Avaa sovelluksessa” ja avautuu profilen ympäristössä. Oletussovellusta ei muuteta.",
+  "Registrar": "Rekisteröi",
+  "Extensión no válida: {p1}": "Virheellinen tunniste: {p1}",
+  "Indica al menos una extensión": "Anna vähintään yksi tunniste",
+  "Registro de «Abrir con» no válido": "Virheellinen ”Avaa sovelluksessa” -tietue",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "”Avaa sovelluksessa” {p1} -merkintää ei voitu poistaa: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Rekisteröity kohtaan ”Avaa sovelluksessa” tunnisteille {p1}. Näkyminen Resurssienhallinnassa voi kestää muutaman sekunnin.",
+  "Quitar": "Poista",
+  "Retirado de «Abrir con».": "Poistettu kohdasta ”Avaa sovelluksessa”.",
+  "Extensiones registradas": "Rekisteröidyt tunnisteet",
+  "Habituales": "Yleiset",
+  "Presets": "Esiasetukset",
+  "Extensiones": "Tunnisteet"
 }

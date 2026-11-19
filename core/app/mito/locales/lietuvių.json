@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Šį pagrindinio kompiuterio kelią jau valdo MITO",
   "La carpeta del host ya existe: {p1}": "Pagrindinio kompiuterio aplankas jau yra: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Saitai pagrindiniame kompiuteryje atnaujinti į naują kelią: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Nepavyko atnaujinti saito pagrindiniame kompiuteryje {p1}: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Nepavyko atnaujinti saito pagrindiniame kompiuteryje {p1}: {p3}",
+  "Abrir con": "Atidaryti naudojant",
+  "Extensiones (por ejemplo: pdf epub)": "Plėtiniai (pavyzdžiui: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Programa bus rodoma šių failų kontekstinio meniu skiltyje „Atidaryti naudojant“ ir atsidarys su profile aplinka. Numatytoji programa nekeičiama.",
+  "Registrar": "Registruoti",
+  "Extensión no válida: {p1}": "Netinkamas plėtinys: {p1}",
+  "Indica al menos una extensión": "Nurodykite bent vieną plėtinį",
+  "Registro de «Abrir con» no válido": "Netinkamas „Atidaryti naudojant“ įrašas",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Nepavyko pašalinti „Atidaryti naudojant“ {p1}: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Užregistruota skiltyje „Atidaryti naudojant“ plėtiniams {p1}. Gali užtrukti kelias sekundes, kol bus rodoma naršyklėje.",
+  "Quitar": "Pašalinti",
+  "Retirado de «Abrir con».": "Pašalinta iš „Atidaryti naudojant“.",
+  "Extensiones registradas": "Užregistruoti plėtiniai",
+  "Habituales": "Dažniausi",
+  "Presets": "Šablonai",
+  "Extensiones": "Plėtiniai"
 }

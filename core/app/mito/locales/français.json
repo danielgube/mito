@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Ce chemin de l’hôte est déjà géré par MITO",
   "La carpeta del host ya existe: {p1}": "Le dossier de l’hôte existe déjà : {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Liens sur l’hôte mis à jour vers le nouveau chemin : {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Impossible de mettre à jour le lien sur l’hôte {p1} : {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Impossible de mettre à jour le lien sur l’hôte {p1} : {p3}",
+  "Abrir con": "Ouvrir avec",
+  "Extensiones (por ejemplo: pdf epub)": "Extensions (par exemple : pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "L’application apparaîtra dans « Ouvrir avec » du menu contextuel de ces fichiers et s’ouvrira avec l’environnement du profile. L’application par défaut n’est pas modifiée.",
+  "Registrar": "Enregistrer",
+  "Extensión no válida: {p1}": "Extension non valide : {p1}",
+  "Indica al menos una extensión": "Indiquez au moins une extension",
+  "Registro de «Abrir con» no válido": "Enregistrement « Ouvrir avec » non valide",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Impossible de retirer « Ouvrir avec » {p1} : {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Enregistré dans « Ouvrir avec » pour {p1}. L’apparition dans l’Explorateur peut prendre quelques secondes.",
+  "Quitar": "Retirer",
+  "Retirado de «Abrir con».": "Retiré de « Ouvrir avec ».",
+  "Extensiones registradas": "Extensions enregistrées",
+  "Habituales": "Courantes",
+  "Presets": "Préréglages",
+  "Extensiones": "Extensions"
 }

@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Tuto cestu v hostiteli již spravuje MITO",
   "La carpeta del host ya existe: {p1}": "Složka v hostiteli již existuje: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Odkazy v hostiteli aktualizovány na novou cestu: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Odkaz v hostiteli {p1} nelze aktualizovat: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Odkaz v hostiteli {p1} nelze aktualizovat: {p3}",
+  "Abrir con": "Otevřít v programu",
+  "Extensiones (por ejemplo: pdf epub)": "Přípony (například: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Zobrazí se v nabídce „Otevřít v programu“ v místní nabídce těchto souborů a otevře se s prostředím profilu. Výchozí aplikace se nemění.",
+  "Registrar": "Registrovat",
+  "Extensión no válida: {p1}": "Neplatná přípona: {p1}",
+  "Indica al menos una extensión": "Zadejte alespoň jednu příponu",
+  "Registro de «Abrir con» no válido": "Neplatný záznam „Otevřít v programu“",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Nelze odebrat „Otevřít v programu“ {p1}: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Registrováno v „Otevřít v programu“ pro {p1}. Zobrazení v Průzkumníkovi může trvat několik sekund.",
+  "Quitar": "Odebrat",
+  "Retirado de «Abrir con».": "Odebráno z „Otevřít v programu“.",
+  "Extensiones registradas": "Registrované přípony",
+  "Habituales": "Běžné",
+  "Presets": "Předvolby",
+  "Extensiones": "Přípony"
 }

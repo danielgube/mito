@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Seda hosti teed haldab juba MITO",
   "La carpeta del host ya existe: {p1}": "Hosti kaust on juba olemas: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Hosti lingid uuendati uuele teele: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Hosti linki {p1} ei õnnestunud uuendada: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Hosti linki {p1} ei õnnestunud uuendada: {p3}",
+  "Abrir con": "Ava rakendusega",
+  "Extensiones (por ejemplo: pdf epub)": "Laiendid (näiteks: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "See ilmub nende failide kiirmenüüs jaotisse „Ava rakendusega“ ja avaneb profile'i keskkonnaga. Vaikerakendust ei muudeta.",
+  "Registrar": "Registreeri",
+  "Extensión no válida: {p1}": "Vigane laiend: {p1}",
+  "Indica al menos una extensión": "Sisesta vähemalt üks laiend",
+  "Registro de «Abrir con» no válido": "Vigane kirje „Ava rakendusega“",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "„Ava rakendusega“ {p1} eemaldamine ebaõnnestus: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Registreeritud jaotisse „Ava rakendusega“ laienditele {p1}. Failihalduris ilmumine võib võtta mõne sekundi.",
+  "Quitar": "Eemalda",
+  "Retirado de «Abrir con».": "Eemaldatud jaotisest „Ava rakendusega“.",
+  "Extensiones registradas": "Registreeritud laiendid",
+  "Habituales": "Levinud",
+  "Presets": "Eelseaded",
+  "Extensiones": "Laiendid"
 }

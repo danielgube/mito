@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Tá an cosán óstaigh seo á bhainistiú ag MITO cheana",
   "La carpeta del host ya existe: {p1}": "Tá fillteán an óstaigh ann cheana: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Nuashonraíodh na naisc ar an óstach chuig an gcosán nua: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Níorbh fhéidir an nasc ar an óstach {p1} a nuashonrú: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Níorbh fhéidir an nasc ar an óstach {p1} a nuashonrú: {p3}",
+  "Abrir con": "Oscail le",
+  "Extensiones (por ejemplo: pdf epub)": "Iarmhíreanna (mar shampla: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Beidh sé le feiceáil faoi “Oscail le” i roghchlár comhthéacs na gcomhad sin agus osclófar é le timpeallacht an profile. Ní athraítear an feidhmchlár réamhshocraithe.",
+  "Registrar": "Cláraigh",
+  "Extensión no válida: {p1}": "Iarmhír neamhbhailí: {p1}",
+  "Indica al menos una extensión": "Cuir iarmhír amháin ar a laghad isteach",
+  "Registro de «Abrir con» no válido": "Taifead “Oscail le” neamhbhailí",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Níorbh fhéidir “Oscail le” {p1} a bhaint: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Cláraithe faoi “Oscail le” do {p1}. D’fhéadfadh sé roinnt soicindí a thógáil sula mbeidh sé le feiceáil in Explorer.",
+  "Quitar": "Bain",
+  "Retirado de «Abrir con».": "Bainte de “Oscail le”.",
+  "Extensiones registradas": "Iarmhíreanna cláraithe",
+  "Habituales": "Coitianta",
+  "Presets": "Réamhshocruithe",
+  "Extensiones": "Iarmhíreanna"
 }

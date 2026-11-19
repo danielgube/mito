@@ -2226,3 +2226,39 @@ No hay repositorio Git inicializado ni publicación remota creada por esta tarea
 - Mensajes nuevos traducidos en los 24 catálogos. Regresiones añadidas en
   core/tests/test_host_exposure.py (junctions reales en carpetas temporales).
   No se han ejecutado tests ni doctor: validación pendiente del usuario.
+
+## «Abrir con» para componentes de MITO (19 de noviembre de 2026)
+
+- Nuevo open_with.py y botón «Abrir con · link/unlink» en componentes activos con
+  ejecutable. Registra en HKCU un ProgID MITO.<hash> por profile y componente
+  cuyo comando es `mito run`, y lo añade a OpenWithProgids de las extensiones que
+  indica el usuario. Aparece en «Abrir con» del menú contextual con el entorno,
+  workspace y copia por profile. No cambia la aplicación predeterminada: si se
+  quiere, el usuario la elige en el diálogo de Windows con «Usar siempre».
+- Registro en core/state/open-with.json. Se retira al pulsar unlink, al eliminar
+  el componente o el profile; relocation reescribe comandos tras mover la
+  instancia y abandona las entradas tras copiarla.
+- Límites: el arranque pasa por pythonw y tarda algo más que el ejecutable
+  directo. Que Windows muestre el nombre y el icono de las claves Application en
+  lugar de «Python» está pendiente de comprobar en este equipo. Desactivar el
+  componente no retira la entrada; al usarla, el lanzador da error. Las entradas
+  apuntan a la ruta absoluta de la instancia. Cortex XDR puede vigilar escrituras
+  en HKCU\Software\Classes.
+- Mensajes nuevos traducidos en los 24 catálogos. Regresiones en
+  core/tests/test_open_with.py sobre una rama temporal de HKCU. No se han
+  ejecutado tests ni doctor: validación pendiente del usuario.
+- Corrección: el botón «Abrir con» abre siempre el diálogo de gestión, también
+  con extensiones ya registradas (antes sólo permitía quitar). Muestra una tabla
+  por entrada, un desplegable de extensiones habituales y texto libre; se puede
+  añadir y quitar antes de Guardar. Guardar sin extensiones retira la entrada.
+  open_with.apply aplica sólo los cambios. Regresiones de apply y del diálogo
+  Textual añadidas en test_open_with.py, sin ejecutar.
+- Presets en el diálogo «Abrir con»: Word, Excel, PowerPoint, PDF / eBook, 7-Zip,
+  VLC, IrfanView y Notepad++ añaden de una vez sus extensiones habituales, sin
+  duplicar las ya presentes. Son sugerencias de la UI (open_with.PRESETS), no
+  políticas del motor; se combinan con la elección suelta y el texto libre.
+  Regresión del diálogo y validez de todos los presets añadida, sin ejecutar.
+- El botón de la fila pasa de «Abrir con · link/unlink» a «Extensiones ✓» (con
+  extensiones asociadas en el profile) o «Extensiones ✗» (sin ellas), con ancho
+  propio de 20 columnas para las traducciones largas. El diálogo mantiene el título
+  «Abrir con» porque describe el menú de Windows donde aparecen.

@@ -544,5 +544,20 @@
   "Esta ruta del host ya está gestionada por MITO": "Din il-mogħdija tal-host diġà hija ġestita minn MITO",
   "La carpeta del host ya existe: {p1}": "Il-folder tal-host diġà jeżisti: {p1}",
   "Enlaces del host actualizados a la nueva ruta: {p1}": "Il-links fuq il-host ġew aġġornati għall-mogħdija l-ġdida: {p1}",
-  "No se pudo actualizar el enlace del host {p1}: {p3}": "Ma setax jiġi aġġornat il-link fuq il-host {p1}: {p3}"
+  "No se pudo actualizar el enlace del host {p1}: {p3}": "Ma setax jiġi aġġornat il-link fuq il-host {p1}: {p3}",
+  "Abrir con": "Iftaħ bi",
+  "Extensiones (por ejemplo: pdf epub)": "Estensjonijiet (pereżempju: pdf epub)",
+  "Aparecerá en «Abrir con» del menú contextual de esos archivos y se abrirá con el entorno del profile. No cambia la aplicación predeterminada.": "Se tidher f’“Iftaħ bi” fil-menu kuntestwali ta’ dawk il-fajls u tinfetaħ bl-ambjent tal-profile. L-applikazzjoni awtomatika ma tinbidilx.",
+  "Registrar": "Irreġistra",
+  "Extensión no válida: {p1}": "Estensjoni invalida: {p1}",
+  "Indica al menos una extensión": "Daħħal mill-inqas estensjoni waħda",
+  "Registro de «Abrir con» no válido": "Rekord “Iftaħ bi” invalidu",
+  "No se pudo retirar «Abrir con» {p1}: {p3}": "Ma setax jitneħħa “Iftaħ bi” {p1}: {p3}",
+  "Registrado en «Abrir con» para {p1}. Puede tardar unos segundos en aparecer en el Explorador.": "Irreġistrat f’“Iftaħ bi” għal {p1}. Jista’ jieħu ftit sekondi biex jidher fl-Explorer.",
+  "Quitar": "Neħħi",
+  "Retirado de «Abrir con».": "Imneħħi minn “Iftaħ bi”.",
+  "Extensiones registradas": "Estensjonijiet irreġistrati",
+  "Habituales": "Komuni",
+  "Presets": "Presets",
+  "Extensiones": "Estensjonijiet"
 }

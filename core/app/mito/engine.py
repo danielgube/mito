@@ -157,6 +157,9 @@ class Engine:
                 raise YitoError(tr('No se puede eliminar el último profile'))
             write_json(self.root / 'core/state/deleted-profiles' / f'{name}.json', data)
             inside(self.root / 'profiles', f'{name}.json').unlink()
+            from .open_with import unregister
+            # «Abrir con» would otherwise launch a profile that no longer exists.
+            unregister(self.root, lambda record: record.get('profile') == name)
             from .terminal import prepare
             prepare(self)
         return self.profiles()[0]

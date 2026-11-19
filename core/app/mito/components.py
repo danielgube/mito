@@ -140,6 +140,8 @@ def remove(engine, installation, log=print):
             unexpose(engine.root, installation)
         except (OSError, YitoError) as exc:
             log(tr('No se pudieron retirar los enlaces del host: {p1}', p1=(exc)))
+        from .open_with import unregister
+        unregister(engine.root, lambda record: record.get('installation') == installation, log)
         log(tr('Eliminado {p1} {p3}. Datos persistentes conservados.', p1=(lock['key']), p3=(lock['version'])))
 
 
