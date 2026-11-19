@@ -80,6 +80,15 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.2.12 — 2026-11-19
+
+### Commits incluidos
+
+- extensions support integration added ([1ef1921](https://github.com/danielgube/mito/commit/1ef19217f96e81a3f71891e2a01cc552bf4a45c0))
+- tests hotfixeds ([13c7134](https://github.com/danielgube/mito/commit/13c713489dd618a933e06c8fbd35b3a462b1c294))
+
+[Comparar cambios](https://github.com/danielgube/mito/compare/7da5d7580b82551c27ebdca9cba9106726360242...13c713489dd618a933e06c8fbd35b3a462b1c294)
+
 ## 0.2.11 — 2026-11-19
 
 ### Commits incluidos
