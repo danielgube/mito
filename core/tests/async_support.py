@@ -49,6 +49,9 @@ async def click(pilot, target, timeout=5.0):
     ~0,2 s descarta el clic aunque lo reciba."""
     from textual.widget import Widget
     app = pilot.app
+    if not isinstance(target, Widget):
+        # A just-pushed screen is current before its compose() children are mounted.
+        await until(pilot, lambda: app.screen.query(target), timeout)
     widget = target if isinstance(target, Widget) else app.screen.query_one(target)
 
     def reachable():

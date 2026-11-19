@@ -398,14 +398,15 @@ class UITests(AsyncTestCase):
                 async with app.run_test(size=(130,42)) as pilot:
                     await pilot.pause()
                     app.begin('install','test','main/tool')
-                    await pilot.pause()
+                    # The dialog is opened by the install worker, not synchronously.
+                    await until(pilot, lambda: isinstance(app.screen, UnverifiedDownloadsDialog))
                     self.assertIsInstance(app.screen, UnverifiedDownloadsDialog)
                     download.assert_not_called()
                     await pilot.press('escape')
                     await app.workers.wait_for_complete()
                     self.assertFalse(engine.installed())
                     app.begin('install','test','main/tool')
-                    await pilot.pause()
+                    self.assertTrue(await until(pilot, lambda: isinstance(app.screen, UnverifiedDownloadsDialog)))
                     await click(pilot, '#unverified-confirm')
                     await app.workers.wait_for_complete()
                     download.assert_called_once()
