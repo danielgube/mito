@@ -80,6 +80,14 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.2.15 — 2026-11-20
+
+### Commits incluidos
+
+- intranet fixed ([f92465c](https://github.com/danielgube/mito/commit/f92465cb2418a2c5e8c0e00543c4cb02ae3720ed))
+
+[Comparar cambios](https://github.com/danielgube/mito/compare/e37a4a99badca7f2811386cf07324a2d1e513080...f92465cb2418a2c5e8c0e00543c4cb02ae3720ed)
+
 ## 0.2.14 — 2026-11-19
 
 ### Commits incluidos
