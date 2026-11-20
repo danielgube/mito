@@ -73,6 +73,60 @@ class NetworkTests(unittest.TestCase):
             if path.is_file():
                 self.assertNotIn('test-password',path.read_text())
 
+    def test_portal_url_is_rediscovered_because_saved_redirects_expire(self):
+        # Portals put a per-session token in the redirect; the saved URL answers 400.
+        state = {'authenticated':False, 'session':0, 'posts':[]}
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def log_message(self, *args):
+                pass
+            def do_GET(self):
+                path, _, query = self.path.partition('?')
+                if state['authenticated']:
+                    self.send_response(204); self.end_headers()
+                elif path == '/check':
+                    state['session'] += 1
+                    self.send_response(302); self.send_header('Location', f'/portal?magic={state["session"]}'); self.end_headers()
+                elif path == '/portal' and query == f'magic={state["session"]}':
+                    self.send_response(302); self.send_header('Location', f'/fgtauth?{query}'); self.end_headers()
+                elif path == '/fgtauth' and query == f'magic={state["session"]}':
+                    self.send_response(200); self.end_headers()
+                    self.wfile.write(f'<form action="/"><input type="hidden" name="magic" value="{state["session"]}"><input name="username"><input name="password" type="password"></form>'.encode())
+                else:
+                    self.send_response(400); self.end_headers()
+            def do_POST(self):
+                fields = urllib.parse.parse_qs(self.rfile.read(int(self.headers['Content-Length'])).decode())
+                state['posts'].append(fields)
+                state['authenticated'] = fields == {'magic':[str(state['session'])], 'username':['test-user'], 'password':['test-password']}
+                self.send_response(200); self.end_headers()
+        server = http.server.ThreadingHTTPServer(('127.0.0.1',0),Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+        self.addCleanup(server.server_close); self.addCleanup(server.shutdown)
+        url = f'http://127.0.0.1:{server.server_port}'
+        self.config(f'http_proxy=\nhttps_proxy=\nno_proxy=127.0.0.1\nnetwork.check_url={url}/check\nnetwork.timeout_seconds=1\nenable_proxy_authentication=true\nproxy_authentication_require_https=false\nproxy_authentication_url={url}/portal?magic=expired')
+        network = Network(self.root)
+        self.assertTrue(network.authenticate('test-user','test-password'))
+        self.assertEqual(len(state['posts']), 1)
+        for path in self.root.rglob('*'):
+            if path.is_file():
+                self.assertNotIn('test-password',path.read_text())
+
+    def test_failed_portal_login_is_logged_without_secrets(self):
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def log_message(self, *args):
+                pass
+            def do_GET(self):
+                self.send_response(400); self.end_headers()
+        server = http.server.ThreadingHTTPServer(('127.0.0.1',0),Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+        self.addCleanup(server.server_close); self.addCleanup(server.shutdown)
+        url = f'http://127.0.0.1:{server.server_port}'
+        self.config(f'http_proxy=\nhttps_proxy=\nno_proxy=127.0.0.1\nnetwork.check_url={url}/check\nnetwork.timeout_seconds=1\nenable_proxy_authentication=true\nproxy_authentication_require_https=false\nproxy_authentication_url={url}/portal?magic=secret-token')
+        self.assertFalse(Network(self.root).authenticate('test-user','test-password'))
+        logs = ''.join(path.read_text() for path in self.root.rglob('*') if path.is_file() and path.name != 'config.properties')
+        self.assertIn('Portal page unavailable', logs)
+        self.assertNotIn('secret-token', logs)
+        self.assertNotIn('test-password', logs)
+
     def test_interceptor_cancellation_offline_and_success(self):
         with patch('mito.network.Network') as cls, patch('mito.network.prompt_credentials', return_value=None) as prompt:
             network = cls.return_value

@@ -1678,6 +1678,15 @@ El [plan original](MCP_PLAN.md) conserva decisiones y criterios previstos.
   autenticar en el diálogo, doctor correcto y comprobación real de Internet accesible.
   Portal HTTP local simulado verifica POST/campos ocultos, rechazo de redirecciones
   como prueba de Internet y ausencia de credenciales en archivos.
+- proxy_authentication_url guardada por el diagnóstico es una redirección con token de
+  sesión (p. ej. magic) que caduca: el portal responde 400 y el login fallaba sin POST.
+  Ahora cada intento pide la URL de comprobación por HTTP y usa la redirección que
+  aterriza en el mismo origen que la URL configurada (hasta 5 saltos); si no la hay,
+  usa la guardada. La página del portal sigue redirecciones del mismo origen. El
+  formulario y su action se resuelven respecto a la página final.
+- Fallos de login quedan en logs (network.authenticate) con estado HTTP y origen,
+  sin URL, token ni credenciales. Regresiones en core/tests/test_network.py.
+  Pendiente: validación del usuario contra el portal corporativo real.
 
 ## Suite: duración y fallos al ejecutarla desde una pestaña
 

@@ -50,6 +50,17 @@ def validate_url(url):
     return parsed
 
 
+def origin(url):
+    parsed = urllib.parse.urlsplit(url)
+    return parsed.scheme.lower(), parsed.netloc.lower()
+
+
+def redirect_location(url, exc):
+    """Absolute target of a redirect HTTPError, or '' for any other status."""
+    location = exc.headers.get('Location', '') if exc.code in REDIRECTS else ''
+    return urllib.parse.urljoin(url, location) if location else ''
+
+
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         # Never forward a credential-bearing POST or accept a portal as Internet.
@@ -136,6 +147,36 @@ class Network:
         flags = ctypes.c_ulong()
         return bool(ctypes.windll.wininet.InternetGetConnectedState(ctypes.byref(flags), 0))
 
+    def log(self, text, **details):
+        # Status codes and origins only: portal URLs carry per-session tokens.
+        from .diagnostics import write
+        write(self.root, 'warning', 'network.authenticate', text, portal=origin(self.auth_url), **details)
+
+    def redirect(self, client, url):
+        try:
+            with client.open(url, timeout=self.timeout):
+                return ''
+        except urllib.error.HTTPError as exc:
+            exc.close()
+            return redirect_location(url, exc)
+        except (OSError, ValueError):
+            return ''
+
+    def portal_page(self, client):
+        """Current portal URL: portals issue per-session tokens, so a saved redirect expires.
+
+        The check URL over HTTP is intercepted like a browser's first request; only a
+        redirect landing on the configured portal origin is used, else the saved URL."""
+        parsed = urllib.parse.urlsplit(self.url)
+        url = urllib.parse.urlunsplit(('http', parsed.netloc, parsed.path, parsed.query, ''))
+        for _ in range(5):
+            url = self.redirect(client, url)
+            if not url:
+                break
+            if origin(url) == origin(self.auth_url):
+                return url
+        return self.auth_url
+
     def authenticate(self, username, password):
         if not self.enabled or not username or not password:
             return False
@@ -144,13 +185,29 @@ class Network:
         user_field = self.config.get('proxy_authentication_username_field', 'username')
         pass_field = self.config.get('proxy_authentication_password_field', 'password')
         try:
-            with client.open(self.auth_url, timeout=self.timeout) as page:
-                parser = Form(pass_field)
-                parser.feed(page.read(1024 * 1024).decode('utf-8', errors='replace'))
-            action, fields = self.auth_url, {}
+            url = self.portal_page(client)
+            for _ in range(5):
+                try:
+                    with client.open(url, timeout=self.timeout) as page:
+                        parser = Form(pass_field)
+                        parser.feed(page.read(1024 * 1024).decode('utf-8', errors='replace'))
+                    break
+                except urllib.error.HTTPError as exc:
+                    exc.close()
+                    target = redirect_location(url, exc)
+                    if not target or origin(target) != origin(self.auth_url):
+                        self.log('Portal page unavailable', status=exc.code)
+                        return False
+                    url = target
+            else:
+                self.log('Portal page redirects too many times')
+                return False
+            action, fields = url, {}
             if parser.forms:
-                action = urllib.parse.urljoin(self.auth_url, parser.forms[0][0])
+                action = urllib.parse.urljoin(url, parser.forms[0][0])
                 fields = parser.forms[0][1]
+            else:
+                self.log('Portal page has no password form; posting to the page itself')
             parsed = validate_url(action)
             original = validate_url(self.auth_url)
             if (parsed.scheme, parsed.netloc) != (original.scheme, original.netloc):
@@ -162,16 +219,24 @@ class Network:
             fields.update({user_field: username, pass_field: password})
             body = urllib.parse.urlencode(fields).encode()
             request = urllib.request.Request(action, data=body, headers={'Content-Type': 'application/x-www-form-urlencoded'})
+            status = 200
             try:
-                with client.open(request, timeout=self.timeout):
-                    pass
+                with client.open(request, timeout=self.timeout) as response:
+                    status = response.status
             except urllib.error.HTTPError as exc:
                 exc.close()
+                status = exc.code
                 if exc.code not in (301, 302, 303):
+                    self.log('Portal rejected the login POST', status=status)
                     return False
             # Check using a fresh client: children cannot inherit portal cookies.
-            return self.check()
-        except (OSError, ValueError):
+            if self.check():
+                return True
+            self.log('Internet still unavailable after the login POST', status=status)
+            return False
+        except (OSError, ValueError) as exc:
+            from .diagnostics import message
+            self.log(message(self.root, exc))
             return False
 
 
