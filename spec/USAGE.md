@@ -281,6 +281,10 @@ esa sesión; nunca se guardan. HTTP 407 y otras respuestas sólo se notifican. E
 sola que todo Internet esté bloqueado: puede estar bloqueado el destino de prueba.
 `network.check_url`, `network.check_status` y `network.timeout_seconds` permiten
 ajustarlo; por defecto se espera HTTP 204 de Google en una petición sin redirecciones.
+Con el gestor abierto, el botón INTERNET se vuelve a comprobar en segundo plano cada
+`network.poll_seconds` segundos (20 por defecto, mínimo 5, 0 lo desactiva; se aplica al
+reabrir MITO). Sólo se redibuja ese botón, y en rojo cuando no hay Internet. La
+comprobación periódica no abre diálogos ni escribe avisos en el log.
 
 Los accesos directos de aplicaciones comprueban la conexión antes del lanzamiento.
 Si hace falta autenticarse muestran una ventana de Windows con contraseña oculta;
@@ -502,7 +506,7 @@ cancelar con Escape y permanece deshabilitado si sólo queda un profile.
 La cabecera muestra la versión real de MITO.
 ## Datos y caché de aplicaciones del host
 
-En ACCIONES, **Abrir Home** abre `home/AppData` de MITO en el Explorador de archivos.
+En ACCIONES, **Abrir Home** abre `home` de MITO en el Explorador de archivos.
 
 Al agregar un ejecutable, MITO busca carpetas que contengan su nombre primero en
 AppData/Roaming y después en AppData/Local. Puedes aceptar o cancelar cada enlace.

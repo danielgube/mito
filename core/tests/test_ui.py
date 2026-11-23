@@ -337,6 +337,56 @@ class UITests(AsyncTestCase):
                 self.assertEqual(engine.profile('test')['env'],{'CUSTOM':'value'}, shown)
                 self.assertFalse((engine.root/'config.properties').exists())
 
+    async def test_altered_download_is_explained_in_a_centered_dialog(self):
+        from mito.transfer import DownloadIntegrityError
+        from mito.ui import DownloadIntegrityDialog
+        from textual.widgets import TextArea
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            engine = Engine(root)
+            engine.create_profile('test')
+            app = YitoApp(engine)
+            error = DownloadIntegrityError('Hash incorrecto', url='https://github.com/o/r/releases/download/v1/jdk.zip',
+                                           size=1867, host='release-assets.githubusercontent.com')
+            with patch('mito.network.Network.check', return_value=True), \
+                 patch.object(app, 'install_from_catalog', side_effect=error):
+                async with app.run_test(size=(130,42)) as pilot:
+                    await pilot.pause()
+                    app.begin('install', 'test', 'java/temurin8-jdk')
+                    await until(pilot, lambda: isinstance(app.screen, DownloadIntegrityDialog))
+                    details = app.screen.query_one('#integrity-details', TextArea).text
+                    self.assertIn('https://github.com/o/r/releases/download/v1/jdk.zip', details)
+                    self.assertIn('1867', details)
+                    self.assertIn('release-assets.githubusercontent.com', details)
+                    self.assertIn('proxy', ' '.join(str(s.render()) for s in app.screen.query('Static')))
+                    await pilot.press('escape')
+                    await until(pilot, lambda: not isinstance(app.screen, DownloadIntegrityDialog))
+
+    async def test_periodic_network_check_turns_button_red_without_prompting(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root/'config.properties').write_text('network.poll_seconds=0')
+            engine = Engine(root)
+            engine.create_profile('test')
+            app = YitoApp(engine)
+            with patch('mito.network.Network.check', return_value=True) as check, \
+                 patch('mito.network.Network.local_network', return_value=True), \
+                 patch('mito.network.diagnose') as diagnose:
+                async with app.run_test(size=(130,42)) as pilot:
+                    await until(pilot, lambda: str(app.query_one('#network-status', Button).label) == 'Internet accesible')
+                    self.assertFalse(hasattr(app, 'network_timer'))
+                    button = app.query_one('#network-status', Button)
+                    self.assertEqual(button.variant, 'default')
+                    check.return_value = False
+                    app.poll_network()
+                    await until(pilot, lambda: button.variant == 'error')
+                    self.assertEqual(str(button.label), 'Internet no accesible')
+                    check.assert_called_with(log=False)
+                    diagnose.assert_not_called()
+                    check.return_value = True
+                    app.poll_network()
+                    await until(pilot, lambda: button.variant == 'default')
+
     async def test_network_status_and_cancel_dialog(self):
         from mito.network import Diagnosis
         from mito.network_ui import ProxyDialog
@@ -491,7 +541,7 @@ class UITests(AsyncTestCase):
                 self.assertFalse(app.query_one('#self-update', Button).display)
                 with patch('mito.persistence.open_location') as open_location:
                     await click(pilot, '#open-home')
-                    open_location.assert_called_once_with(engine.root/'home/AppData')
+                    open_location.assert_called_once_with(engine.root/'home')
                 await click(pilot, '#manage-profile')
                 # Layout assertions require the newly mounted dialog to render.
                 await pilot.pause()

@@ -135,7 +135,10 @@ def main(argv=None):
                   'Comprueba el evento $exception con mito_diagnostic=true en tu proyecto; '
                   'la respuesta HTTP no confirma su procesamiento en Error Tracking.')
             return 0
-        resume(root)
+        if args.command in (None, 'ui'):
+            # Only the long-lived manager retries pending events: in shims such as git
+            # the exit flush would wait for every retry on each invocation.
+            resume(root)
         engine.initialize()
         if args.command in (None, 'ui', 'start'):
             # Nunca se borra el último profile; sólo el primer arranque puede no tener ninguno.

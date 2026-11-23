@@ -563,5 +563,12 @@
   "Extensiones registradas": "Registrerede filtypenavne",
   "Habituales": "Almindelige",
   "Presets": "Forudindstillinger",
-  "Extensiones": "Filtypenavne"
+  "Extensiones": "Filtypenavne",
+  "La red devolvió una página web en lugar del archivo ({p1}); puede ser el portal de autenticación o un bloqueo del proxy. Pulsa INTERNET y reintenta.": "Netværket returnerede en webside i stedet for filen ({p1}); det kan være godkendelsesportalen eller en proxyblokering. Klik på INTERNET, og prøv igen.",
+  "Hash incorrecto en {p1}: se recibieron {p2} bytes desde {p3}. Un proxy o antivirus puede estar alterando la descarga; prueba desde otra red o avisa a soporte con esta URL. Se ha descartado la descarga.": "Forkert hash for {p1}: modtog {p2} byte fra {p3}. En proxy eller antivirus kan ændre downloadet; prøv et andet netværk, eller giv support denne URL. Downloadet er kasseret.",
+  "DESCARGA ALTERADA POR LA RED": "DOWNLOAD ÆNDRET AF NETVÆRKET",
+  "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Det modtagne er ikke den udgivne fil, så MITO har kasseret den og intet installeret.",
+  "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Mest sandsynlige årsag: netværkets godkendelsesportal. Klik på INTERNET, log ind, og prøv igen.",
+  "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Mest sandsynlige årsag: netværkets proxy eller antivirus har erstattet eller ændret downloadet. Det er ikke en fejl i MITO eller kataloget. Prøv et andet netværk, eller giv support disse oplysninger.",
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nModtaget: {p2} byte fra {p3}"
 }

@@ -60,6 +60,14 @@ class CLITests(unittest.TestCase):
             ['--name', 'two words'], coupled=False, owned=True, shortcut=None)
         prompt.assert_called_once_with('Pulsa Intro para cerrar esta pestaña.')
 
+    def test_shims_do_not_retry_pending_diagnostic_events(self):
+        # Every git call goes through `mito run`; the exit flush would wait for retries.
+        with patch('mito.__main__.Engine') as engine_type, patch('mito.__main__.resume') as resume, \
+                patch('mito.network.intercept'), patch('builtins.print'):
+            self.engine(engine_type).launch.return_value = 0
+            self.assertEqual(main(['run', '--profile', 'one', '--app', 'extras/tool']), 0)
+        resume.assert_not_called()
+
     def test_owned_host_forwards_arguments_and_pauses_on_success(self):
         with patch('mito.__main__.Engine') as engine_type, \
                 patch('mito.network.intercept'), patch('mito.host_apps.launch', return_value=0) as launch, \

@@ -563,5 +563,12 @@
   "Extensiones registradas": "Registrované přípony",
   "Habituales": "Běžné",
   "Presets": "Předvolby",
-  "Extensiones": "Přípony"
+  "Extensiones": "Přípony",
+  "La red devolvió una página web en lugar del archivo ({p1}); puede ser el portal de autenticación o un bloqueo del proxy. Pulsa INTERNET y reintenta.": "Síť místo souboru vrátila webovou stránku ({p1}); může jít o ověřovací portál nebo blokování proxy. Klikněte na INTERNET a zkuste to znovu.",
+  "Hash incorrecto en {p1}: se recibieron {p2} bytes desde {p3}. Un proxy o antivirus puede estar alterando la descarga; prueba desde otra red o avisa a soporte con esta URL. Se ha descartado la descarga.": "Nesprávný hash pro {p1}: přijato {p2} bajtů z {p3}. Proxy nebo antivirus může stahování měnit; zkuste jinou síť nebo nahlaste tuto URL podpoře. Stažený soubor byl zahozen.",
+  "DESCARGA ALTERADA POR LA RED": "SÍŤ ZMĚNILA STAHOVANÝ SOUBOR",
+  "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Dorazil jiný než zveřejněný soubor, proto ho MITO zahodil a nic nenainstaloval.",
+  "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Nejpravděpodobnější příčina: ověřovací portál sítě. Klikněte na INTERNET, přihlaste se a zkuste to znovu.",
+  "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Nejpravděpodobnější příčina: proxy nebo antivirus sítě nahradil nebo upravil stahovaný soubor. Nejde o chybu MITO ani katalogu. Zkuste jinou síť nebo tyto údaje předejte podpoře.",
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nPřijato: {p2} bajtů z {p3}"
 }

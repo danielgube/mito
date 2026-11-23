@@ -112,7 +112,7 @@ La barra lateral contiene:
 - **Profiles:** selector del profile actual y **Gestionar profile**.
 - **Inicio · Instalados:** vuelve al inventario de componentes.
 - **Actualizar MITO:** aparece cuando hay una release posterior disponible.
-- **Abrir Home:** abre el `AppData` portátil en el Explorador.
+- **Abrir Home:** abre la carpeta `home` portátil en el Explorador.
 - **Configuración:** edita opciones globales, idioma, fuentes y variables.
 - **Pocketools:** sincroniza paquetes de comandos compartidos.
 - **MCP - disabled/enabled:** controla el servidor local para agentes.

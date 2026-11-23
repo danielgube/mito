@@ -563,5 +563,12 @@
   "Extensiones registradas": "Registrierte Erweiterungen",
   "Habituales": "Häufige",
   "Presets": "Vorlagen",
-  "Extensiones": "Erweiterungen"
+  "Extensiones": "Erweiterungen",
+  "La red devolvió una página web en lugar del archivo ({p1}); puede ser el portal de autenticación o un bloqueo del proxy. Pulsa INTERNET y reintenta.": "Das Netzwerk hat statt der Datei eine Webseite zurückgegeben ({p1}); möglicherweise das Anmeldeportal oder eine Proxy-Sperre. Klicke auf INTERNET und versuche es erneut.",
+  "Hash incorrecto en {p1}: se recibieron {p2} bytes desde {p3}. Un proxy o antivirus puede estar alterando la descarga; prueba desde otra red o avisa a soporte con esta URL. Se ha descartado la descarga.": "Falscher Hash für {p1}: {p2} Bytes von {p3} empfangen. Ein Proxy oder Virenschutz verändert möglicherweise den Download; versuche ein anderes Netzwerk oder melde diese URL dem Support. Der Download wurde verworfen.",
+  "DESCARGA ALTERADA POR LA RED": "DOWNLOAD VOM NETZWERK VERÄNDERT",
+  "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Empfangen wurde nicht die veröffentlichte Datei; MITO hat sie verworfen und nichts installiert.",
+  "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Wahrscheinlichste Ursache: das Anmeldeportal des Netzwerks. Klicke auf INTERNET, melde dich an und versuche es erneut.",
+  "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Wahrscheinlichste Ursache: Proxy oder Virenschutz des Netzwerks hat den Download ersetzt oder verändert. Das ist kein Fehler von MITO oder dem Katalog. Versuche ein anderes Netzwerk oder gib diese Angaben an den Support.",
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nEmpfangen: {p2} Bytes von {p3}"
 }

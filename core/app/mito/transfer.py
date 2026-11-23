@@ -36,6 +36,39 @@ class WebRedirect(urllib.request.HTTPRedirectHandler):
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
+MARKUP = (b'<!doctype html', b'<html', b'<head', b'<body', b'<script', b'<meta', b'<title')
+
+
+def web_page(url, content_type, head):
+    """True when a portal or proxy block page replaced a non-HTML resource."""
+    if urllib.parse.urlsplit(url).path.lower().endswith(('.htm', '.html', '.xhtml')):
+        return False
+    text = head.lstrip(b'\xef\xbb\xbf \t\r\n').lower()
+    return text.startswith(MARKUP) or ((content_type or '').lower() == 'text/html' and text.startswith(b'<'))
+
+
+class DownloadIntegrityError(YitoError):
+    """The received content is not the declared artifact; the UI explains it in a dialog.
+
+    url is the requested URL without query, host the final server and portal marks
+    an intercepted HTML page (authentication portal) instead of altered content."""
+    def __init__(self, message, url='', size=None, host='', portal=False):
+        super().__init__(message)
+        self.url, self.size, self.host, self.portal = url, size, host, portal
+
+
+def public_url(url):
+    """Requested URL without query or fragment: signed tokens never reach messages."""
+    parsed = urllib.parse.urlsplit(url)
+    return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, '', ''))
+
+
+def web_page_error(final_url, url='', size=None):
+    host = urllib.parse.urlsplit(final_url).hostname or '?'
+    return DownloadIntegrityError(tr('La red devolvió una página web en lugar del archivo ({p1}); puede ser el portal de autenticación o un bloqueo del proxy. Pulsa INTERNET y reintenta.',
+                        p1=host), url=public_url(url or final_url), size=size, host=host, portal=True)
+
+
 def hash_verifier(expected):
     if isinstance(expected, str):
         expected = expected.strip()
@@ -108,7 +141,13 @@ def download(url: str, destination: Path, expected: str | None = None, *, root=N
         try:
             with opener.open(request, timeout=60) as response, destination.open('wb') as output:
                 total = 0
+                head = b''
+                final_url = getattr(response, 'geturl', lambda: None)() or request.full_url
+                headers = getattr(response, 'headers', None)
+                content_type = headers.get_content_type() if hasattr(headers, 'get_content_type') else ''
                 while chunk := response.read(1024 * 1024):
+                    if len(head) < 512:
+                        head += chunk[:512 - len(head)]
                     total += len(chunk)
                     if total > max_bytes:
                         if max_bytes == MAX_DOWNLOAD:
@@ -156,9 +195,21 @@ def download(url: str, destination: Path, expected: str | None = None, *, root=N
             destination.unlink(missing_ok=True)
             raise
         else:
+            # Checked before the hash and also without one: a hash-less install
+            # must never publish an intercepted HTML page as the component.
+            if web_page(request.full_url, content_type, head):
+                destination.unlink(missing_ok=True)
+                raise web_page_error(final_url, request.full_url, total)
             if hasher is not None and hasher.hexdigest().lower() != digest:
                 destination.unlink(missing_ok=True)
-                raise YitoError(tr('Hash incorrecto; se ha descartado la descarga'))
+                if root is not None:
+                    from .diagnostics import write
+                    write(root, 'warning', 'download.hash', 'Hash mismatch', host=urllib.parse.urlsplit(final_url).hostname,
+                          bytes=total, content_type=content_type, algorithm=hasher.name)
+                host = urllib.parse.urlsplit(final_url).hostname or '?'
+                raise DownloadIntegrityError(tr('Hash incorrecto en {p1}: se recibieron {p2} bytes desde {p3}. Un proxy o antivirus puede estar alterando la descarga; prueba desde otra red o avisa a soporte con esta URL. Se ha descartado la descarga.',
+                                                p1=public_url(request.full_url), p2=total, p3=host),
+                                             url=public_url(request.full_url), size=total, host=host)
             return
 
 

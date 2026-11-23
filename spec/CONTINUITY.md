@@ -1434,8 +1434,8 @@ El [plan original](MCP_PLAN.md) conserva decisiones y criterios previstos.
   conexión o lock disponible conserva el catálogo y deja diagnóstico, sin reintento
   periódico. No actualiza aplicaciones externas del host.
 
-- ACCIONES incorpora Abrir Home: abre home/AppData de esta instancia en el
-  Explorador de archivos, independientemente del profile seleccionado.
+- ACCIONES incorpora Abrir Home: abre home de esta instancia (antes home/AppData)
+  en el Explorador de archivos, independientemente del profile seleccionado.
   Doctor OK; suite de 118 pruebas ejecutada, con la única expectativa antigua
   de botones actualizada y repetida correctamente, incluido el clic y su destino.
 
@@ -1687,6 +1687,44 @@ El [plan original](MCP_PLAN.md) conserva decisiones y criterios previstos.
 - Fallos de login quedan en logs (network.authenticate) con estado HTTP y origen,
   sin URL, token ni credenciales. Regresiones en core/tests/test_network.py.
   Pendiente: validación del usuario contra el portal corporativo real.
+- El botón INTERNET se recomprueba con set_interval cada network.poll_seconds (20 por
+  defecto, mínimo 5, 0 desactiva; leído al montar la UI). Sólo cambia etiqueta y variant
+  del botón cuando difieren (error = rojo sin Internet), sin refrescar la interfaz.
+  La comprobación periódica no diagnostica, no abre diálogos, no registra avisos y se
+  omite mientras hay otro worker de red o un diálogo abierto. Regresión en test_ui.py.
+- Rendimiento de shims (git en pestaña cmd tardaba ~4,5 s): cada `mito run` recreaba
+  todas las junctions persist con un powershell.exe por entrada (~3,4 s) y reintentaba
+  hasta 20 eventos PostHog pendientes, esperando su flush al salir (tras el proxy
+  corporativo PostHog responde 403 y la cola nunca se vacía). Ahora persistence.prepare
+  omite enlaces intactos (junction con el mismo destino o hard link al mismo archivo) y
+  los rehace si cambian (reubicación), y resume() sólo corre en el gestor (ui). Medido:
+  git en el entorno del profile ~0,47 s. Regresiones en test_isolation.py y test_cli.py.
+- Portal sin autenticar: las descargas siguen redirecciones y guardaban su página HTML,
+  visible como «Hash incorrecto» o «Expecting value» en manifiestos y en la comprobación
+  de MITO. transfer.download (con o sin hash) y self_update.check_remote detectan ahora
+  una página web (marcado HTML al inicio, o text/html que empieza por «<») cuando no se
+  pidió un .htm/.html, la descartan y avisan de portal o bloqueo del proxy con el host
+  final. Un hash realmente distinto deja en el log download.hash con host, bytes,
+  Content-Type y algoritmo. Mensaje nuevo en los 24 idiomas. Regresiones en
+  test_transfer.py. Límite: no autentica ni reintenta solo; el usuario pulsa INTERNET.
+- Instalación lenta con EDR corporativo: corretto8-jdk (729 archivos, ~100 MB) tardó
+  134 s en copy-payload frente a 4 s de extracción; renombrar copias de archivos ya
+  conocidos cuesta ~7 ms por archivo, así que el coste es el antivirus esperando por
+  cada rename de binarios nuevos. engine.move_whole publica ahora el árbol extraído con
+  un único rename de carpeta si el destino no existe o está vacío; si hay contenido que
+  fusionar o el rename falla, sigue la fusión por archivo. Regresión en
+  test_move_whole.py. Pendiente: medir el efecto real en la próxima instalación grande
+  (el antivirus puede seguir escaneando al validar o en el primer arranque).
+- Proxy corporativo con inspección TLS (CA «MINISTERIO DE DEFENSA / NI-NAVEGACION»)
+  sirve para temurin8-jdk 8u512-b09 (ZIP) un XML BlockList de Azure de 1867 bytes en
+  lugar de 106 490 535 bytes, también en navegador y curl; otros assets del mismo
+  release llegan bien. Manifiesto correcto (sha256 igual al digest de GitHub). No se
+  añade excepción: el hash lo bloquea. Errores de integridad (hash o página web) son
+  DownloadIntegrityError: el mensaje incluye URL pedida sin query ni fragmento, bytes
+  recibidos y host final. La UI lo explica en DownloadIntegrityDialog, un diálogo modal
+  centrado que culpa al proxy/antivirus (o al portal si llegó HTML), indica que no se ha
+  instalado nada y deja URL, bytes y host en un TextArea de sólo lectura para copiarlos.
+  Regresión en test_ui.py.
 
 ## Suite: duración y fallos al ejecutarla desde una pestaña
 

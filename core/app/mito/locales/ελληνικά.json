@@ -563,5 +563,12 @@
   "Extensiones registradas": "Καταχωρισμένες επεκτάσεις",
   "Habituales": "Συνήθεις",
   "Presets": "Προεπιλογές",
-  "Extensiones": "Επεκτάσεις"
+  "Extensiones": "Επεκτάσεις",
+  "La red devolvió una página web en lugar del archivo ({p1}); puede ser el portal de autenticación o un bloqueo del proxy. Pulsa INTERNET y reintenta.": "Το δίκτυο επέστρεψε ιστοσελίδα αντί για το αρχείο ({p1})· μπορεί να είναι η πύλη ελέγχου ταυτότητας ή αποκλεισμός του διακομιστή μεσολάβησης. Πατήστε INTERNET και δοκιμάστε ξανά.",
+  "Hash incorrecto en {p1}: se recibieron {p2} bytes desde {p3}. Un proxy o antivirus puede estar alterando la descarga; prueba desde otra red o avisa a soporte con esta URL. Se ha descartado la descarga.": "Λανθασμένο hash για {p1}: λήφθηκαν {p2} byte από {p3}. Ένας διακομιστής μεσολάβησης ή ένα antivirus μπορεί να αλλοιώνει τη λήψη· δοκιμάστε άλλο δίκτυο ή αναφέρετε αυτό το URL στην υποστήριξη. Η λήψη απορρίφθηκε.",
+  "DESCARGA ALTERADA POR LA RED": "ΤΟ ΔΙΚΤΥΟ ΑΛΛΟΙΩΣΕ ΤΗ ΛΗΨΗ",
+  "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Αυτό που έφτασε δεν είναι το δημοσιευμένο αρχείο, οπότε το MITO το απέρριψε και δεν εγκατέστησε τίποτα.",
+  "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Πιθανότερη αιτία: η πύλη ελέγχου ταυτότητας του δικτύου. Πατήστε INTERNET, συνδεθείτε και δοκιμάστε ξανά.",
+  "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Πιθανότερη αιτία: ο διακομιστής μεσολάβησης ή το antivirus του δικτύου αντικατέστησε ή τροποποίησε τη λήψη. Δεν είναι σφάλμα του MITO ούτε του καταλόγου. Δοκιμάστε άλλο δίκτυο ή δώστε αυτά τα στοιχεία στην υποστήριξη.",
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nΛήφθηκαν: {p2} byte από {p3}"
 }

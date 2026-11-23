@@ -563,5 +563,12 @@
   "Extensiones registradas": "Užregistruoti plėtiniai",
   "Habituales": "Dažniausi",
   "Presets": "Šablonai",
-  "Extensiones": "Plėtiniai"
+  "Extensiones": "Plėtiniai",
+  "La red devolvió una página web en lugar del archivo ({p1}); puede ser el portal de autenticación o un bloqueo del proxy. Pulsa INTERNET y reintenta.": "Tinklas vietoj failo grąžino tinklalapį ({p1}); tai gali būti autentifikavimo portalas arba tarpinio serverio blokavimas. Spustelėkite INTERNET ir bandykite dar kartą.",
+  "Hash incorrecto en {p1}: se recibieron {p2} bytes desde {p3}. Un proxy o antivirus puede estar alterando la descarga; prueba desde otra red o avisa a soporte con esta URL. Se ha descartado la descarga.": "Neteisinga maiša failui {p1}: gauta {p2} baitų iš {p3}. Tarpinis serveris arba antivirusinė programa gali keisti atsisiuntimą; bandykite kitą tinklą arba praneškite šį URL palaikymo tarnybai. Atsisiuntimas atmestas.",
+  "DESCARGA ALTERADA POR LA RED": "TINKLAS PAKEITĖ ATSISIUNTIMĄ",
+  "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Gautas ne paskelbtas failas, todėl MITO jį atmetė ir nieko neįdiegė.",
+  "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Labiausiai tikėtina priežastis: tinklo autentifikavimo portalas. Spustelėkite INTERNET, prisijunkite ir bandykite dar kartą.",
+  "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Labiausiai tikėtina priežastis: tinklo tarpinis serveris arba antivirusinė programa pakeitė arba modifikavo atsisiuntimą. Tai ne MITO ar katalogo klaida. Bandykite kitą tinklą arba perduokite šiuos duomenis palaikymo tarnybai.",
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nGauta: {p2} baitų iš {p3}"
 }

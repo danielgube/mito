@@ -56,8 +56,12 @@ def check_remote(root, current, source):
                                                      'Accept': 'application/json'})
     with opener(root, None, WebRedirect()).open(request, timeout=15) as response:
         data = response.read(1024 * 1024 + 1)
+        final_url, content_type = response.geturl() or source, response.headers.get_content_type()
     if len(data) > 1024 * 1024:
         raise YitoError('Respuesta de actualizaciones demasiado grande')
+    from .transfer import web_page, web_page_error
+    if web_page(source, content_type, data[:512]):
+        raise web_page_error(final_url, source, len(data))
     info = release_info(json.loads(data), current)
     if info and info.get('checksum_url'):
         request = urllib.request.Request(info['checksum_url'], headers={'User-Agent': 'MITO/' + current})

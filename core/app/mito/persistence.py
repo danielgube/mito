@@ -18,6 +18,21 @@ def definitions(manifest):
             yield item, item
 
 
+def linked(source, target):
+    """True when source already is the engine link to target (junction or hard link)."""
+    try:
+        if source.is_junction() and target.is_dir():
+            current = os.readlink(source)
+            if current.startswith('\\\\?\\'):
+                current = current[4:]
+            return os.path.normcase(os.path.normpath(current)) == os.path.normcase(os.path.normpath(os.path.abspath(target)))
+        if source.is_file() and not source.is_symlink() and target.is_file():
+            return os.path.samefile(source, target)
+    except OSError:
+        pass
+    return False
+
+
 def prepare(root, payload, key, manifest, destination=None):
     if not manifest.get('persist'):
         return
@@ -31,6 +46,9 @@ def prepare(root, payload, key, manifest, destination=None):
             raise YitoError(tr('persist anidado dentro de otro enlace'))
         target = inside(destination if destination is not None else root / 'home/persist' / key, alias)
         defaults = inside(payload / '.mito-defaults', relative)
+        if managed.get(relative) == alias and linked(source, target):
+            # Rebuilding an intact link costs a PowerShell per entry on every launch.
+            continue
         if relative in managed:
             if managed[relative] != alias:
                 raise YitoError(tr('Definición persist modificada inesperadamente'))

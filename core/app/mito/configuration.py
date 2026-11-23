@@ -28,6 +28,7 @@ PROPERTIES = {
     'network.check_url': (None, 'https://www.gstatic.com/generate_204'),
     'network.check_status': (None, '204'),
     'network.timeout_seconds': (None, '4'),
+    'network.poll_seconds': (None, '20'),
     'shortcut.badgeText': (None, 'MITO'),
     'shortcut.badgeColor': (('negro', 'rojo', 'azul', 'naranja', 'rosa', 'verde', 'marron', 'morado'), 'naranja'),
 }

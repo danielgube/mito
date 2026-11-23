@@ -563,5 +563,12 @@
   "Extensiones registradas": "Regisztrált kiterjesztések",
   "Habituales": "Gyakoriak",
   "Presets": "Előbeállítások",
-  "Extensiones": "Kiterjesztések"
+  "Extensiones": "Kiterjesztések",
+  "La red devolvió una página web en lugar del archivo ({p1}); puede ser el portal de autenticación o un bloqueo del proxy. Pulsa INTERNET y reintenta.": "A hálózat a fájl helyett egy weboldalt adott vissza ({p1}); ez lehet a hitelesítési portál vagy egy proxyletiltás. Kattintson az INTERNET gombra, és próbálja újra.",
+  "Hash incorrecto en {p1}: se recibieron {p2} bytes desde {p3}. Un proxy o antivirus puede estar alterando la descarga; prueba desde otra red o avisa a soporte con esta URL. Se ha descartado la descarga.": "Hibás hash ehhez: {p1}: {p2} bájt érkezett innen: {p3}. Egy proxy vagy víruskereső módosíthatja a letöltést; próbáljon másik hálózatot, vagy jelezze ezt az URL-t a támogatásnak. A letöltés elvetve.",
+  "DESCARGA ALTERADA POR LA RED": "A HÁLÓZAT MEGVÁLTOZTATTA A LETÖLTÉST",
+  "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Nem a közzétett fájl érkezett meg, ezért a MITO elvetette, és nem telepített semmit.",
+  "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Legvalószínűbb ok: a hálózat hitelesítési portálja. Kattintson az INTERNET gombra, jelentkezzen be, és próbálja újra.",
+  "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Legvalószínűbb ok: a hálózat proxyja vagy víruskeresője lecserélte vagy módosította a letöltést. Ez nem a MITO vagy a katalógus hibája. Próbáljon másik hálózatot, vagy adja át ezeket az adatokat a támogatásnak.",
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nFogadva: {p2} bájt innen: {p3}"
 }

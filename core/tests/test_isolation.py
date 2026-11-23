@@ -11,6 +11,18 @@ from mito.components import remove, update
 from mito.storage import write_json
 
 
+def rename_retrying(source, target, attempts=10, delay=.5):
+    """Antivirus scans of freshly created files briefly lock a folder rename (WinError 5)."""
+    import time
+    for attempt in range(attempts):
+        try:
+            return source.rename(target)
+        except PermissionError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(delay)
+
+
 class IsolationTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory()
@@ -101,15 +113,25 @@ class IsolationTests(unittest.TestCase):
         self.assertFalse((copy/'data/private.txt').exists())
         self.assertTrue((shared/'private.txt').exists())
 
+    def test_intact_persist_links_are_not_rebuilt_on_each_launch(self):
+        from mito.persistence import prepare
+        base=self.root/self.lock['path']
+        prepare(self.root,base,self.lock['key'],self.lock['manifest'])
+        self.assertTrue((base/'data').is_junction())
+        with patch('mito.persistence.subprocess.run') as run:
+            prepare(self.root,base,self.lock['key'],self.lock['manifest'])
+            run.assert_not_called()
+        self.assertTrue((base/'data').is_junction())
+
     def test_relocation_rebuilds_profile_junction(self):
         self.engine.environment('one')
         moved=self.root.parent/(self.root.name+'-moved')
         try:
             # Resolved source and destination are explicit sibling temp workspaces.
-            self.root.rename(moved)
+            rename_retrying(self.root, moved)
             engine=Engine(moved)
             engine.environment('one')
             copy=payload_path(moved,self.lock,'one')
             self.assertEqual((copy/'data').resolve(),persist_root(moved,self.lock,'one')/'data')
         finally:
-            if moved.exists():moved.rename(self.root)
+            if moved.exists():rename_retrying(moved, self.root)

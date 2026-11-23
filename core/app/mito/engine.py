@@ -14,6 +14,25 @@ from .transfer import download, extract_zip, download_hashes
 from .diagnostics import step
 
 
+def move_whole(source, target):
+    """Move an extracted tree with one rename when nothing has to be merged.
+
+    Per-file renames of freshly extracted binaries wait for the antivirus one by
+    one (~180 ms each measured); a single directory rename avoids that. Any
+    existing content in target, or a failed rename, keeps the per-file merge."""
+    try:
+        if target.exists():
+            if not target.is_dir() or target.is_junction() or any(target.iterdir()):
+                return False
+            target.rmdir()
+        target.parent.mkdir(parents=True, exist_ok=True)
+        os.replace(source, target)
+        return True
+    except OSError:
+        target.mkdir(parents=True, exist_ok=True)
+        return False
+
+
 class Engine:
     def __init__(self, root):
         self.root = root.resolve()
@@ -320,7 +339,10 @@ class Engine:
                         log(tr('Archivos {p1}: {p2}/{p3}', p1=key, p2=copied, p3=total))
                     return result
                 with step(self.root, 'install', 'copy-payload', key):
-                    shutil.copytree(source, target, dirs_exist_ok=True, copy_function=copy_file)
+                    if move_whole(source, target):
+                        log(tr('Archivos {p1}: {p2}/{p3}', p1=key, p2=total, p3=total))
+                    else:
+                        shutil.copytree(source, target, dirs_exist_ok=True, copy_function=copy_file)
             if m.get('innosetup'):
                 from .inno import restore_declared_targets
                 restore_declared_targets(payload, [s[0] for s in m.get('shortcuts', [])] +

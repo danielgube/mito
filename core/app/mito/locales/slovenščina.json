@@ -563,5 +563,12 @@
   "Extensiones registradas": "Registrirane pripone",
   "Habituales": "Pogoste",
   "Presets": "Prednastavitve",
-  "Extensiones": "Pripone"
+  "Extensiones": "Pripone",
+  "La red devolvió una página web en lugar del archivo ({p1}); puede ser el portal de autenticación o un bloqueo del proxy. Pulsa INTERNET y reintenta.": "Omrežje je namesto datoteke vrnilo spletno stran ({p1}); morda gre za portal za preverjanje pristnosti ali blokado posrednika. Kliknite INTERNET in poskusite znova.",
+  "Hash incorrecto en {p1}: se recibieron {p2} bytes desde {p3}. Un proxy o antivirus puede estar alterando la descarga; prueba desde otra red o avisa a soporte con esta URL. Se ha descartado la descarga.": "Napačna zgoščena vrednost za {p1}: prejetih {p2} bajtov z {p3}. Posrednik ali protivirusni program morda spreminja prenos; poskusite drugo omrežje ali to URL sporočite podpori. Prenos je bil zavržen.",
+  "DESCARGA ALTERADA POR LA RED": "OMREŽJE JE SPREMENILO PRENOS",
+  "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Prejeta ni objavljena datoteka, zato jo je MITO zavrgel in ni namestil ničesar.",
+  "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Najverjetnejši vzrok: omrežni portal za preverjanje pristnosti. Kliknite INTERNET, se prijavite in poskusite znova.",
+  "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Najverjetnejši vzrok: omrežni posrednik ali protivirusni program je zamenjal ali spremenil prenos. To ni napaka MITO ali kataloga. Poskusite drugo omrežje ali te podatke posredujte podpori.",
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nPrejeto: {p2} bajtov z {p3}"
 }

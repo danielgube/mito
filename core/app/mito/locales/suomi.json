@@ -563,5 +563,12 @@
   "Extensiones registradas": "Rekisteröidyt tunnisteet",
   "Habituales": "Yleiset",
   "Presets": "Esiasetukset",
-  "Extensiones": "Tunnisteet"
+  "Extensiones": "Tunnisteet",
+  "La red devolvió una página web en lugar del archivo ({p1}); puede ser el portal de autenticación o un bloqueo del proxy. Pulsa INTERNET y reintenta.": "Verkko palautti tiedoston sijaan verkkosivun ({p1}); se voi olla todennusportaali tai välityspalvelimen esto. Napsauta INTERNET ja yritä uudelleen.",
+  "Hash incorrecto en {p1}: se recibieron {p2} bytes desde {p3}. Un proxy o antivirus puede estar alterando la descarga; prueba desde otra red o avisa a soporte con esta URL. Se ha descartado la descarga.": "Virheellinen tiiviste kohteelle {p1}: vastaanotettiin {p2} tavua palvelimelta {p3}. Välityspalvelin tai virustorjunta voi muuttaa latausta; kokeile toista verkkoa tai ilmoita tämä URL tukeen. Lataus hylättiin.",
+  "DESCARGA ALTERADA POR LA RED": "VERKKO MUUTTI LATAUSTA",
+  "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Saapunut tiedosto ei ole julkaistu tiedosto, joten MITO hylkäsi sen eikä asentanut mitään.",
+  "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Todennäköisin syy: verkon todennusportaali. Napsauta INTERNET, kirjaudu ja yritä uudelleen.",
+  "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Todennäköisin syy: verkon välityspalvelin tai virustorjunta korvasi tai muutti latauksen. Vika ei ole MITOssa eikä luettelossa. Kokeile toista verkkoa tai anna nämä tiedot tukeen.",
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nVastaanotettu: {p2} tavua palvelimelta {p3}"
 }

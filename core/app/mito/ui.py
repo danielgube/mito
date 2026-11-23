@@ -559,6 +559,47 @@ class UnverifiedDownloadsDialog(ModalScreen[bool]):
         self.dismiss(event.button.id == 'unverified-confirm')
 
 
+class DownloadIntegrityDialog(ModalScreen):
+    """Centered explanation when the network replaced a download; nothing is installed."""
+    BINDINGS = [('escape', 'close', 'Cerrar')]
+    DEFAULT_CSS = """
+    DownloadIntegrityDialog { align: center middle; background: #00000088; }
+    #integrity-dialog { width: 90; max-width: 95%; height: auto; max-height: 85%; padding: 1 2; border: round #e27878; background: #153429; }
+    #integrity-dialog Static { height: auto; margin-bottom: 1; }
+    #integrity-title { color: #e27878; text-style: bold; }
+    #integrity-details { height: 4; margin-bottom: 1; }
+    #integrity-dialog Button { width: 100%; }
+    """
+
+    def __init__(self, error):
+        super().__init__()
+        self.error = error
+
+    def compose(self):
+        size = '?' if self.error.size is None else self.error.size
+        with VerticalScroll(id='integrity-dialog'):
+            yield Static(tr('DESCARGA ALTERADA POR LA RED'), id='integrity-title')
+            yield Static(tr('Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.'))
+            if self.error.portal:
+                yield Static(tr('Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.'))
+            else:
+                yield Static(tr('Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.'))
+            # Read-only text so the URL can be selected and copied for support.
+            yield TextArea(tr('URL: {p1}\nRecibido: {p2} bytes desde {p3}', p1=self.error.url or '?', p2=size, p3=self.error.host or '?'),
+                           read_only=True, soft_wrap=True, id='integrity-details')
+            yield Button(tr('Cerrar'), id='integrity-close', variant='primary')
+
+    def on_mount(self):
+        self.query_one('#integrity-close', Button).focus()
+
+    def action_close(self):
+        self.dismiss(None)
+
+    def on_button_pressed(self, event):
+        event.stop()
+        self.dismiss(None)
+
+
 class YitoApp(App):
     TITLE = f'MITO · {__version__}'
     SUB_TITLE = 'My Integrated Terminal Orchestrator'
@@ -707,8 +748,25 @@ class YitoApp(App):
         from .terminal_identity import apply_safely
         apply_safely(self.engine.root)
         self.check_network()
+        self.start_network_poll()
         self.check_component_updates()
         self.check_mito_update()
+
+    def start_network_poll(self):
+        """Periodic silent check that only repaints the INTERNET button (0 disables it)."""
+        from .network import properties
+        try:
+            seconds = float(properties(self.engine.root).get('network.poll_seconds', '20'))
+        except ValueError:
+            seconds = 20.0
+        if seconds > 0 and seconds != float('inf'):
+            self.network_timer = self.set_interval(max(5.0, seconds), self.poll_network)
+
+    def poll_network(self):
+        # Never overlap a manual check or diagnosis, nor interrupt an open dialog.
+        if len(self.screen_stack) > 1 or any(worker.group == 'network' and not worker.is_finished for worker in self.workers):
+            return
+        self.check_network(quiet=True)
 
     @work(thread=True, exclusive=True, group='self-update-check', exit_on_error=False)
     def check_mito_update(self):
@@ -790,11 +848,11 @@ class YitoApp(App):
                 self.load_catalog()
 
     @work(thread=True, exclusive=True, group="network", exit_on_error=False)
-    def check_network(self, prompt=False):
+    def check_network(self, prompt=False, quiet=False):
         from .network import Network
         try:
             network = Network(self.engine.root)
-            online = network.check()
+            online = network.check(log=not quiet)
             local = online or network.local_network()
             self.call_from_thread(self.network_result, network, online, local, prompt)
         except Exception as exc:
@@ -803,7 +861,13 @@ class YitoApp(App):
 
     def network_result(self, network, online, local, prompt):
         button = self.query_one("#network-status", Button)
-        button.label = tr('Internet accesible') if online else tr('Internet no accesible') if local else tr('Sin conexión de red')
+        label = tr('Internet accesible') if online else tr('Internet no accesible') if local else tr('Sin conexión de red')
+        # Assign only on change: the periodic check must not repaint an unchanged button.
+        if str(button.label) != label:
+            button.label = label
+        variant = 'default' if online else 'error'
+        if button.variant != variant:
+            button.variant = variant
         if prompt and not online and local and network:
             button.label = tr('Diagnosticando la red…')
             self.diagnose_network()
@@ -1083,7 +1147,7 @@ class YitoApp(App):
             from .persistence import open_location
             from .storage import YitoError
             try:
-                open_location(self.engine.root/'home/AppData')
+                open_location(self.engine.root/'home')
             except (OSError, YitoError) as exc:
                 capture(self.engine.root, exc, operation='home.open-location')
                 self.notify(str(exc), severity='error')
@@ -1530,6 +1594,10 @@ class YitoApp(App):
             capture(self.engine.root, exc, operation='ui.' + action,
                     component=target if isinstance(target, str) and '/' in target else None)
             log(tr('Error: {p1}', p1=(exc)), level='error')
+            from .transfer import DownloadIntegrityError
+            if isinstance(exc, DownloadIntegrityError):
+                # Not a MITO fault: explain it in a centered dialog, not only in the log.
+                self.call_from_thread(self.push_screen, DownloadIntegrityDialog(exc))
         finally:
             self.call_from_thread(self.operation_done, profile)
 

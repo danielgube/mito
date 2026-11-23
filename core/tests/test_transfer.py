@@ -57,6 +57,91 @@ class TransferTests(unittest.TestCase):
             server.server_close()
             thread.join()
 
+    def test_intercepted_portal_page_is_reported_instead_of_a_hash_or_json_error(self):
+        # A captive portal redirects every request to its login page (HTML, HTTP 200).
+        page=b'<!DOCTYPE html><html><form><input name="magic" type="hidden"></form></html>'
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self,*args):pass
+            def do_GET(self):
+                if self.path.startswith('/fgtauth'):
+                    self.send_response(200)
+                    self.send_header('Content-Type','text/html')
+                    self.end_headers()
+                    self.wfile.write(page)
+                else:
+                    self.send_response(303)
+                    self.send_header('Location','/fgtauth?magic=1')
+                    self.end_headers()
+        server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+        thread=threading.Thread(target=server.serve_forever,daemon=True)
+        thread.start()
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                target=Path(tmp)/'download'
+                base=f'http://127.0.0.1:{server.server_port}'
+                for url, expected in ((base+'/app.zip','0'*64), (base+'/app.zip',None), (base+'/bucket/app.json',None)):
+                    with self.subTest(url=url, expected=expected):
+                        with self.assertRaises(YitoError) as error:
+                            download(url,target,expected)
+                        self.assertIn('página web', str(error.exception))
+                        self.assertIn('127.0.0.1', str(error.exception))
+                        self.assertFalse(target.exists())
+                # A requested HTML document is not mistaken for interception.
+                download(base+'/fgtauth/index.html',target,None)
+                self.assertEqual(target.read_bytes(),page)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+
+    def test_hash_mismatch_names_the_url_size_and_host_without_signed_query(self):
+        from mito.transfer import DownloadIntegrityError
+        # A proxy replaced the artifact with storage metadata (seen: Azure BlockList XML).
+        body=b'\xef\xbb\xbf<?xml version="1.0" encoding="utf-8"?><BlockList></BlockList>'
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self,*args):pass
+            def do_GET(self):
+                if self.path.startswith('/asset'):
+                    self.send_response(200)
+                    self.send_header('Content-Type','application/octet-stream')
+                    self.end_headers()
+                    self.wfile.write(body)
+                else:
+                    self.send_response(302)
+                    self.send_header('Location','/asset?sig=secret-token')
+                    self.end_headers()
+        server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+        thread=threading.Thread(target=server.serve_forever,daemon=True)
+        thread.start()
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                target=Path(tmp)/'download'
+                url=f'http://127.0.0.1:{server.server_port}/release/jdk.zip?token=abc'
+                with self.assertRaises(DownloadIntegrityError) as error:
+                    download(url,target,'0'*64,root=Path(tmp))
+                message=str(error.exception)
+                self.assertIn('Hash incorrecto', message)
+                self.assertIn(f'http://127.0.0.1:{server.server_port}/release/jdk.zip', message)
+                self.assertIn(str(len(body)), message)
+                self.assertNotIn('token=abc', message)
+                self.assertNotIn('secret-token', message)
+                self.assertFalse(target.exists())
+                logs=''.join(p.read_text() for p in Path(tmp).rglob('*.log'))
+                self.assertIn('download.hash', logs)
+                self.assertNotIn('secret-token', logs)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+
+    def test_web_page_detection(self):
+        from mito.transfer import web_page
+        self.assertTrue(web_page('https://x/app.zip','application/octet-stream',b'\xef\xbb\xbf\n<!doctype html><p>'))
+        self.assertTrue(web_page('https://x/app.json','text/html',b'<div>blocked</div>'))
+        self.assertFalse(web_page('https://x/app.json','text/html',b'{"version": "1"}'))
+        self.assertFalse(web_page('https://x/app.zip','text/html',b'PK\x03\x04'))
+        self.assertFalse(web_page('https://x/app.xml','application/xml',b'<?xml version="1.0"?>'))
+
     def test_optional_and_mixed_hashes(self):
         from mito.transfer import download_hashes, hash_verifier
         urls = ['http://example.org/one.zip','http://example.org/two.zip']

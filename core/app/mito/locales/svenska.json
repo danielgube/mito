@@ -563,5 +563,12 @@
   "Extensiones registradas": "Registrerade filnamnstillägg",
   "Habituales": "Vanliga",
   "Presets": "Förinställningar",
-  "Extensiones": "Filtillägg"
+  "Extensiones": "Filtillägg",
+  "La red devolvió una página web en lugar del archivo ({p1}); puede ser el portal de autenticación o un bloqueo del proxy. Pulsa INTERNET y reintenta.": "Nätverket returnerade en webbsida i stället för filen ({p1}); det kan vara autentiseringsportalen eller en proxyblockering. Klicka på INTERNET och försök igen.",
+  "Hash incorrecto en {p1}: se recibieron {p2} bytes desde {p3}. Un proxy o antivirus puede estar alterando la descarga; prueba desde otra red o avisa a soporte con esta URL. Se ha descartado la descarga.": "Fel hash för {p1}: tog emot {p2} byte från {p3}. En proxy eller ett antivirusprogram kan ändra nedladdningen; prova ett annat nätverk eller rapportera denna URL till support. Nedladdningen har kasserats.",
+  "DESCARGA ALTERADA POR LA RED": "NEDLADDNINGEN ÄNDRADES AV NÄTVERKET",
+  "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Det som kom fram är inte den publicerade filen, så MITO kasserade den och installerade ingenting.",
+  "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Troligaste orsak: nätverkets autentiseringsportal. Klicka på INTERNET, logga in och försök igen.",
+  "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Troligaste orsak: nätverkets proxy eller antivirus har ersatt eller ändrat nedladdningen. Det är inte ett fel i MITO eller katalogen. Prova ett annat nätverk eller ge dessa uppgifter till support.",
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nMottaget: {p2} byte från {p3}"
 }

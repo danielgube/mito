@@ -129,7 +129,7 @@ class Network:
             validate_url(self.auth_url)
         self.enabled = self.config.get('enable_proxy_authentication', 'false').lower() == 'true' and bool(self.auth_url)
 
-    def check(self):
+    def check(self, log=True):
         try:
             with opener(self.root, self.environment, NoRedirect()).open(self.url, timeout=self.timeout) as response:
                 return response.status == self.expected
@@ -137,8 +137,10 @@ class Network:
             exc.close()
             return False
         except (OSError, ValueError, YitoError) as exc:
-            from .diagnostics import write, message
-            write(self.root, 'warning', 'network.check', message(self.root, exc))
+            # The periodic UI check passes log=False so an outage does not flood the log.
+            if log:
+                from .diagnostics import write, message
+                write(self.root, 'warning', 'network.check', message(self.root, exc))
             return False
 
     def local_network(self):

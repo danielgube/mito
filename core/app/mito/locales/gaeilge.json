@@ -563,5 +563,12 @@
   "Extensiones registradas": "Iarmhíreanna cláraithe",
   "Habituales": "Coitianta",
   "Presets": "Réamhshocruithe",
-  "Extensiones": "Iarmhíreanna"
+  "Extensiones": "Iarmhíreanna",
+  "La red devolvió una página web en lugar del archivo ({p1}); puede ser el portal de autenticación o un bloqueo del proxy. Pulsa INTERNET y reintenta.": "Thug an líonra leathanach gréasáin ar ais in ionad an chomhaid ({p1}); d’fhéadfadh gurb é an tairseach fíordheimhnithe nó bac seachfhreastalaí atá ann. Cliceáil INTERNET agus bain triail eile as.",
+  "Hash incorrecto en {p1}: se recibieron {p2} bytes desde {p3}. Un proxy o antivirus puede estar alterando la descarga; prueba desde otra red o avisa a soporte con esta URL. Se ha descartado la descarga.": "Hais mícheart do {p1}: fuarthas {p2} beart ó {p3}. D’fhéadfadh seachfhreastalaí nó frithvíreas an íoslódáil a athrú; bain triail as líonra eile nó tuairiscigh an URL seo don tacaíocht. Caitheadh an íoslódáil amach.",
+  "DESCARGA ALTERADA POR LA RED": "D’ATHRAIGH AN LÍONRA AN ÍOSLÓDÁIL",
+  "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Ní hé an comhad foilsithe a tháinig, mar sin chaith MITO amach é agus níor shuiteáil sé aon rud.",
+  "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "An chúis is dóchúla: tairseach fíordheimhnithe an líonra. Cliceáil INTERNET, sínigh isteach agus bain triail eile as.",
+  "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "An chúis is dóchúla: chuir seachfhreastalaí nó frithvíreas an líonra rud eile in ionad na híoslódála nó d’athraigh sé í. Ní locht MITO ná an chatalóige é. Bain triail as líonra eile nó tabhair na sonraí seo don tacaíocht.",
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nFaighte: {p2} beart ó {p3}"
 }

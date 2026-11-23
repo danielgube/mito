@@ -563,5 +563,12 @@
   "Extensiones registradas": "Регистрирани разширения",
   "Habituales": "Често използвани",
   "Presets": "Готови набори",
-  "Extensiones": "Разширения"
+  "Extensiones": "Разширения",
+  "La red devolvió una página web en lugar del archivo ({p1}); puede ser el portal de autenticación o un bloqueo del proxy. Pulsa INTERNET y reintenta.": "Мрежата върна уеб страница вместо файла ({p1}); може да е порталът за удостоверяване или блокиране от прокси сървъра. Натиснете INTERNET и опитайте отново.",
+  "Hash incorrecto en {p1}: se recibieron {p2} bytes desde {p3}. Un proxy o antivirus puede estar alterando la descarga; prueba desde otra red o avisa a soporte con esta URL. Se ha descartado la descarga.": "Грешен хеш за {p1}: получени {p2} байта от {p3}. Прокси или антивирусна програма може да променя изтеглянето; опитайте друга мрежа или съобщете този URL на поддръжката. Изтеглянето е отхвърлено.",
+  "DESCARGA ALTERADA POR LA RED": "МРЕЖАТА ПРОМЕНИ ИЗТЕГЛЯНЕТО",
+  "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Полученото не е публикуваният файл, затова MITO го отхвърли и не инсталира нищо.",
+  "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Най-вероятна причина: порталът за удостоверяване на мрежата. Натиснете INTERNET, влезте и опитайте отново.",
+  "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Най-вероятна причина: проксито или антивирусната програма на мрежата е заменила или променила изтеглянето. Това не е грешка на MITO или каталога. Опитайте друга мрежа или предайте тези данни на поддръжката.",
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nПолучени: {p2} байта от {p3}"
 }

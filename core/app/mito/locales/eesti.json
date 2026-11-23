@@ -563,5 +563,12 @@
   "Extensiones registradas": "Registreeritud laiendid",
   "Habituales": "Levinud",
   "Presets": "Eelseaded",
-  "Extensiones": "Laiendid"
+  "Extensiones": "Laiendid",
+  "La red devolvió una página web en lugar del archivo ({p1}); puede ser el portal de autenticación o un bloqueo del proxy. Pulsa INTERNET y reintenta.": "Võrk tagastas faili asemel veebilehe ({p1}); see võib olla autentimisportaal või puhverserveri blokeering. Klõpsa INTERNET ja proovi uuesti.",
+  "Hash incorrecto en {p1}: se recibieron {p2} bytes desde {p3}. Un proxy o antivirus puede estar alterando la descarga; prueba desde otra red o avisa a soporte con esta URL. Se ha descartado la descarga.": "Vale räsi failile {p1}: saadi {p2} baiti hostilt {p3}. Puhverserver või viirusetõrje võib allalaadimist muuta; proovi teist võrku või teata sellest URL-ist toele. Allalaadimine visati ära.",
+  "DESCARGA ALTERADA POR LA RED": "VÕRK MUUTIS ALLALAADIMIST",
+  "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Saabunu ei ole avaldatud fail, seega MITO viskas selle ära ega paigaldanud midagi.",
+  "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Tõenäoline põhjus: võrgu autentimisportaal. Klõpsa INTERNET, logi sisse ja proovi uuesti.",
+  "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Tõenäoline põhjus: võrgu puhverserver või viirusetõrje asendas või muutis allalaadimist. See ei ole MITO ega kataloogi viga. Proovi teist võrku või anna need andmed toele.",
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nSaadud: {p2} baiti hostilt {p3}"
 }
