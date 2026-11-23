@@ -80,6 +80,14 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.2.16 — 2026-11-23
+
+### Commits incluidos
+
+- proxy hotfixes ([7179c04](https://github.com/danielgube/mito/commit/7179c04dbf06b7c3773bfeb642b9e9d74735b833))
+
+[Comparar cambios](https://github.com/danielgube/mito/compare/bae7297750e35a0b977e1c5c9d836962ef10b579...7179c04dbf06b7c3773bfeb642b9e9d74735b833)
+
 ## 0.2.15 — 2026-11-20
 
 ### Commits incluidos
