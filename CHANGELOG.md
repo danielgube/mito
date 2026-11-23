@@ -80,6 +80,14 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.2.17 — 2026-11-23
+
+### Commits incluidos
+
+- improved messaging and performance ([50cb3e0](https://github.com/danielgube/mito/commit/50cb3e0610d9d637d3b2d21b77044fd9f4b6ad1f))
+
+[Comparar cambios](https://github.com/danielgube/mito/compare/e3f28e2a0aff98432f3fe90f41978f6678b8fac0...50cb3e0610d9d637d3b2d21b77044fd9f4b6ad1f)
+
 ## 0.2.16 — 2026-11-23
 
 ### Commits incluidos
