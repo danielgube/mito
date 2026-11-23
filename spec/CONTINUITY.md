@@ -1715,6 +1715,22 @@ El [plan original](MCP_PLAN.md) conserva decisiones y criterios previstos.
   fusionar o el rename falla, sigue la fusión por archivo. Regresión en
   test_move_whole.py. Pendiente: medir el efecto real en la próxima instalación grande
   (el antivirus puede seguir escaneando al validar o en el primer arranque).
+- Tras move_whole, pdfcraft (26 archivos) siguió tardando 5,7 s en copy-payload (~0,2 s
+  por archivo): justo tras extraer, el antivirus retiene los archivos nuevos y Windows
+  deniega el rename de carpeta, mientras que la publicación final (mismo tipo de rename,
+  segundos después) tarda milisegundos. move_whole reintenta ahora el rename ante
+  PermissionError con espera exponencial (0,25 s a 2 s) durante min(30 s, 0,15 s por
+  archivo), menos de lo que costaría la fusión por archivo, y después cae a ella.
+  Cada instalación registra install.move-whole (moved/per-file, archivos, intentos,
+  motivo) en logs/mito.log para verificar el efecto. No verificado aún en real.
+- Medido con graalvm-oracle-25jdk (566 archivos): move_whole movió al primer intento,
+  pero el rename quedó bloqueado 58 s (~0,1 s por archivo, frente a ~0,2 s por archivo
+  en la fusión). El antivirus no deniega el rename: lo retiene hasta analizar todo, y
+  ese coste no es evitable desde MITO. Para que no parezca colgado, el motor emite
+  engine.LongStep (línea de log con active=True/False) alrededor de copy-payload; la
+  UI abre LongStepDialog centrado si dura más de 2 s, con tiempo transcurrido, sin
+  botones y sin mencionar el antivirus, y lo cierra al llegar la línea final (también
+  si hay error). La CLI sólo imprime las líneas. Test en test_ui.py.
 - Proxy corporativo con inspección TLS (CA «MINISTERIO DE DEFENSA / NI-NAVEGACION»)
   sirve para temurin8-jdk 8u512-b09 (ZIP) un XML BlockList de Azure de 1867 bytes en
   lugar de 106 490 535 bytes, también en navegador y curl; otros assets del mismo

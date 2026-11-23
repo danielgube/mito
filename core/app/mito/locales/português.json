@@ -570,5 +570,8 @@
   "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "O que chegou não é o ficheiro publicado, por isso o MITO descartou-o e não instalou nada.",
   "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Causa mais provável: o portal de autenticação da rede. Clique em INTERNET, inicie sessão e tente novamente.",
   "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Causa mais provável: o proxy ou o antivírus da rede substituiu ou modificou a transferência. Não é uma falha do MITO nem do catálogo. Tente outra rede ou envie estes dados ao suporte.",
-  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nRecebido: {p2} bytes de {p3}"
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nRecebido: {p2} bytes de {p3}",
+  "Moviendo {p1} archivos de {p2} a su carpeta. Con muchos archivos este paso puede tardar varios minutos; MITO sigue trabajando.": "A mover {p1} ficheiros de {p2} para a sua pasta. Com muitos ficheiros este passo pode demorar vários minutos; o MITO continua a trabalhar.",
+  "PREPARANDO ARCHIVOS": "A PREPARAR FICHEIROS",
+  "Tiempo transcurrido: {p1} s": "Tempo decorrido: {p1} s"
 }

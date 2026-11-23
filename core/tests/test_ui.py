@@ -362,6 +362,34 @@ class UITests(AsyncTestCase):
                     await pilot.press('escape')
                     await until(pilot, lambda: not isinstance(app.screen, DownloadIntegrityDialog))
 
+    async def test_long_engine_step_shows_centered_notice_that_closes_itself(self):
+        import threading
+        from mito.engine import LongStep
+        from mito.ui import LongStepDialog
+        release = threading.Event()
+        def install(target, log, confirm):
+            log(LongStep('Moviendo 566 archivos de java/graalvm', active=True))
+            release.wait(10)
+            log(LongStep('Archivos java/graalvm: 566/566', active=False))
+        with tempfile.TemporaryDirectory() as tmp:
+            engine = Engine(Path(tmp))
+            engine.create_profile('test')
+            app = YitoApp(engine)
+            with patch('mito.network.Network.check', return_value=True), \
+                 patch.object(app, 'install_from_catalog', side_effect=install):
+                async with app.run_test(size=(130,42)) as pilot:
+                    await pilot.pause()
+                    app.begin('install', 'test', 'java/graalvm')
+                    shown = await until(pilot, lambda: isinstance(app.screen, LongStepDialog))
+                    release.set()
+                    self.assertTrue(shown)
+                    text = ' '.join(str(s.render()) for s in app.screen.query('Static'))
+                    self.assertIn('566 archivos', text)
+                    self.assertNotIn('antivirus', text.lower())
+                    await until(pilot, lambda: not isinstance(app.screen, LongStepDialog))
+                    self.assertNotIsInstance(app.screen, LongStepDialog)
+                    self.assertIn('Archivos java/graalvm: 566/566', app.log_messages)
+
     async def test_periodic_network_check_turns_button_red_without_prompting(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

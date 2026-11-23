@@ -570,5 +570,8 @@
   "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Ce a sosit nu este fișierul publicat, așa că MITO l-a eliminat și nu a instalat nimic.",
   "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Cauza cea mai probabilă: portalul de autentificare al rețelei. Faceți clic pe INTERNET, conectați-vă și încercați din nou.",
   "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Cauza cea mai probabilă: proxy-ul sau antivirusul rețelei a înlocuit sau a modificat descărcarea. Nu este o eroare a MITO sau a catalogului. Încercați altă rețea sau transmiteți aceste date echipei de asistență.",
-  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nPrimit: {p2} octeți de la {p3}"
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nPrimit: {p2} octeți de la {p3}",
+  "Moviendo {p1} archivos de {p2} a su carpeta. Con muchos archivos este paso puede tardar varios minutos; MITO sigue trabajando.": "Se mută {p1} fișiere ale {p2} în dosarul lor. Cu multe fișiere, acest pas poate dura câteva minute; MITO încă lucrează.",
+  "PREPARANDO ARCHIVOS": "SE PREGĂTESC FIȘIERELE",
+  "Tiempo transcurrido: {p1} s": "Timp scurs: {p1} s"
 }

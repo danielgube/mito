@@ -570,5 +570,8 @@
   "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Saapunut tiedosto ei ole julkaistu tiedosto, joten MITO hylkäsi sen eikä asentanut mitään.",
   "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Todennäköisin syy: verkon todennusportaali. Napsauta INTERNET, kirjaudu ja yritä uudelleen.",
   "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Todennäköisin syy: verkon välityspalvelin tai virustorjunta korvasi tai muutti latauksen. Vika ei ole MITOssa eikä luettelossa. Kokeile toista verkkoa tai anna nämä tiedot tukeen.",
-  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nVastaanotettu: {p2} tavua palvelimelta {p3}"
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nVastaanotettu: {p2} tavua palvelimelta {p3}",
+  "Moviendo {p1} archivos de {p2} a su carpeta. Con muchos archivos este paso puede tardar varios minutos; MITO sigue trabajando.": "Siirretään {p2}:n {p1} tiedostoa kansioonsa. Kun tiedostoja on paljon, tämä vaihe voi kestää useita minuutteja; MITO työskentelee edelleen.",
+  "PREPARANDO ARCHIVOS": "VALMISTELLAAN TIEDOSTOJA",
+  "Tiempo transcurrido: {p1} s": "Kulunut aika: {p1} s"
 }

@@ -570,5 +570,8 @@
   "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Wat binnenkwam is niet het gepubliceerde bestand, dus MITO heeft het verwijderd en niets geïnstalleerd.",
   "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Meest waarschijnlijke oorzaak: het authenticatieportaal van het netwerk. Klik op INTERNET, meld je aan en probeer het opnieuw.",
   "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Meest waarschijnlijke oorzaak: de proxy of antivirus van het netwerk heeft de download vervangen of gewijzigd. Dit is geen fout van MITO of de catalogus. Probeer een ander netwerk of geef deze gegevens aan support.",
-  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nOntvangen: {p2} bytes van {p3}"
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nOntvangen: {p2} bytes van {p3}",
+  "Moviendo {p1} archivos de {p2} a su carpeta. Con muchos archivos este paso puede tardar varios minutos; MITO sigue trabajando.": "{p1} bestanden van {p2} worden naar hun map verplaatst. Met veel bestanden kan deze stap enkele minuten duren; MITO is nog bezig.",
+  "PREPARANDO ARCHIVOS": "BESTANDEN VOORBEREIDEN",
+  "Tiempo transcurrido: {p1} s": "Verstreken tijd: {p1} s"
 }

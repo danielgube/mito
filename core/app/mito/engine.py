@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import time
 import zipfile
 
 from .catalog import Catalog, array, effective, fingerprint
@@ -14,23 +15,53 @@ from .transfer import download, extract_zip, download_hashes
 from .diagnostics import step
 
 
-def move_whole(source, target):
+def move_whole(source, target, *, wait=0.0, sleep=time.sleep, clock=time.monotonic, outcome=None):
     """Move an extracted tree with one rename when nothing has to be merged.
 
     Per-file renames of freshly extracted binaries wait for the antivirus one by
-    one (~180 ms each measured); a single directory rename avoids that. Any
-    existing content in target, or a failed rename, keeps the per-file merge."""
+    one (~200 ms each measured); a single directory rename avoids that. Right
+    after extraction the antivirus still holds the new files and Windows denies
+    the directory rename, so it is retried for up to `wait` seconds before
+    falling back. Any existing content in target, or a rename that keeps
+    failing, keeps the per-file merge. `outcome` receives attempts and reason."""
+    info = {'attempts': 0, 'reason': ''}
     try:
         if target.exists():
             if not target.is_dir() or target.is_junction() or any(target.iterdir()):
+                info['reason'] = 'target-not-empty'
                 return False
             target.rmdir()
         target.parent.mkdir(parents=True, exist_ok=True)
-        os.replace(source, target)
-        return True
-    except OSError:
+        deadline, delay = clock() + wait, .25
+        while True:
+            info['attempts'] += 1
+            try:
+                os.replace(source, target)
+                return True
+            except PermissionError as exc:
+                info['reason'] = f'winerror-{getattr(exc, "winerror", None) or exc.errno}'
+                if clock() + delay > deadline:
+                    raise
+                sleep(delay)
+                delay = min(delay * 2, 2.0)
+    except OSError as exc:
+        info['reason'] = info['reason'] or type(exc).__name__
         target.mkdir(parents=True, exist_ok=True)
         return False
+    finally:
+        if outcome is not None:
+            outcome.update(info)
+
+
+class LongStep(str):
+    """Log line that also brackets a step with no progress to report.
+
+    Plain consumers just print it; an interface may show the active line
+    prominently and hide it at the matching inactive one."""
+    def __new__(cls, text, active):
+        line = super().__new__(cls, text)
+        line.active = active
+        return line
 
 
 class Engine:
@@ -335,14 +366,28 @@ class Engine:
                     except OSError:
                         result = shutil.copy2(source_file, target_file)
                     copied += 1
-                    if copied % 1000 == 0 or copied == total:
+                    if copied % 1000 == 0 and copied < total:
                         log(tr('Archivos {p1}: {p2}/{p3}', p1=key, p2=copied, p3=total))
                     return result
                 with step(self.root, 'install', 'copy-payload', key):
-                    if move_whole(source, target):
-                        log(tr('Archivos {p1}: {p2}/{p3}', p1=key, p2=total, p3=total))
-                    else:
-                        shutil.copytree(source, target, dirs_exist_ok=True, copy_function=copy_file)
+                    # Moving freshly extracted files can block for minutes on
+                    # hosts that scan new files; announce it so it never looks hung.
+                    log(LongStep(tr('Moviendo {p1} archivos de {p2} a su carpeta. Con muchos archivos este paso puede tardar varios minutos; MITO sigue trabajando.',
+                                    p1=total, p2=key), active=True))
+                    try:
+                        # Waiting for the antivirus pays off while it costs less than
+                        # the per-file fallback (~0.2 s per file), capped at 30 s.
+                        outcome = {}
+                        moved = move_whole(source, target, wait=min(30.0, 0.15 * total), outcome=outcome)
+                        from .diagnostics import write
+                        write(self.root, 'info', 'install.move-whole', 'moved' if moved else 'per-file',
+                              component=key, files=total, **outcome)
+                        if moved:
+                            copied = total
+                        else:
+                            shutil.copytree(source, target, dirs_exist_ok=True, copy_function=copy_file)
+                    finally:
+                        log(LongStep(tr('Archivos {p1}: {p2}/{p3}', p1=key, p2=copied, p3=total), active=False))
             if m.get('innosetup'):
                 from .inno import restore_declared_targets
                 restore_declared_targets(payload, [s[0] for s in m.get('shortcuts', [])] +

@@ -570,5 +570,8 @@
   "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Primljeno nije objavljena datoteka, pa ju je MITO odbacio i ništa nije instalirao.",
   "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Najvjerojatniji uzrok: mrežni portal za autentifikaciju. Kliknite INTERNET, prijavite se i pokušajte ponovno.",
   "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Najvjerojatniji uzrok: mrežni proxy ili antivirusni program zamijenio je ili izmijenio preuzimanje. To nije greška MITO-a ni kataloga. Pokušajte s drugom mrežom ili ove podatke pošaljite podršci.",
-  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nPrimljeno: {p2} bajtova s {p3}"
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nPrimljeno: {p2} bajtova s {p3}",
+  "Moviendo {p1} archivos de {p2} a su carpeta. Con muchos archivos este paso puede tardar varios minutos; MITO sigue trabajando.": "Premještanje {p1} datoteka {p2} u njihovu mapu. S mnogo datoteka ovaj korak može trajati nekoliko minuta; MITO još radi.",
+  "PREPARANDO ARCHIVOS": "PRIPREMA DATOTEKA",
+  "Tiempo transcurrido: {p1} s": "Proteklo vrijeme: {p1} s"
 }

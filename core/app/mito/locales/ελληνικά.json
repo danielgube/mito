@@ -570,5 +570,8 @@
   "Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.": "Αυτό που έφτασε δεν είναι το δημοσιευμένο αρχείο, οπότε το MITO το απέρριψε και δεν εγκατέστησε τίποτα.",
   "Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.": "Πιθανότερη αιτία: η πύλη ελέγχου ταυτότητας του δικτύου. Πατήστε INTERNET, συνδεθείτε και δοκιμάστε ξανά.",
   "Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.": "Πιθανότερη αιτία: ο διακομιστής μεσολάβησης ή το antivirus του δικτύου αντικατέστησε ή τροποποίησε τη λήψη. Δεν είναι σφάλμα του MITO ούτε του καταλόγου. Δοκιμάστε άλλο δίκτυο ή δώστε αυτά τα στοιχεία στην υποστήριξη.",
-  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nΛήφθηκαν: {p2} byte από {p3}"
+  "URL: {p1}\nRecibido: {p2} bytes desde {p3}": "URL: {p1}\nΛήφθηκαν: {p2} byte από {p3}",
+  "Moviendo {p1} archivos de {p2} a su carpeta. Con muchos archivos este paso puede tardar varios minutos; MITO sigue trabajando.": "Μετακίνηση {p1} αρχείων του {p2} στον φάκελό τους. Με πολλά αρχεία αυτό το βήμα μπορεί να διαρκέσει αρκετά λεπτά· το MITO συνεχίζει να εργάζεται.",
+  "PREPARANDO ARCHIVOS": "ΠΡΟΕΤΟΙΜΑΣΙΑ ΑΡΧΕΙΩΝ",
+  "Tiempo transcurrido: {p1} s": "Χρόνος που πέρασε: {p1} s"
 }

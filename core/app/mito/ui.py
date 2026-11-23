@@ -600,6 +600,46 @@ class DownloadIntegrityDialog(ModalScreen):
         self.dismiss(None)
 
 
+class LongStepDialog(ModalScreen):
+    """Centered notice for an engine step without progress; closes itself."""
+    DEFAULT_CSS = """
+    LongStepDialog { align: center middle; background: #00000088; }
+    #long-step-dialog { width: 72; max-width: 95%; height: auto; padding: 1 2; border: round #e5ba65; background: #153429; }
+    #long-step-dialog Static { height: auto; margin-bottom: 1; }
+    #long-step-title { color: #e5ba65; text-style: bold; }
+    #long-step-elapsed { color: #9fb59a; margin-bottom: 0; }
+    """
+
+    def __init__(self, message):
+        super().__init__()
+        self.message = message
+        self.elapsed = 0
+        self.finished = False
+
+    def compose(self):
+        with Vertical(id='long-step-dialog'):
+            yield Static(tr('PREPARANDO ARCHIVOS'), id='long-step-title')
+            yield Static(self.message, markup=False)
+            yield Static('', id='long-step-elapsed')
+
+    def on_mount(self):
+        self.tick()
+        self.set_interval(1, self.tick)
+
+    def tick(self):
+        if self.finished:
+            self.finish()
+            return
+        self.query_one('#long-step-elapsed', Static).update(tr('Tiempo transcurrido: {p1} s', p1=self.elapsed))
+        self.elapsed += 1
+
+    def finish(self):
+        # Another dialog may sit on top; the next tick closes this one then.
+        self.finished = True
+        if self.is_attached and self is self.app.screen:
+            self.dismiss(None)
+
+
 class YitoApp(App):
     TITLE = f'MITO · {__version__}'
     SUB_TITLE = 'My Integrated Terminal Orchestrator'
@@ -1353,7 +1393,26 @@ class YitoApp(App):
         for indicator in self.query('#busy-indicator'):
             indicator.update('')
 
+    def long_step(self, line):
+        """Show the engine's step without progress after 2 s; hide it when it ends."""
+        self.long_step_sequence = getattr(self, 'long_step_sequence', 0) + 1
+        sequence = self.long_step_sequence
+        if line.active:
+            self.set_timer(2, lambda: self.show_long_step(sequence, str(line)))
+            return
+        dialog, self.long_step_dialog = getattr(self, 'long_step_dialog', None), None
+        if dialog is not None:
+            dialog.finish()
+
+    def show_long_step(self, sequence, message):
+        if sequence == self.long_step_sequence and getattr(self, 'long_step_dialog', None) is None:
+            self.long_step_dialog = LongStepDialog(message)
+            self.push_screen(self.long_step_dialog)
+
     def write_log(self, message, level='info'):
+        from .engine import LongStep
+        if isinstance(message, LongStep):
+            self.long_step(message)
         message = str(message)
         diagnostics.write(self.engine.root, level, 'ui', message)
         self.log_messages.append(message)

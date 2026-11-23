@@ -44,6 +44,43 @@ class MoveWholeTests(unittest.TestCase):
         self.assertTrue(self.payload.is_dir())
         self.assertTrue((self.source / 'bin/java.exe').exists())
 
+    def test_rename_denied_while_antivirus_scans_is_retried_within_wait(self):
+        self.payload.mkdir()
+        now = [0.0]
+        sleeps = []
+        def sleep(seconds):
+            sleeps.append(seconds)
+            now[0] += seconds
+        calls = []
+        real_replace = os.replace  # captured before patching the shared os module
+        def replace(source, target):
+            calls.append(1)
+            if len(calls) < 3:
+                raise PermissionError(13, 'locked')
+            return real_replace(source, target)
+        outcome = {}
+        with patch('mito.engine.os.replace', side_effect=replace):
+            self.assertTrue(move_whole(self.source, self.payload, wait=10, sleep=sleep,
+                                       clock=lambda: now[0], outcome=outcome))
+        self.assertEqual(sleeps, [.25, .5])
+        self.assertEqual(outcome['attempts'], 3)
+        self.assertEqual((self.payload / 'bin/java.exe').read_bytes(), b'exe')
+
+    def test_rename_still_denied_after_wait_falls_back_to_per_file(self):
+        self.payload.mkdir()
+        now = [0.0]
+        def sleep(seconds):
+            now[0] += seconds
+        outcome = {}
+        with patch('mito.engine.os.replace', side_effect=PermissionError(13, 'locked')):
+            self.assertFalse(move_whole(self.source, self.payload, wait=1, sleep=sleep,
+                                        clock=lambda: now[0], outcome=outcome))
+        self.assertLessEqual(now[0], 1)
+        self.assertGreater(outcome['attempts'], 1)
+        self.assertTrue(outcome['reason'].startswith('winerror-'))
+        self.assertTrue(self.payload.is_dir())
+        self.assertTrue((self.source / 'bin/java.exe').exists())
+
 
 if __name__ == '__main__':
     unittest.main()
