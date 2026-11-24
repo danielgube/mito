@@ -26,7 +26,7 @@ class HostDataUITests(AsyncTestCase):
             data.mkdir(parents=True)
             cache.mkdir(parents=True)
             app = YitoApp(engine)
-            with patch('mito.network.Network.check', return_value=True), patch('mito.host_apps.choose_file', return_value=str(exe)), patch('mito.host_data.host_folder', side_effect=lambda kind: host/host_data.KINDS[kind]), patch('mito.host_data.candidates', side_effect=lambda root, identity, kind: [data if kind == 'data' else cache]) as search:
+            with patch('mito.network.Network.check', return_value=True), patch('mito.host_apps.discover', return_value=[]), patch('mito.host_apps.choose_file', return_value=str(exe)), patch('mito.host_data.host_folder', side_effect=lambda kind: host/host_data.KINDS[kind]), patch('mito.host_data.candidates', side_effect=lambda root, identity, kind: [data if kind == 'data' else cache]) as search:
                 async with app.run_test(size=(150,45)) as pilot:
                     await pilot.pause()
                     await click(pilot, '#host-add')

@@ -1558,7 +1558,8 @@ class YitoApp(App):
                 except (OSError, ValueError, subprocess.SubprocessError) as exc:
                     log(tr('No se pudieron revisar los accesos del host: {p1}', p1=(exc)))
                     found = []
-                filename = self.call_from_thread(self.choose_host_application, found)
+                # Nothing discovered: straight to the native picker, as before.
+                filename = self.call_from_thread(self.choose_host_application, found) if found else 'browse'
                 if filename == 'browse':
                     filename = choose_file()
                 if filename:

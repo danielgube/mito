@@ -161,3 +161,30 @@ class HostDiscoveryTests(unittest.TestCase):
         def fail(links):
             raise AssertionError('no links to resolve')
         self.assertEqual(host_apps.discover(self.root, [self.folder/'empty'], fail), [])
+
+
+class HostDiscoverDialogTests(unittest.IsolatedAsyncioTestCase):
+    async def test_filter_add_and_browse(self):
+        from textual.app import App
+        from textual.widgets import Button, Input
+        from mito.host_apps_ui import HostDiscoverDialog
+        results = []
+        found = [('Editor', r'C:\Apps\editor.exe'), ('Viewer', r'C:\Apps\viewer.exe')]
+
+        class Host(App):
+            def on_mount(self):
+                self.push_screen(HostDiscoverDialog(found), results.append)
+
+        app = Host()
+        async with app.run_test(size=(120, 40)) as pilot:
+            await pilot.pause()
+            app.screen.query_one('#host-discover-filter', Input).value = 'view'
+            await pilot.pause()
+            self.assertEqual(app.screen.shown, [found[1]])
+            app.screen.query_one('#host-discover-add', Button).press()
+            await pilot.pause()
+            app.push_screen(HostDiscoverDialog(found), results.append)
+            await pilot.pause()
+            app.screen.query_one('#host-discover-browse', Button).press()
+            await pilot.pause()
+        self.assertEqual(results, [r'C:\Apps\viewer.exe', 'browse'])

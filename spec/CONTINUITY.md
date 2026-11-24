@@ -2414,3 +2414,9 @@ No hay repositorio Git inicializado ni publicación remota creada por esta tarea
   resolución tarda lo que tarde PowerShell con muchos accesos; corre en el worker.
 - Regresiones en core/tests/test_host_apps.py (HostDiscoveryTests) con carpetas y
   resolución simuladas, sin ejecutar. Textos traducidos en los 24 catálogos.
+- Corrección: la suite de `mito release` se colgaba. test_ui y test_host_data_ui
+  pulsan «Agregar aplicación del host» con el selector simulado, pero el worker
+  abría el diálogo de descubrimiento con los accesos reales y esperaba sin fin
+  (además de una F en test_host_data_ui). Ahora, si no se descubre nada, se va
+  directo al selector nativo, y esos tests simulan discover con []. Test del
+  diálogo (filtro, Agregar, Examinar) añadido en test_host_apps.py, sin ejecutar.

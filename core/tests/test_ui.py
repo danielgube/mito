@@ -158,7 +158,7 @@ class UITests(AsyncTestCase):
             application = root/'Host Application.exe'
             application.write_bytes(b'fixture')
             app = YitoApp(engine, 'one')
-            with patch('mito.host_apps.choose_file',return_value=None) as picker, patch('mito.host_apps.launch') as launch, patch('mito.host_apps.shortcut',return_value=root/'example.lnk') as shortcut, patch('mito.persistence.open_location') as open_location:
+            with patch('mito.host_apps.discover',return_value=[]), patch('mito.host_apps.choose_file',return_value=None) as picker, patch('mito.host_apps.launch') as launch, patch('mito.host_apps.shortcut',return_value=root/'example.lnk') as shortcut, patch('mito.persistence.open_location') as open_location:
                 async with app.run_test(size=(150,45)) as pilot:
                     await pilot.pause()
                     self.assertEqual(app.query_one('#browse').region.y, app.query_one('#host-add').region.y)
