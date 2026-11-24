@@ -80,6 +80,15 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.3.1 — 2026-11-24
+
+### Commits incluidos
+
+- protocols claims and improved discovery apps feature added ([d4cc30f](https://github.com/danielgube/mito/commit/d4cc30f4a0f8fadbd23dc78152c2fa8175b5c630))
+- test hotfixeds ([5d5bfa1](https://github.com/danielgube/mito/commit/5d5bfa16b1ae2a35b854b1b4799ee7a8e819de09))
+
+[Comparar cambios](https://github.com/danielgube/mito/compare/b851a9aef06e600b2eba41d501b8ee3bc1c57d3f...5d5bfa16b1ae2a35b854b1b4799ee7a8e819de09)
+
 ## 0.2.17 — 2026-11-23
 
 ### Commits incluidos
