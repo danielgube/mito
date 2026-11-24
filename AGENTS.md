@@ -59,6 +59,11 @@ Lee README.md, spec/ARCHITECTURE.md y spec/CONTINUITY.md antes de modificar cont
 - «Abrir con» registra explícitamente en HKCU un ProgID MITO.<hash> por profile y
   componente que lanza `mito run`, con extensiones elegidas por el usuario.
   Nunca cambia la aplicación predeterminada ni toca ProgIDs ajenos.
+- «Protocolos» es la única excepción: reclama explícitamente un esquema URL en
+  HKCU\Software\Classes\<esquema> con `mito run` del profile, nunca el ejecutable
+  directo. Sólo mientras su diálogo está abierto: lo comprueba cada 5 s y, al
+  cerrar, restaura la copia previa si la clave sigue siendo de MITO. Fuera del
+  diálogo no hay vigilancia ni estado persistente; sin esquemas del sistema.
 - Los iconos usan el compositor Pillow adaptado de EAP: ICO multirresolución y
   etiqueta superpuesta de hasta 4 caracteres, por defecto MITO.
 - Inicio muestra todas las instalaciones con checkboxes de activación por profile.

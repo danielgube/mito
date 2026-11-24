@@ -678,7 +678,7 @@ class YitoApp(App):
     .component .component-info { width: 10; margin-left: 1; }
     .component .component-update { width: 12; margin-left: 1; }
     .component .component-remove { margin-left: 1; }
-    .component .app-shortcut { width: 26; margin-left: 1; }
+    .component .app-shortcut { width: 16; min-width: 16; margin-left: 1; }
     #home-actions { height: 3; margin-top: 1; }
     #home-actions Button { width: 1fr; }
     #browse { margin-right: 1; }
@@ -686,8 +686,9 @@ class YitoApp(App):
     .host-component { overflow-x: auto; }
     .host-component.component-row-dark { background: #593300; }
     .host-component.component-row-light { background: #8f5000; }
-    .component .host-data-button { width: 18; min-width: 18; margin-left: 1; }
+    .component .host-data-button { width: 12; min-width: 12; margin-left: 1; }
     .component .open-with-button { width: 20; min-width: 20; margin-left: 1; }
+    .component .protocol-button { width: 14; min-width: 14; margin-left: 1; }
     .host-app-name { width: 1fr; height: 1; padding-left: 5; content-align: left middle; color: #FFF; }
     '''
 
@@ -1008,13 +1009,14 @@ class YitoApp(App):
                 widgets = [Checkbox(label, value=installation in active, name=installation, id=f'active-{index}', disabled=not profile or self.busy)]
                 self.checkbox_states[widgets[0]] = (profile, installation in active)
                 if installation in active and self.engine.can_open(lock):
-                    widgets += [Button(tr('Abrir'), id=f'open-{index}', disabled=self.busy), Button(tr('Generar acceso directo'), id=f'link-{index}', classes='app-shortcut', disabled=self.busy)]
+                    widgets += [Button(tr('Abrir'), id=f'open-{index}', disabled=self.busy), Button(tr('Acc. directo'), id=f'link-{index}', classes='app-shortcut', disabled=self.busy)]
                     registered = bool(open_with_entries(self.engine.root, profile, installation))
                     widgets.append(Button(tr('Extensiones') + (' ✓' if registered else ' ✗'), id=f'openwith-{index}', classes='open-with-button', disabled=self.busy))
+                    widgets.append(Button(tr('Protocolos'), id=f'protocol-{index}', classes='protocol-button', disabled=self.busy))
                 if self.engine.can_open(lock):
                     exposed = exposure_linked(self.engine.root, installation)
                     # Estado, como Extensiones: ✓ enlazado, ✗ sin enlace (no la acción).
-                    widgets.append(Button(tr('En host · ') + ('✓' if exposed else '✗'), id=f'expose-{index}', classes='host-data-button', disabled=self.busy))
+                    widgets.append(Button(tr('Host · ') + ('✓' if exposed else '✗'), id=f'expose-{index}', classes='host-data-button', disabled=self.busy))
                 widgets.append(Button(tr('Info'), id=f'info-{index}', classes='component-info', disabled=self.busy))
                 candidate = available_update(self.engine,lock,catalog)
                 if candidate:
@@ -1035,7 +1037,7 @@ class YitoApp(App):
                            Button(tr('Abrir'), id=f'host-open-{identity}', disabled=self.busy or unavailable or not profile),
                            Button(tr('Cache · ') + ('✓' if linked(self.engine.root, identity, 'cache') else '✗'), id=f'host-cache-{identity}', classes='host-data-button', disabled=self.busy),
                            Button(tr('Data · ') + ('✓' if linked(self.engine.root, identity, 'data') else '✗'), id=f'host-data-{identity}', classes='host-data-button', disabled=self.busy),
-                           Button(tr('Generar acceso directo'), id=f'host-link-{identity}', classes='app-shortcut', disabled=self.busy or unavailable or not profile),
+                           Button(tr('Acc. directo'), id=f'host-link-{identity}', classes='app-shortcut', disabled=self.busy or unavailable or not profile),
                            Button(tr('Info'), id=f'host-info-{identity}', classes='component-info', disabled=self.busy),
                            Button(tr('Eliminar'), id=f'host-remove-{identity}', classes='component-remove', disabled=self.busy)]
                 shade = 'component-row-light' if len(rows) % 2 else 'component-row-dark'
@@ -1295,6 +1297,23 @@ class YitoApp(App):
                 lambda result: self.begin('open-with', profile, target, arguments=result)
                 if result is not None else None)
             return
+        if action.startswith('protocol-'):
+            from . import protocols
+            from .protocols_ui import ProtocolDialog
+            from .storage import YitoError
+            target = self.row_ids[action.removeprefix('protocol-')]
+            lock = self.inventory[target]
+            try:
+                # Claims live with the dialog; one left by a closed MITO is undone first.
+                protocols.unregister(self.engine.root, lambda record: True, self.write_log)
+                rows = protocols.rows(self.engine, profile, target)
+            except (YitoError, OSError, ValueError) as exc:
+                capture(self.engine.root, exc, operation='protocols.open')
+                self.notify(str(exc), severity='error')
+                return
+            session = protocols.Session(self.engine, profile, target, self.write_log)
+            self.push_screen(ProtocolDialog(lock['key'], self.engine.application_entries(lock), rows, session))
+            return
         if action.startswith('update-'):
             self.begin('update-component',profile,self.row_ids[action.removeprefix('update-')])
             return
@@ -1494,6 +1513,10 @@ class YitoApp(App):
                               found=found if found is not None else {}, log=log)
         install_version(self.engine, target, chosen, pin, log=log, confirm_unverified=confirm)
 
+    async def choose_host_application(self, found):
+        from .host_apps_ui import HostDiscoverDialog
+        return await self.push_screen_wait(HostDiscoverDialog(found))
+
     async def confirm_host_data(self, message, label=None):
         from .host_apps_ui import HostDataConfirm
         return await self.push_screen_wait(HostDataConfirm(message, label))
@@ -1528,8 +1551,16 @@ class YitoApp(App):
                 self.refresh_mito_update(force=True)
                 log(tr('Búsqueda de actualizaciones finalizada.'))
             elif action == 'host-add':
-                from .host_apps import choose_file, add
-                filename = choose_file()
+                from .host_apps import choose_file, add, discover
+                log(tr('Buscando aplicaciones en el menú Inicio y el escritorio del host…'))
+                try:
+                    found = discover(self.engine.root)
+                except (OSError, ValueError, subprocess.SubprocessError) as exc:
+                    log(tr('No se pudieron revisar los accesos del host: {p1}', p1=(exc)))
+                    found = []
+                filename = self.call_from_thread(self.choose_host_application, found)
+                if filename == 'browse':
+                    filename = choose_file()
                 if filename:
                     identity = add(self.engine.root, filename)
                     log(tr('Aplicación del host agregada. Usará el entorno del profile de MITO seleccionado.'))

@@ -530,6 +530,13 @@ Inicio divide su fila inferior entre búsqueda del catálogo y Agregar aplicaci�
 host. El selector nativo admite .exe/.bat/.cmd/.ps1. host_apps.py registra referencias
 absolutas por huella de ruta en core/state/host-applications.json, sin copiar binarios
 ni modificar los profiles. Se muestran en Inicio, compartidas por la instancia.
+Antes del selector, host_apps.discover lista candidatos ligeros: los .lnk del menú
+Inicio y del escritorio del host (usuario y todos los usuarios, por
+SHGetFolderPath y no por APPDATA, que apunta a home). Sus destinos se resuelven
+en una sola llamada (relocation.link_targets) y se conservan los .exe/.bat/.cmd/.ps1
+existentes fuera de MITO, sin desinstaladores ni apps ya agregadas, deduplicados
+por ruta y nombrados como el acceso. El diálogo filtra por texto; Examinar abre
+el selector nativo. No se lee el registro ni se escanean Program Files.
 
 Abrir reconstruye engine.environment(profile): APPDATA, HOME, USERPROFILE, PATH,
 variables y workspace son los de MITO, igual que para componentes instalados. No se
@@ -620,6 +627,33 @@ borran ProgIDs con el patrón MITO.<hash>. Eliminar el componente o el profile
 retira sus entradas; desactivar no (como los accesos del escritorio, el lanzador
 informará del error). relocation reescribe comando e icono tras un traslado y deja
 de registrarlas tras una copia.
+
+protocols.py reclama por petición explícita (botón «Protocolos», sin marca,
+junto a «Extensiones») esquemas URL como claude:// o vscode://. El reclamo es
+temporal: dura mientras el diálogo está abierto (protocols.Session). El diálogo
+lo comprueba cada 5 s y lo reescribe si otra app lo ha sobrescrito (las apps
+Electron se registran al arrancar y al iniciar sesión), conservando la primera
+copia. Al cerrar el diálogo se libera todo lo reclamado desde él; un reclamo que
+quedó por cerrar MITO con el diálogo abierto se libera al volver a abrirlo. No
+hay enganches al desactivar, eliminar ni trasladar. El texto siguiente describe
+el resto del mecanismo. Un navegador entrega esos
+enlaces (por ejemplo, el retorno de un inicio de sesión) a Windows, que ejecuta
+HKCU\Software\Classes\<esquema>\shell\open\command o, en su defecto, el de HKLM;
+la copia del host suele ser su dueña y el enlace no llega a la instancia de MITO.
+Reclamar escribe la clave en HKCU (URL:<esquema>, URL Protocol, DefaultIcon) con el
+mismo lanzador que «Abrir con» (`pythonw -m mito run … -- "%1"`), nunca el
+ejecutable directo, para que entren entorno y datos del profile y la instancia
+única abierta reciba la URL. El diálogo lista candidatos genéricos (claves con
+URL Protocol en HKCU/HKLM cuyo comando ejecuta un archivo con el nombre de un
+ejecutable declarado), los ya reclamados y los escritos a mano, con su comando
+actual y estado: De este profile, Otro profile de MITO, Ejecutable de MITO sin
+entorno, Otra app o No registrado. Se rechazan esquemas de sistema (http, https,
+file, mailto, ms-*, mito…). core/state/protocols.json guarda esquema, profile,
+bucket/app, entrada y una copia del árbol de la clave HKCU previa (null si no
+existía) sólo mientras dura el reclamo. Un esquema pertenece a un solo profile.
+Liberar (botón Liberar o cerrar el diálogo) restaura la copia sólo si la clave
+sigue con el comando de MITO; si otra app la tomó después de la última
+comprobación, sólo se olvida el registro.
 
 Crear profiles, activar o instalar refresca los ajustes de Terminal sin generar enlaces.
 application_link se llama únicamente por petición explícita (botón o CLI). Usa

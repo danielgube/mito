@@ -113,3 +113,51 @@ class HostAppTests(unittest.TestCase):
         self.assertEqual(argv[-3:], ['--','--name','two words'])
         registry = next((self.engine.root/'core/state/host-shortcuts').glob('*.json'))
         self.assertEqual(json.loads(registry.read_text())['arguments'], ['--name','two words'])
+
+
+class HostDiscoveryTests(unittest.TestCase):
+    """Descubrimiento ligero: accesos .lnk del menú Inicio y del escritorio del host."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.folder = Path(self.tmp.name).resolve()
+        self.root = self.folder/'mito'
+        (self.root/'core/apps').mkdir(parents=True)
+        self.menu = self.folder/'Start Menu'
+        (self.menu/'Tools').mkdir(parents=True)
+        self.targets = {}
+
+    def shortcut(self, name, target):
+        link = self.menu/f'{name}.lnk'
+        link.parent.mkdir(parents=True, exist_ok=True)
+        link.write_bytes(b'lnk')
+        self.targets[str(link)] = str(target)
+        return link
+
+    def program(self, relative):
+        path = self.folder/relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b'exe')
+        return path
+
+    def test_discover_filters_and_deduplicates(self):
+        editor = self.program('Editor/editor.exe')
+        self.shortcut('Editor', editor)
+        self.shortcut('Tools/Editor (copia)', editor)
+        self.shortcut('Uninstall Editor', self.program('Editor/unins000.exe'))
+        self.shortcut('Manual', self.program('Editor/manual.pdf'))
+        self.shortcut('Missing', self.folder/'Gone/gone.exe')
+        self.shortcut('Inside MITO', self.program('mito/core/apps/x/x.exe'))
+        added = self.program('Added/added.exe')
+        self.shortcut('Added', added)
+        host_apps.add(self.root, added)
+        script = self.program('Scripts/run.cmd')
+        self.shortcut('Tools/Run', script)
+        found = host_apps.discover(self.root, [self.menu, self.folder/'absent'], lambda links: self.targets)
+        self.assertEqual(found, [('Editor', str(editor)), ('Run', str(script))])
+
+    def test_discover_without_shortcuts_does_not_resolve(self):
+        def fail(links):
+            raise AssertionError('no links to resolve')
+        self.assertEqual(host_apps.discover(self.root, [self.folder/'empty'], fail), [])

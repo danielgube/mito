@@ -2345,3 +2345,72 @@ No hay repositorio Git inicializado ni publicación remota creada por esta tarea
   existan: el test ahora comprueba el tipo, sin cambiar el código. El diálogo no
   cabía en el terminal de 80×24 de run_test: ahora es desplazable (max-height 100%)
   y los tests usan 120×50 y Button.press. Pendiente de repetir la ejecución.
+## «Protocolos»: esquemas URL reclamados por profile (24 de noviembre de 2026)
+
+- Problema: un inicio de sesión en el navegador que vuelve por un esquema propio
+  (claude://, vscode://…) llega a la copia del host, porque Windows ejecuta el
+  comando de HKCU/HKLM\Software\Classes\<esquema>. Caso observado: Claude del host
+  (Squirrel, por usuario) registra `…\AnthropicClaude\app-<versión>\claude.exe -- "%1"`
+  en HKCU y lo reescribe al arrancar, como hacen las apps Electron.
+- Nuevo protocols.py, protocols_ui.py y botón «Protocolos ✓/✗» junto a
+  «Extensiones» en componentes activos con ejecutable. El diálogo muestra cada
+  esquema con su comando actual y estado (De este profile, Otro profile de MITO,
+  Ejecutable de MITO sin entorno, Otra app, No registrado). Candidatos genéricos
+  por nombre de ejecutable declarado; también se pueden escribir a mano.
+- Reclamar escribe la clave en HKCU con `pythonw -m mito run --profile … --app …
+  -- "%1"`, nunca el ejecutable directo, y guarda en core/state/protocols.json una
+  copia del árbol previo. Sin resincronización automática: si otra app lo recupera,
+  Guardar con el esquema marcado lo vuelve a reclamar y refresca la copia.
+- Liberar (desmarcar, desactivar o eliminar el componente, eliminar el profile)
+  restaura la copia sólo si la clave sigue con el comando de MITO. A diferencia de
+  «Abrir con», desactivar sí libera: el esquema es exclusivo y bloquearía al host.
+  relocation reescribe el comando tras mover y lo abandona tras copiar.
+- AGENTS.md: excepción explícita a «no tocar ProgIDs ajenos» sólo para esta acción.
+- Límites: un esquema pertenece a un solo profile. Mientras esté reclamado, los
+  enlaces abren MITO aunque se use la app del host, hasta que esta lo recupere al
+  arrancar. Que la instancia abierta reciba la URL depende de la instancia única de
+  la app (Electron la reenvía si coincide la carpeta de datos); sin probar con
+  Claude. Si la app de MITO se registra a sí misma, el diálogo lo muestra como
+  «Ejecutable de MITO sin entorno» y hay que volver a reclamarlo. Esquemas sólo
+  en HKLM: se crea la clave en HKCU y al liberar se borra, con lo que vuelve a
+  regir HKLM. El escaneo de candidatos recorre las clases de HKCU y HKLM al abrir
+  el diálogo.
+- Mensajes traducidos en los 24 catálogos. Regresiones en core/tests/test_protocols.py
+  sobre una rama temporal de HKCU, sin ejecutar: validación pendiente del usuario.
+- Ajuste tras la primera prueba del usuario: la Claude de MITO (extras/claude) se
+  había registrado sola en claude:// apuntando a core\apps\extras\claude\claude.exe
+  (estado «Ejecutable de MITO sin entorno»), por lo que el enlace arrancaba el
+  binario con el entorno del host. Las filas en ese estado se proponen marcadas y
+  la ayuda indica el orden: abrir la app desde MITO y reclamar después, porque la
+  app se vuelve a registrar al arrancar.
+- Botones más cortos en las filas: «Generar acceso directo» pasa a «Acc. directo»
+  (16 columnas) y «En host · ✓/✗» a «Host · ✓/✗» (12 columnas, como Cache/Data).
+- Rediseño tras la prueba del usuario (funcionó al reclamar con la Claude de MITO
+  ya abierta, pero el ✓ y la resincronización manual confundían): el botón pasa a
+  «Protocolos» sin marca. El diálogo tiene un botón Reclamar/Liberar por esquema;
+  mientras está abierto, protocols.Session comprueba cada 5 s y recupera el
+  esquema si otra app lo sobrescribe («Recuperado a las HH:MM:SS»), conservando
+  la primera copia. Cerrar el diálogo libera y restaura lo anterior. Se retiran
+  la marca de filas «sin entorno», apply, relocate y los enganches al desactivar,
+  eliminar componente/profile y trasladar. Un reclamo que quedó por cerrar MITO
+  con el diálogo abierto se libera al volver a abrir el diálogo.
+- Límite: hay que dejar el diálogo abierto hasta aceptar el enlace en el
+  navegador; si se cierra antes, el enlace vuelve a la app que estuviera antes.
+  Regresiones de Session y del diálogo (con un doble) actualizadas, sin ejecutar.
+
+## Descubrimiento de aplicaciones del host (24 de noviembre de 2026)
+
+- «Agregar aplicación del host» ya no abre directamente el selector de archivos:
+  muestra las aplicaciones encontradas en los accesos .lnk del menú Inicio y del
+  escritorio del host (usuario y comunes), con filtro de texto, Agregar y
+  Examinar… (el selector nativo de siempre).
+- host_apps.discover es genérico y ligero: rutas por SHGetFolderPath (APPDATA
+  puede ser el de MITO), destinos resueltos en una sola llamada a PowerShell
+  (relocation.link_targets), sólo .exe/.bat/.cmd/.ps1 existentes, fuera de la
+  raíz de MITO, sin desinstaladores (unins*, *uninstall*, *desinstal*) ni apps ya
+  agregadas, deduplicado por ruta. No lee el registro ni recorre Program Files.
+- Límites: apps sin acceso en Inicio/escritorio (portables, MSIX/Store, que usan
+  accesos sin TargetPath de archivo) no aparecen y se agregan con Examinar. La
+  resolución tarda lo que tarde PowerShell con muchos accesos; corre en el worker.
+- Regresiones en core/tests/test_host_apps.py (HostDiscoveryTests) con carpetas y
+  resolución simuladas, sin ejecutar. Textos traducidos en los 24 catálogos.

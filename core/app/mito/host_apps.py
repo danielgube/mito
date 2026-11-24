@@ -29,6 +29,58 @@ def add(root, filename):
     return identity
 
 
+# CSIDL folders with the host's own shortcuts: Start menu (user, all users) and
+# desktop (user, all users). Read through the shell, not APPDATA/USERPROFILE,
+# which point into MITO's home when the manager runs with a profile environment.
+SHORTCUT_FOLDERS = (2, 23, 16, 25)
+
+
+def shortcut_folders():
+    import ctypes
+    folders = []
+    for code in SHORTCUT_FOLDERS:
+        buffer = ctypes.create_unicode_buffer(32768)
+        if not ctypes.windll.shell32.SHGetFolderPathW(None, code, None, 0, buffer) and buffer.value:
+            folders.append(Path(buffer.value))
+    return folders
+
+
+def uninstaller(path):
+    name = Path(path).stem.casefold()
+    return name.startswith('unins') or 'uninstall' in name or 'desinstal' in name
+
+
+def discover(root, folders=None, resolve=None):
+    """[(label, executable)] from the host's Start menu and desktop shortcuts.
+
+    Lightweight and generic: only .lnk files, resolved in one call; keeps
+    existing .exe/.bat/.cmd/.ps1 targets outside MITO, skips uninstallers and
+    applications already added. The label is the shortcut name."""
+    if resolve is None:
+        from .relocation import link_targets as resolve
+    links = []
+    for folder in shortcut_folders() if folders is None else folders:
+        if folder.is_dir():
+            links += [path for path in folder.rglob('*.lnk') if path.is_file()]
+    if not links:
+        return []
+    targets = resolve(links)
+    known = {str(Path(value)).casefold() for value in inventory(root).values()}
+    mito = str(Path(root).resolve()).casefold()
+    found = {}
+    for link in sorted(links, key=lambda path: path.stem.casefold()):
+        value = targets.get(str(link)) or ''
+        if not value:
+            continue
+        path = Path(value)
+        key = str(path).casefold()
+        if (key in found or key in known or key.startswith(mito + '\\') or path.suffix.lower() not in EXTENSIONS
+                or uninstaller(path) or uninstaller(link) or not path.is_file()):
+            continue
+        found[key] = (link.stem, str(path))
+    return sorted(found.values(), key=lambda item: item[0].casefold())
+
+
 def target(root, identity):
     applications = inventory(root)
     if identity not in applications:
