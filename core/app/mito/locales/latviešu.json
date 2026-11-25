@@ -612,5 +612,7 @@
   "{p1} recibidos": "Saņemti {p1}",
   "INSTALANDO": "INSTALĒŠANA",
   "Cancelando…": "Atceļ…",
-  "Instalación cancelada. No se ha publicado nada.": "Instalēšana atcelta. Nekas netika publicēts."
+  "Instalación cancelada. No se ha publicado nada.": "Instalēšana atcelta. Nekas netika publicēts.",
+  "La carpeta de MITO tiene una ruta demasiado larga ({p1} caracteres; máximo {p2}): {p3}\nWindows limita las rutas a 260 caracteres y algunas aplicaciones no se podrían instalar.\nMueve la carpeta más cerca de la raíz del disco, por ejemplo C:\\mito, y vuelve a ejecutar mito.cmd.": "MITO mapes ceļš ir pārāk garš ({p1} rakstzīmes; maksimums {p2}): {p3}\nWindows ierobežo ceļus līdz 260 rakstzīmēm, un dažas lietotnes nevarētu instalēt.\nPārvietojiet mapi tuvāk diska saknei, piemēram, C:\\mito, un vēlreiz palaidiet mito.cmd.",
+  "Pulsa Intro para cerrar": "Nospiediet Enter, lai aizvērtu"
 }

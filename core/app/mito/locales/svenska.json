@@ -612,5 +612,7 @@
   "{p1} recibidos": "{p1} mottaget",
   "INSTALANDO": "INSTALLERAR",
   "Cancelando…": "Avbryter…",
-  "Instalación cancelada. No se ha publicado nada.": "Installationen avbröts. Inget publicerades."
+  "Instalación cancelada. No se ha publicado nada.": "Installationen avbröts. Inget publicerades.",
+  "La carpeta de MITO tiene una ruta demasiado larga ({p1} caracteres; máximo {p2}): {p3}\nWindows limita las rutas a 260 caracteres y algunas aplicaciones no se podrían instalar.\nMueve la carpeta más cerca de la raíz del disco, por ejemplo C:\\mito, y vuelve a ejecutar mito.cmd.": "Sökvägen till MITO-mappen är för lång ({p1} tecken; högst {p2}): {p3}\nWindows begränsar sökvägar till 260 tecken och vissa program skulle inte kunna installeras.\nFlytta mappen närmare enhetens rot, till exempel C:\\mito, och kör mito.cmd igen.",
+  "Pulsa Intro para cerrar": "Tryck på Retur för att stänga"
 }

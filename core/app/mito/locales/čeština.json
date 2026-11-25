@@ -612,5 +612,7 @@
   "{p1} recibidos": "Přijato {p1}",
   "INSTALANDO": "INSTALACE",
   "Cancelando…": "Ruší se…",
-  "Instalación cancelada. No se ha publicado nada.": "Instalace zrušena. Nic nebylo publikováno."
+  "Instalación cancelada. No se ha publicado nada.": "Instalace zrušena. Nic nebylo publikováno.",
+  "La carpeta de MITO tiene una ruta demasiado larga ({p1} caracteres; máximo {p2}): {p3}\nWindows limita las rutas a 260 caracteres y algunas aplicaciones no se podrían instalar.\nMueve la carpeta más cerca de la raíz del disco, por ejemplo C:\\mito, y vuelve a ejecutar mito.cmd.": "Cesta ke složce MITO je příliš dlouhá ({p1} znaků; maximum {p2}): {p3}\nWindows omezuje cesty na 260 znaků a některé aplikace by nešlo nainstalovat.\nPřesuňte složku blíže ke kořeni disku, například C:\\mito, a znovu spusťte mito.cmd.",
+  "Pulsa Intro para cerrar": "Stisknutím klávesy Enter zavřete"
 }

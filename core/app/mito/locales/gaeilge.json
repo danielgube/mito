@@ -612,5 +612,7 @@
   "{p1} recibidos": "{p1} faighte",
   "INSTALANDO": "Á SHUITEÁIL",
   "Cancelando…": "Á chealú…",
-  "Instalación cancelada. No se ha publicado nada.": "Suiteáil cealaithe. Níor foilsíodh aon rud."
+  "Instalación cancelada. No se ha publicado nada.": "Suiteáil cealaithe. Níor foilsíodh aon rud.",
+  "La carpeta de MITO tiene una ruta demasiado larga ({p1} caracteres; máximo {p2}): {p3}\nWindows limita las rutas a 260 caracteres y algunas aplicaciones no se podrían instalar.\nMueve la carpeta más cerca de la raíz del disco, por ejemplo C:\\mito, y vuelve a ejecutar mito.cmd.": "Tá conair fhillteán MITO rófhada ({p1} carachtar; uasmhéid {p2}): {p3}\nCuireann Windows teorainn 260 carachtar le conairí agus ní fhéadfaí roinnt feidhmchlár a shuiteáil.\nBog an fillteán níos gaire do fhréamh an tiomántáin, mar shampla C:\\mito, agus rith mito.cmd arís.",
+  "Pulsa Intro para cerrar": "Brúigh Enter chun dúnadh"
 }

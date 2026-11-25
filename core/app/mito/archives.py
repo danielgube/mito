@@ -9,12 +9,12 @@ from .storage import YitoError, inside
 from .transfer import MAX_EXPANDED, extract_zip
 
 
-def extract(archive, destination, root, filename, *, log=lambda _: None, innosetup=False):
+def extract(archive, destination, root, filename, *, log=lambda _: None, innosetup=False, inno_root='{app}'):
     """Prepare a download; return True for extraction, False for a loose file."""
     log(tr('Extrayendo {p1}', p1=filename))
     if innosetup and Path(filename).suffix.lower() == '.exe':
         from .inno import extract_inno
-        extract_inno(archive, destination, root)
+        extract_inno(archive, destination, root, inno_root)
         return True
     # JARs are ZIP containers but must remain executable Java artifacts.
     # An explicit #/archive.zip alias still requests ordinary extraction.

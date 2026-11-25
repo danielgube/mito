@@ -612,5 +612,7 @@
   "{p1} recibidos": "Odebrano {p1}",
   "INSTALANDO": "INSTALOWANIE",
   "Cancelando…": "Anulowanie…",
-  "Instalación cancelada. No se ha publicado nada.": "Instalacja anulowana. Nic nie zostało opublikowane."
+  "Instalación cancelada. No se ha publicado nada.": "Instalacja anulowana. Nic nie zostało opublikowane.",
+  "La carpeta de MITO tiene una ruta demasiado larga ({p1} caracteres; máximo {p2}): {p3}\nWindows limita las rutas a 260 caracteres y algunas aplicaciones no se podrían instalar.\nMueve la carpeta más cerca de la raíz del disco, por ejemplo C:\\mito, y vuelve a ejecutar mito.cmd.": "Ścieżka folderu MITO jest za długa ({p1} znaków; maksymalnie {p2}): {p3}\nWindows ogranicza ścieżki do 260 znaków i niektórych aplikacji nie dałoby się zainstalować.\nPrzenieś folder bliżej katalogu głównego dysku, na przykład C:\\mito, i ponownie uruchom mito.cmd.",
+  "Pulsa Intro para cerrar": "Naciśnij Enter, aby zamknąć"
 }

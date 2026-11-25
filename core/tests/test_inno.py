@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from mito.inno import app_inventory, extract_inno, restore_declared_targets
+from mito.inno import app_inventory, extract_inno, inno_root, restore_declared_targets
 from mito.hooks import expand_inno
 from mito.storage import YitoError
 
@@ -24,13 +24,18 @@ class InnoTests(unittest.TestCase):
             setup = payload/'setup.exe'
             setup.write_bytes(b'inert setup')
 
-            def extract(archive, destination, actual_root):
+            constants = []
+
+            def extract(archive, destination, actual_root, constant):
                 self.assertEqual((archive, actual_root), (setup, root))
+                constants.append(constant)
                 (destination/'bin').mkdir()
                 (destination/'bin/tool.exe').write_bytes(b'tool')
 
             with patch('mito.inno.extract_inno', side_effect=extract):
                 expand_inno(root, payload, setup, payload)
+                expand_inno(root, payload, setup, payload, '{code_GetDestDir}')
+            self.assertEqual(constants, ['{app}', '{code_GetDestDir}'])
             self.assertEqual((payload/'bin/tool.exe').read_bytes(), b'tool')
             with self.assertRaises(YitoError):
                 expand_inno(root, payload, setup, root/'outside')
@@ -66,6 +71,44 @@ class InnoTests(unittest.TestCase):
         self.assertEqual(app_inventory(listing(('{app}\\Sub\\Editor.exe', 3),
                                                ('{tmp}\\helper.exe', 2))),
                          {'sub/editor.exe': ('Sub/Editor.exe', 3)})
+
+    def test_scripted_destination_constant_selects_its_root(self):
+        text = listing(('{app}\\unins.dat', 1), ('{code_GetDestDir}\\Editor.exe', 3),
+                       ('{code_GetDestDir}\\bin\\editor.cmd', 2))
+        self.assertEqual(app_inventory(text, root='{code_GetDestDir}'),
+                         {'editor.exe': ('Editor.exe', 3), 'bin/editor.cmd': ('bin/editor.cmd', 2)})
+        self.assertEqual(inno_root('{code_GetDestDir}'), '{code_GetDestDir}')
+        self.assertEqual(inno_root('{app}'), '{app}')
+        for value in ('{sys}', '{tmp}', '{code_x}\\sub', 'sub', '{code:GetDestDir}', None):
+            with self.subTest(value=value):
+                self.assertIsNone(inno_root(value))
+
+    def test_engine_extracts_the_declared_inno_root_instead_of_a_subfolder(self):
+        from mito.engine import Engine
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            engine = Engine(root)
+            engine.initialize()
+            seen = []
+
+            def download(url, target, expected, **kwargs):
+                target.write_bytes(b'setup')
+
+            def extract(archive, destination, actual_root, filename, *, log, innosetup, inno_root):
+                seen.append((innosetup, inno_root))
+                (destination/'bin').mkdir(parents=True)
+                (destination/'Editor.exe').write_bytes(b'editor')
+                (destination/'bin/editor.cmd').write_bytes(b'cmd')
+                return True
+
+            manifest = {'version': '1.0', 'url': 'https://example.org/Editor%20Setup.exe', 'hash': 'skip',
+                        'innosetup': True, 'extract_dir': '{code_GetDestDir}', 'bin': 'bin\\editor.cmd'}
+            destination = root/'core/apps/extras/editor'
+            with patch('mito.engine.download', side_effect=download), \
+                    patch('mito.archives.extract', side_effect=extract):
+                engine._install_payload('extras/editor', manifest, destination, lambda _: None)
+            self.assertEqual(seen, [(True, '{code_GetDestDir}')])
+            self.assertEqual((destination/'Editor.exe').read_bytes(), b'editor')
 
     def test_rejects_unsafe_or_ambiguous_paths(self):
         cases = [('{app}\\..\\escape',), ('C:\\escape',),

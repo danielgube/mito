@@ -295,24 +295,106 @@ def launch_ready(work):
     raise YitoError('El CMD de actualización no confirmó el arranque. El gestor permanece abierto. Preparación: ' + str(work))
 
 
-def running_processes(root):
-    """Read-only process inventory; never terminate the user's applications."""
-    script = """$ErrorActionPreference='Stop'
+_PROCESS_PRELUDE = """$ErrorActionPreference='Stop'
 [Console]::OutputEncoding = New-Object Text.UTF8Encoding
 $root = [IO.Path]::GetFullPath($env:MITO_UPDATE_ROOT).TrimEnd('\\') + '\\'
-@(Get-CimInstance Win32_Process | Where-Object {
+function Get-MitoProcess { @(Get-CimInstance Win32_Process | Where-Object {
     $_.ExecutablePath -and $_.ExecutablePath.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)
-} | ForEach-Object { "$($_.ProcessId): $($_.Name)" }) | ConvertTo-Json -Compress
+}) }
 """
-    env = dict(os.environ, MITO_UPDATE_ROOT=str(root))
+
+
+def _powershell(script, **variables):
+    env = dict(os.environ, **variables)
     powershell = Path(os.environ['SystemRoot']) / 'System32/WindowsPowerShell/v1.0/powershell.exe'
-    result = subprocess.run([str(powershell), '-NoLogo', '-NoProfile', '-NonInteractive', '-Command', script],
-                            env=env, capture_output=True, encoding='utf-8', timeout=30,
+    result = subprocess.run([str(powershell), '-NoLogo', '-NoProfile', '-NonInteractive', '-Command',
+                             _PROCESS_PRELUDE + script],
+                            env=env, capture_output=True, encoding='utf-8', timeout=60,
                             creationflags=subprocess.CREATE_NO_WINDOW)
     if result.returncode:
         raise YitoError('No se pudieron comprobar los procesos abiertos: ' + result.stderr)
     value = json.loads(result.stdout or '[]')
-    return [value] if isinstance(value, str) else (value or [])
+    return value if isinstance(value, list) else [value]
+
+
+def process_inventory(root):
+    """Processes whose executable lives under the instance, with its relative path."""
+    return _powershell("""ConvertTo-Json -Compress -InputObject @(Get-MitoProcess | ForEach-Object {
+    @{ pid = [int]$_.ProcessId; name = $_.Name; path = $_.ExecutablePath.Substring($root.Length) } })
+""", MITO_UPDATE_ROOT=str(root))
+
+
+def running_processes(root):
+    """Read-only process inventory; never terminate the user's applications."""
+    return [f"{item['pid']}: {item['name']}" for item in process_inventory(root)]
+
+
+def stop_processes(root, pids):
+    """Force-close only on the user's explicit request, rechecking each PID still
+    runs an executable under the instance so a reused PID is never touched."""
+    return _powershell("""$ids = @($env:MITO_UPDATE_PIDS -split ',' | Where-Object { $_ } | ForEach-Object { [int]$_ })
+$failed = @()
+$stopped = @()
+foreach ($process in @(Get-MitoProcess | Where-Object { $ids -contains [int]$_.ProcessId })) {
+    try { Stop-Process -Id $process.ProcessId -Force -ErrorAction Stop; $stopped += [int]$process.ProcessId }
+    catch { $failed += "$($process.ProcessId): $($process.Name): $($_.Exception.Message)" }
+}
+if ($stopped) { try { Wait-Process -Id $stopped -Timeout 5 -ErrorAction Stop } catch {} }
+ConvertTo-Json -Compress -InputObject @($failed)
+""", MITO_UPDATE_ROOT=str(root), MITO_UPDATE_PIDS=','.join(str(int(pid)) for pid in pids))
+
+
+AUTOSTART_KEYS = (
+    ('HKEY_CURRENT_USER', r'Software\Microsoft\Windows\CurrentVersion\Run'),
+    ('HKEY_CURRENT_USER', r'Software\Microsoft\Windows\CurrentVersion\RunOnce'),
+    ('HKEY_LOCAL_MACHINE', r'Software\Microsoft\Windows\CurrentVersion\Run'),
+    ('HKEY_LOCAL_MACHINE', r'Software\Microsoft\Windows\CurrentVersion\RunOnce'),
+    ('HKEY_LOCAL_MACHINE', r'Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Run'),
+)
+
+
+def autostart_inside(root, entries):
+    """Entries (hive, key, name, command) whose command points inside the instance."""
+    prefix = os.path.normcase(os.path.abspath(root)).rstrip('\\/') + os.sep
+    return [entry for entry in entries if isinstance(entry[3], str)
+            and prefix in os.path.normcase(os.path.expandvars(entry[3]))]
+
+
+def autostart_entries(root):
+    """Read-only: Windows logon autostart values that launch programs of this instance.
+    MITO never edits them; the applications registered themselves."""
+    if os.name != 'nt':
+        return []
+    import winreg
+    entries = []
+    for hive, key in AUTOSTART_KEYS:
+        try:
+            handle = winreg.OpenKey(getattr(winreg, hive), key)
+        except OSError:
+            continue
+        with handle:
+            index = 0
+            while True:
+                try:
+                    name, value, _ = winreg.EnumValue(handle, index)
+                except OSError:
+                    break
+                index += 1
+                entries.append((hive, key, name, value))
+    return autostart_inside(root, entries)
+
+
+def wait_for_closed_processes(root, *, inventory=process_inventory, stop=stop_processes,
+                              ask=input, say=print):
+    while active := inventory(root):
+        say('Todavía están abiertos:')
+        for item in active:
+            say(f"  {item['pid']}: {item['path']}")
+        answer = ask('Ciérralos y pulsa Intro para volver a comprobar, o escribe C e Intro para '
+                     'cerrarlos a la fuerza; se pierde lo no guardado (Ctrl+C cancela): ')
+        if answer.strip().casefold() == 'c':
+            for failure in stop(root, [item['pid'] for item in active]):
+                say('No se pudo cerrar ' + failure)
 
 
 def safe_target(root, relative):
@@ -397,10 +479,17 @@ def main():
         print('MITO ' + data['info']['version'] + ': actualización preparada.')
         print('Guarda tu trabajo y cierra TODAS las ventanas de MITO, pestañas, aplicaciones y MCP.')
         print('Cierra también las aplicaciones externas abiertas con el entorno de MITO.')
+        try:
+            autostart = autostart_entries(root)
+        except OSError:
+            autostart = []
+        if autostart:
+            print('Estos programas de MITO se inician con Windows y pueden seguir en segundo plano:')
+            for hive, key, name, command in autostart:
+                print(f'  {name}: {command}  ({hive}\\{key})')
+            print('Si no los quieres al iniciar sesión, retíralos del inicio de Windows; MITO no los modifica.')
         input('Cuando hayas terminado, pulsa Intro para actualizar (Ctrl+C cancela): ')
-        while active := running_processes(root):
-            print('Todavía están abiertos: ' + ', '.join(active))
-            input('Ciérralos y pulsa Intro para volver a comprobar (Ctrl+C cancela): ')
+        wait_for_closed_processes(root)
         backup = apply(root, request.parent / 'payload', data['info'], tools_changed=data['tools_changed'])
         print('MITO actualizado correctamente. Copia anterior: ' + str(backup))
         print('Puedes volver a abrir mito.cmd o tu acceso directo.')

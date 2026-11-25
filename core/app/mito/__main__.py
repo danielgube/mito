@@ -113,7 +113,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.command == 'release' and args.local and args.kind is not None:
         parser.error('--local no admite mayor, minor ni hotfix: empaqueta la versión actual')
-    root = root_path()
+    root = instance = root_path()
     previous_thread_hook = None
     try:
         engine = Engine(root)
@@ -124,6 +124,18 @@ def main(argv=None):
                 print(folder)
             return 0
         diagnostics.write(root, 'info', 'cli.' + (args.command or 'ui'), 'Command started', runtime=diagnostics.environment())
+        if args.command in (None, 'ui', 'start', 'bootstrap'):
+            # Sólo bloquea abrir el gestor y preparar herramientas; las apps,
+            # shims y MCP ya instalados siguen funcionando hasta mover la carpeta.
+            from .path_limit import problem
+            if message := problem(instance):
+                diagnostics.write(root, 'error', 'startup.path-limit', message)
+                print(f'\nMITO: {message}\n', file=sys.stderr)
+                try:
+                    input(tr('Pulsa Intro para cerrar'))
+                except (EOFError, KeyboardInterrupt):
+                    pass
+                return 1
         if args.command == 'posthog-check':
             from .error_tracking import check
             try:

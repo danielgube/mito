@@ -612,5 +612,7 @@
   "{p1} recibidos": "Vastaanotettu {p1}",
   "INSTALANDO": "ASENNETAAN",
   "Cancelando…": "Perutaan…",
-  "Instalación cancelada. No se ha publicado nada.": "Asennus peruttu. Mitään ei julkaistu."
+  "Instalación cancelada. No se ha publicado nada.": "Asennus peruttu. Mitään ei julkaistu.",
+  "La carpeta de MITO tiene una ruta demasiado larga ({p1} caracteres; máximo {p2}): {p3}\nWindows limita las rutas a 260 caracteres y algunas aplicaciones no se podrían instalar.\nMueve la carpeta más cerca de la raíz del disco, por ejemplo C:\\mito, y vuelve a ejecutar mito.cmd.": "MITO-kansion polku on liian pitkä ({p1} merkkiä; enintään {p2}): {p3}\nWindows rajoittaa polut 260 merkkiin, eikä joitakin sovelluksia voitaisi asentaa.\nSiirrä kansio lähemmäs aseman juurta, esimerkiksi C:\\mito, ja suorita mito.cmd uudelleen.",
+  "Pulsa Intro para cerrar": "Sulje painamalla Enter"
 }

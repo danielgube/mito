@@ -612,5 +612,7 @@
   "{p1} recibidos": "{p1} vastu võetud",
   "INSTALANDO": "PAIGALDAMINE",
   "Cancelando…": "Tühistamine…",
-  "Instalación cancelada. No se ha publicado nada.": "Paigaldamine tühistati. Midagi ei avaldatud."
+  "Instalación cancelada. No se ha publicado nada.": "Paigaldamine tühistati. Midagi ei avaldatud.",
+  "La carpeta de MITO tiene una ruta demasiado larga ({p1} caracteres; máximo {p2}): {p3}\nWindows limita las rutas a 260 caracteres y algunas aplicaciones no se podrían instalar.\nMueve la carpeta más cerca de la raíz del disco, por ejemplo C:\\mito, y vuelve a ejecutar mito.cmd.": "MITO kausta tee on liiga pikk ({p1} märki; maksimaalselt {p2}): {p3}\nWindows piirab teed 260 märgini ja mõnda rakendust ei saaks paigaldada.\nTeisalda kaust ketta juurele lähemale, näiteks C:\\mito, ja käivita mito.cmd uuesti.",
+  "Pulsa Intro para cerrar": "Sulgemiseks vajuta Enter"
 }

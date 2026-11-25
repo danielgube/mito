@@ -1,4 +1,4 @@
-"""Extract Inno {app} files as data using the pinned private innounp binary."""
+"""Extract Inno {app} (or {code_*}) files as data using the pinned private innounp binary."""
 from pathlib import Path, PureWindowsPath
 import re
 import shutil
@@ -9,6 +9,21 @@ import hashlib
 from .i18n import tr
 from .storage import YitoError, inside, portable_path
 from .transfer import MAX_EXPANDED
+
+
+APP = '{app}'
+
+
+def inno_root(extract_dir):
+    """Inno root selected by a bare constant in extract_dir, as Scoop does with innounp -c.
+
+    {app} is the default. Installers whose DefaultDirName comes from their script
+    ({code:Func}) list files under {code_Func}; that root is equally the install
+    folder. Built-in system constants ({sys}, {win}, {tmp}, …) stay unsupported."""
+    if isinstance(extract_dir, str) and (extract_dir.casefold() == APP
+                                         or re.fullmatch(r'\{code_[A-Za-z_][A-Za-z0-9_]*\}', extract_dir)):
+        return extract_dir
+    return None
 
 
 def restore_declared_targets(payload, targets):
@@ -35,8 +50,9 @@ def restore_declared_targets(payload, targets):
         shutil.copy2(copies[0][1], target)
 
 
-def app_inventory(listing, *, max_entries=150000, max_expanded=MAX_EXPANDED):
-    """Parse innounp 2.71's non-regional UTF-8 verbose table, failing closed."""
+def app_inventory(listing, *, root=APP, max_entries=150000, max_expanded=MAX_EXPANDED):
+    """Parse innounp 2.71's non-regional UTF-8 verbose table, failing closed.
+    Only files under the selected root ({app} by default) are returned."""
     entries = {}
     all_paths = set()
     directories = set()
@@ -72,15 +88,17 @@ def app_inventory(listing, *, max_entries=150000, max_expanded=MAX_EXPANDED):
         total += size
         if count > max_entries or total > max_expanded:
             raise YitoError('Inno: archive exceeds extraction limits')
-        if path.parts[0].casefold() == '{app}' and len(path.parts) > 1:
+        if path.parts[0].casefold() == root.casefold() and len(path.parts) > 1:
             relative = PureWindowsPath(*path.parts[1:]).as_posix()
             entries[relative.casefold()] = (relative, size)
     if not started or not ended or not entries:
-        raise YitoError('Inno: no supported {app} payload or incomplete listing')
+        raise YitoError(f'Inno: no supported {root} payload or incomplete listing')
     return entries
 
 
-def extract_inno(archive, destination, root):
+def extract_inno(archive, destination, root, constant=APP):
+    if inno_root(constant) is None:
+        raise YitoError(f'Inno: unsupported root {constant}')
     executable = root/'core/tools/innounp/innounp.exe'
     if not executable.is_file():
         raise YitoError(tr('Herramienta incompleta: {p1}', p1='innounp'))
@@ -97,10 +115,10 @@ def extract_inno(archive, destination, root):
         return result.stdout
     with tempfile.TemporaryDirectory(dir=archive.parent) as temporary:
         stage = Path(temporary)
-        inventory = app_inventory(run(['-v', *common, str(archive)], stage))
+        inventory = app_inventory(run(['-v', *common, str(archive)], stage), root=constant)
         output = stage/'files'
         output.mkdir()
-        run(['-x', *common, '-c{app}', f'-d{output}', str(archive), '{app}\\*'], stage)
+        run(['-x', *common, f'-c{constant}', f'-d{output}', str(archive), constant + '\\*'], stage)
         actual = {}
         for path in output.rglob('*'):
             if path.is_symlink() or path.is_junction():

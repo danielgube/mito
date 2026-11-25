@@ -612,5 +612,7 @@
   "{p1} recibidos": "{p1} ontvangen",
   "INSTALANDO": "INSTALLEREN",
   "Cancelando…": "Annuleren…",
-  "Instalación cancelada. No se ha publicado nada.": "Installatie geannuleerd. Er is niets gepubliceerd."
+  "Instalación cancelada. No se ha publicado nada.": "Installatie geannuleerd. Er is niets gepubliceerd.",
+  "La carpeta de MITO tiene una ruta demasiado larga ({p1} caracteres; máximo {p2}): {p3}\nWindows limita las rutas a 260 caracteres y algunas aplicaciones no se podrían instalar.\nMueve la carpeta más cerca de la raíz del disco, por ejemplo C:\\mito, y vuelve a ejecutar mito.cmd.": "Het pad van de MITO-map is te lang ({p1} tekens; maximaal {p2}): {p3}\nWindows beperkt paden tot 260 tekens en sommige toepassingen zouden niet kunnen worden geïnstalleerd.\nVerplaats de map dichter bij de hoofdmap van de schijf, bijvoorbeeld C:\\mito, en voer mito.cmd opnieuw uit.",
+  "Pulsa Intro para cerrar": "Druk op Enter om te sluiten"
 }

@@ -612,5 +612,7 @@
   "{p1} recibidos": "{p1} received",
   "INSTALANDO": "INSTALLING",
   "Cancelando…": "Cancelling…",
-  "Instalación cancelada. No se ha publicado nada.": "Installation cancelled. Nothing was published."
+  "Instalación cancelada. No se ha publicado nada.": "Installation cancelled. Nothing was published.",
+  "La carpeta de MITO tiene una ruta demasiado larga ({p1} caracteres; máximo {p2}): {p3}\nWindows limita las rutas a 260 caracteres y algunas aplicaciones no se podrían instalar.\nMueve la carpeta más cerca de la raíz del disco, por ejemplo C:\\mito, y vuelve a ejecutar mito.cmd.": "The MITO folder path is too long ({p1} characters; maximum {p2}): {p3}\nWindows limits paths to 260 characters and some applications could not be installed.\nMove the folder closer to the drive root, for example C:\\mito, and run mito.cmd again.",
+  "Pulsa Intro para cerrar": "Press Enter to close"
 }

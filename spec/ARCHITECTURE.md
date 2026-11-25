@@ -274,7 +274,7 @@ La fase no se repite al activar ni al reutilizar una instalación idéntica.
 
 Helpers iniciales: info/warn/error/abort, Expand-7zipArchive y Expand-InnoArchive
 con Path, DestinationPath, ExtractDir y Removal. Ambos llaman a extractores privados
-validados dentro del payload; el helper Inno admite sólo `{app}`. Get-HelperPath
+validados dentro del payload; el helper Inno admite sólo `{app}` y `{code_<Func>}`. Get-HelperPath
 expone únicamente innounp e Invoke-ExternalCommand ejecuta herramientas explícitas,
 comprueba su salida y puede escribir su log. Parámetros y helpers no implementados
 dan error.
@@ -367,6 +367,15 @@ lanzamiento falla; no se mantiene una lista de excepciones por producto.
 
 ## Alcance de portabilidad
 
+Longitud de la raíz: sin `LongPathsEnabled=1` en HKLM, Python y muchas herramientas
+fallan con rutas de más de 260 caracteres, y los árboles de terceros (node_modules,
+recursos de Electron) se preparan en core/staging y se publican en core/apps. Por eso
+`bootstrap.ps1` (salvo `-Approved` del actualizador, que prepara fuera de la instancia)
+y los comandos `ui`, `start` y `bootstrap` se niegan a continuar si la raíz absoluta
+supera 32 caracteres; el resto de comandos (apps, shims, MCP) no se bloquea. Umbral y
+mensaje compartidos por `path_limit.py` y `Get-YitoRootPathProblem`. No se usan rutas
+`\\?\`: una raíz corta no garantiza que quepa cualquier árbol.
+
 El core no registra programas ni modifica PATH global por sí mismo. Los scripts
 pre_install e installer se ejecutan con los permisos del usuario y pueden modificar el host:
 el entorno privado no es un sandbox. Una app declarativa puede también escribir fuera del
@@ -432,7 +441,10 @@ Con innosetup: true, las descargas cuyo nombre efectivo termina en .exe se extra
 con innounp 2.71.1 privado, fijado por URL inmutable y SHA-256 en bootstrap.lock.json.
 Nunca se ejecuta el instalador. Se valida su listado UTF-8 antes de extraer: rutas
 portables, duplicados y solapamientos sin distinguir mayúsculas, hasta 150000 archivos
-y el límite MAX_EXPANDED. Sólo se extrae {app}, eliminando ese prefijo. Se comprueban
+y el límite MAX_EXPANDED. Sólo se extrae {app}, eliminando ese prefijo. Como en Scoop
+(innounp -c), un extract_dir que sea exactamente una constante de script `{code_<Func>}`
+(DefaultDirName={code:Func}) selecciona esa raíz en lugar de {app} y no se aplica como
+subcarpeta; las constantes del sistema ({sys}, {tmp}…) siguen sin admitirse. Se comprueban
 inventario, tamaños y ausencia de enlaces antes de copiar al payload. Después se
 aplican extract_dir/extract_to, hooks y validación/publicación habituales.
 Los archivos auxiliares de otras extensiones siguen el extractor ordinario.
@@ -764,8 +776,12 @@ El CMD del sistema arranca con consola/grupo nuevos y breakaway del Job Object,
 sin handles heredados, con cwd, runtime y home temporales externos. El gestor espera
 confirmación de arranque antes de salir y detiene MCP por su flujo habitual. Si el
 host impide el lanzamiento independiente, informa del error y mantiene el gestor.
-El CMD espera Intro del usuario y enumera ejecutables bajo la raíz de MITO. No mata
-procesos. Las apps del host, servicios y procesos inaccesibles requieren el cierre
+El CMD espera Intro del usuario y enumera ejecutables bajo la raíz de MITO con su
+ruta relativa. Sólo si el usuario escribe C los cierra a la fuerza, revalidando que
+cada PID sigue ejecutando un binario de la instancia. Antes informa, sin modificarlos,
+de los valores Run/RunOnce de HKCU/HKLM que lanzan programas de la instancia
+(agentes que una app instalada en el home registró para arrancar con Windows).
+Las apps del host, servicios y procesos inaccesibles requieren el cierre
 manual indicado: no se promete detectar cualquier proceso que use datos del home.
 
 Publicación bajo el lock común, con versión local revalidada y procesos comprobados

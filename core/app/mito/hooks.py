@@ -218,18 +218,19 @@ def expand(root, payload, archive, destination, extract_dir='.'):
 
 def expand_inno(root, payload, archive, destination, extract_dir='{app}'):
     """Implement Scoop's Inno helper through MITO's validated private extractor."""
-    from .inno import extract_inno
+    from .inno import extract_inno, inno_root
     payload = payload.resolve()
     archive, destination = archive.resolve(), destination.resolve()
     if not archive.is_relative_to(payload) or not destination.is_relative_to(payload):
         message = tr('Expand-7zipArchive requiere rutas dentro del payload')
         raise YitoError(message.replace('Expand-7zipArchive', 'Expand-InnoArchive'))
-    if extract_dir.casefold() != '{app}':
+    constant = inno_root(extract_dir)
+    if constant is None:
         message = tr('Expand-7zipArchive: ExtractDir no encontrado')
         raise YitoError(message.replace('Expand-7zipArchive', 'Expand-InnoArchive'))
     with tempfile.TemporaryDirectory(dir=payload.parent) as tmp:
         expanded = Path(tmp)
-        extract_inno(archive, expanded, root)
+        extract_inno(archive, expanded, root, constant)
         shutil.copytree(expanded, destination, dirs_exist_ok=True)
 
 

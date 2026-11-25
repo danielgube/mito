@@ -612,5 +612,7 @@
   "{p1} recibidos": "{p1} fogadva",
   "INSTALANDO": "TELEPÍTÉS",
   "Cancelando…": "Megszakítás…",
-  "Instalación cancelada. No se ha publicado nada.": "Telepítés megszakítva. Semmi sem lett közzétéve."
+  "Instalación cancelada. No se ha publicado nada.": "Telepítés megszakítva. Semmi sem lett közzétéve.",
+  "La carpeta de MITO tiene una ruta demasiado larga ({p1} caracteres; máximo {p2}): {p3}\nWindows limita las rutas a 260 caracteres y algunas aplicaciones no se podrían instalar.\nMueve la carpeta más cerca de la raíz del disco, por ejemplo C:\\mito, y vuelve a ejecutar mito.cmd.": "A MITO mappa elérési útja túl hosszú ({p1} karakter; legfeljebb {p2}): {p3}\nA Windows 260 karakterre korlátozza az elérési utakat, így egyes alkalmazások nem telepíthetők.\nHelyezd a mappát közelebb a meghajtó gyökeréhez, például C:\\mito, és futtasd újra a mito.cmd fájlt.",
+  "Pulsa Intro para cerrar": "Nyomj Entert a bezáráshoz"
 }

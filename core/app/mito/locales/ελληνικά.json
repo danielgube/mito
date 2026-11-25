@@ -612,5 +612,7 @@
   "{p1} recibidos": "Ελήφθησαν {p1}",
   "INSTALANDO": "ΕΓΚΑΤΑΣΤΑΣΗ",
   "Cancelando…": "Ακύρωση…",
-  "Instalación cancelada. No se ha publicado nada.": "Η εγκατάσταση ακυρώθηκε. Δεν δημοσιεύτηκε τίποτα."
+  "Instalación cancelada. No se ha publicado nada.": "Η εγκατάσταση ακυρώθηκε. Δεν δημοσιεύτηκε τίποτα.",
+  "La carpeta de MITO tiene una ruta demasiado larga ({p1} caracteres; máximo {p2}): {p3}\nWindows limita las rutas a 260 caracteres y algunas aplicaciones no se podrían instalar.\nMueve la carpeta más cerca de la raíz del disco, por ejemplo C:\\mito, y vuelve a ejecutar mito.cmd.": "Η διαδρομή του φακέλου MITO είναι πολύ μεγάλη ({p1} χαρακτήρες· μέγιστο {p2}): {p3}\nΤα Windows περιορίζουν τις διαδρομές σε 260 χαρακτήρες και ορισμένες εφαρμογές δεν θα μπορούσαν να εγκατασταθούν.\nΜετακινήστε τον φάκελο πιο κοντά στη ρίζα του δίσκου, για παράδειγμα C:\\mito, και εκτελέστε ξανά το mito.cmd.",
+  "Pulsa Intro para cerrar": "Πατήστε Enter για κλείσιμο"
 }

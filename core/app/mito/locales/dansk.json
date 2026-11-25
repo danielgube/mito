@@ -612,5 +612,7 @@
   "{p1} recibidos": "{p1} modtaget",
   "INSTALANDO": "INSTALLERER",
   "Cancelando…": "Annullerer…",
-  "Instalación cancelada. No se ha publicado nada.": "Installation annulleret. Intet blev publiceret."
+  "Instalación cancelada. No se ha publicado nada.": "Installation annulleret. Intet blev publiceret.",
+  "La carpeta de MITO tiene una ruta demasiado larga ({p1} caracteres; máximo {p2}): {p3}\nWindows limita las rutas a 260 caracteres y algunas aplicaciones no se podrían instalar.\nMueve la carpeta más cerca de la raíz del disco, por ejemplo C:\\mito, y vuelve a ejecutar mito.cmd.": "Stien til MITO-mappen er for lang ({p1} tegn; maksimum {p2}): {p3}\nWindows begrænser stier til 260 tegn, og nogle programmer ville ikke kunne installeres.\nFlyt mappen tættere på drevets rod, for eksempel C:\\mito, og kør mito.cmd igen.",
+  "Pulsa Intro para cerrar": "Tryk på Enter for at lukke"
 }

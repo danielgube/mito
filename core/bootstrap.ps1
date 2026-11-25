@@ -26,6 +26,23 @@ function Confirm-YitoBootstrap($Manifest) {
     return $answer -and $answer.Trim().ToLowerInvariant() -in @('s', 'si', 'sí')
 }
 
+function Test-YitoLongPaths {
+    try {
+        $value = Get-ItemProperty -LiteralPath 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name LongPathsEnabled -ErrorAction Stop
+        return ([int]$value.LongPathsEnabled -eq 1)
+    } catch { return $false }
+}
+
+# Mismo contrato que mito/path_limit.py: sin rutas largas en Windows, la raíz de
+# MITO debe estar cerca de la del disco para que quepan árboles profundos.
+function Get-YitoRootPathProblem([string]$Root, [int]$Maximum = 32, [bool]$LongPaths = (Test-YitoLongPaths)) {
+    $full = [IO.Path]::GetFullPath($Root).TrimEnd('\')
+    if ($full.Length -le $Maximum -or $LongPaths) { return $null }
+    return ('La carpeta de MITO tiene una ruta demasiado larga (' + $full.Length + ' caracteres; máximo ' + $Maximum + '): ' + $full +
+        "`nWindows limita las rutas a 260 caracteres y algunas aplicaciones no se podrían instalar." +
+        "`nMueve la carpeta más cerca de la raíz del disco, por ejemplo C:\mito, y vuelve a ejecutar mito.cmd.")
+}
+
 function Protect-YitoText([string]$Text) {
     $Text = [regex]::Replace($Text, '(?i)(https?://)[^\s/@]+@', '$1[redacted]@')
     $Text = [regex]::Replace($Text, '(?i)(https?://[^\s?"<>]+)\?[^\s"<>]+', '$1?[redacted]')
@@ -576,6 +593,18 @@ if ($DiagnosticExitCode -ne 0) {
     Write-Host ('MITO: log: ' + $script:YitoActiveLog)
     Send-YitoBootstrapPending
     exit 1
+}
+if (-not $Approved) {
+    # El actualizador (-Approved) prepara en una carpeta temporal del host, no en la instancia.
+    $pathProblem = Get-YitoRootPathProblem $root
+    if ($pathProblem) {
+        Write-YitoDiagnostic 'error' 'path-limit' $pathProblem
+        Write-Host ''
+        Write-Host ('MITO: ' + $pathProblem) -ForegroundColor Red
+        Write-Host ''
+        try { [void](Read-Host 'Pulsa Intro para cerrar') } catch {}
+        exit 3
+    }
 }
 $phase = 'startup'
 Write-YitoDiagnostic 'info' $phase 'Bootstrap started' @{windows=[Environment]::OSVersion.Version.ToString(); os64=[Environment]::Is64BitOperatingSystem; bits=([IntPtr]::Size*8); powershell=$PSVersionTable.PSVersion.ToString()}

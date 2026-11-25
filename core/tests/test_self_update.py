@@ -358,6 +358,48 @@ class SelfUpdateTests(unittest.TestCase):
         root = Path(updater.__file__).resolve().parents[3]
         self.assertTrue(any(line.startswith(str(os.getpid()) + ':') for line in updater.running_processes(root)))
 
+    def test_waiting_for_processes_closes_them_only_when_the_user_types_c(self):
+        root = Path('C:/instance')
+        agent = {'pid': 17820, 'name': 'agent.exe', 'path': r'home\AppData\Local\Agent\agent.exe'}
+        inventory = unittest.mock.Mock(side_effect=[[agent], [agent], []])
+        stop = unittest.mock.Mock(return_value=[])
+        said = []
+        updater.wait_for_closed_processes(root, inventory=inventory, stop=stop,
+                                          ask=unittest.mock.Mock(side_effect=['', ' C ']), say=said.append)
+        stop.assert_called_once_with(root, [17820])
+        self.assertIn(r'  17820: home\AppData\Local\Agent\agent.exe', said)
+        inventory = unittest.mock.Mock(side_effect=[[agent], []])
+        stop = unittest.mock.Mock()
+        updater.wait_for_closed_processes(root, inventory=inventory, stop=stop,
+                                          ask=unittest.mock.Mock(return_value='si'), say=said.append)
+        stop.assert_not_called()
+
+    def test_autostart_entries_pointing_inside_the_instance_are_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / 'mito'
+            entries = [('HKEY_CURRENT_USER', 'Run', 'Agent', '"' + str(root / 'home/AppData/agent.exe').upper() + '"'),
+                       ('HKEY_CURRENT_USER', 'Run', 'Sibling', '"' + str(root) + '-other\\app.exe"'),
+                       ('HKEY_CURRENT_USER', 'Run', 'Binary', b'\x00')]
+            self.assertEqual([entry[2] for entry in updater.autostart_inside(root, entries)], ['Agent'])
+
+    @unittest.skipUnless(os.name == 'nt', 'Windows process control')
+    def test_real_stop_processes_closes_an_instance_process_and_ignores_foreign_pids(self):
+        with tempfile.TemporaryDirectory(prefix='mito stop ') as tmp:
+            root = Path(tmp)
+            shutil.copy2(Path(os.environ['SystemRoot']) / 'System32/cmd.exe', root / 'agent.exe')
+            # `pause` blocks on the open pipe until the process is force-closed.
+            process = subprocess.Popen([str(root / 'agent.exe'), '/d', '/c', 'pause'], stdin=subprocess.PIPE,
+                                       stdout=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+            try:
+                deadline = __import__('time').monotonic() + 15
+                while not any(item['pid'] == process.pid for item in updater.process_inventory(root)):
+                    self.assertLess(__import__('time').monotonic(), deadline)
+                self.assertEqual(updater.stop_processes(root, [process.pid, os.getpid()]), [])
+                self.assertIsNotNone(process.wait(timeout=10))
+            finally:
+                if process.poll() is None:
+                    process.kill()
+
     @unittest.skipUnless(os.name == 'nt', 'Windows updater')
     def test_real_external_cmd_updates_disposable_distribution(self):
         source = Path(updater.__file__).resolve().parents[3]

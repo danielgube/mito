@@ -334,12 +334,9 @@ class Engine:
                 operation.checkpoint()
                 expanded = stage / f'expanded-{index}'
                 from .archives import extract
+                from .inno import APP, inno_root
                 from .transfer import download_filename
                 filename = download_filename(url)
-                operation.phase(tr('PREPARANDO ARCHIVOS'), tr('Extrayendo {p1}…', p1=key))
-                with step(self.root, 'install', 'extract', key):
-                    extracted = extract(archive, expanded, self.root, filename, log=log, innosetup=m.get('innosetup', False))
-                operation.checkpoint()
                 def positional(field):
                     value = m.get(field)
                     if isinstance(value, list):
@@ -348,6 +345,16 @@ class Engine:
                         return value[index] or '.'
                     return value or '.'
                 extract_dir = positional('extract_dir')
+                # Scoop: with innosetup, a bare Inno constant in extract_dir selects
+                # the installer root to extract (innounp -c) instead of a subfolder.
+                selected = inno_root(extract_dir) if m.get('innosetup') else None
+                operation.phase(tr('PREPARANDO ARCHIVOS'), tr('Extrayendo {p1}…', p1=key))
+                with step(self.root, 'install', 'extract', key):
+                    extracted = extract(archive, expanded, self.root, filename, log=log, innosetup=m.get('innosetup', False),
+                                        inno_root=selected or APP)
+                operation.checkpoint()
+                if selected and extracted:
+                    extract_dir = '.'
                 source = inside(expanded, extract_dir if extracted else '.')
                 target = inside(payload, positional('extract_to'))
                 if not source.is_dir():

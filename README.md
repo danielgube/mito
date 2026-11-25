@@ -29,7 +29,9 @@ el sistema ni gestionar instalaciones duplicadas a mano.
 
 ## Empieza en tres pasos
 
-1. Descarga y extrae la [última release](https://github.com/danielgube/mito/releases/latest).
+1. Descarga y extrae la [última release](https://github.com/danielgube/mito/releases/latest)
+   cerca de la raíz del disco, por ejemplo `C:\mito`: sin rutas largas activadas en Windows,
+   MITO no arranca en carpetas de más de 32 caracteres, como Descargas o el Escritorio.
 2. Ejecuta **`mito.cmd`**. Revisa la bienvenida y confirma la descarga de sus herramientas privadas.
 3. Instala tus componentes, crea un profile y abre una pestaña PowerShell o CMD.
 

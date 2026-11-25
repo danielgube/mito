@@ -1,5 +1,52 @@
 # Estado al 23 de septiembre de 2026
 
+## Raíz Inno {code_*} en extract_dir (25 de noviembre)
+
+- extras/antigravity-ide 2.7.0 (innosetup, `extract_dir: "{code_GetDestDir}"`) falló a
+  otro usuario con «extract_dir no encontrado: {code_GetDestDir}». MITO extraía siempre
+  {app} y aplicaba extract_dir como subcarpeta; Scoop lo pasa a innounp como `-c`.
+- `inno.inno_root` acepta `{app}` y `{code_<Func>}` exactos; el motor y
+  Expand-InnoArchive extraen esa raíz y no la tratan como subcarpeta. Constantes del
+  sistema, subrutas y `{code:Func}` siguen rechazadas.
+- No verificado con el instalador real: se asume, como Scoop, que innounp lista esos
+  archivos como `{code_GetDestDir}\…` y que `-c` elimina el prefijo. post_install
+  (copia de datos de usuario y extensiones) sigue omitido.
+- Regresiones en test_inno.py (`-k scripted_destination -k declared_inno_root
+  -k hook_helper`), no ejecutadas.
+
+## Raíz corta sin rutas largas de Windows (25 de noviembre)
+
+- Otro usuario, con MITO en `C:\Users\<usuario>\Downloads\mito-0.3.1-windows-x64`,
+  falló al copiar el árbol expandido de antigravity
+  (`…\app.asar.unpacked\node_modules\chrome-devtools-mcp\build\src\third_party\issue-descriptions`).
+  7-Zip extrajo; `shutil.copytree` no puede pasar de 260 caracteres sin LongPathsEnabled.
+  Sólo se vio el final del error; la causa por longitud no está confirmada con el log.
+- Nuevo `path_limit.py` y `Get-YitoRootPathProblem` en bootstrap.ps1: si
+  LongPathsEnabled no vale 1 y la raíz supera 32 caracteres, `ui`, `start`, `bootstrap` y
+  el bootstrap PowerShell (salvo `-Approved`) se detienen, piden mover la carpeta (por
+  ejemplo a C:\mito) y esperan Intro. El ZIP extraído en C:\ (25) pasa; Descargas no.
+  Las apps, shims y MCP ya instalados no se bloquean.
+- Límite: una raíz corta no garantiza árboles arbitrariamente profundos; no se usa `\\?\`
+  ni se da todavía un error específico al superar 260 en una instalación.
+- Regresión `core\tests\test_path_limit.py`, no ejecutada.
+
+## Procesos residentes al actualizar MITO (25 de noviembre)
+
+- Caso real: al actualizar una 0.2.17, el CMD esperaba indefinidamente a
+  figma_agent.exe. Figma, instalado con LOCALAPPDATA en el home, dejó su agente en
+  home\AppData\Local\FigmaAgent y lo registró en HKCU\...\Run, así que Windows lo
+  arranca al iniciar sesión aunque MITO esté cerrado.
+- El CMD muestra ahora la ruta relativa de cada proceso y acepta C para cerrarlos a
+  la fuerza (Stop-Process -Force sólo de PIDs que siguen bajo la raíz). Intro sigue
+  siendo volver a comprobar; no se cierra nada sin esa respuesta.
+- Antes de pedir Intro informa de los valores Run/RunOnce (HKCU, HKLM, WOW6432Node)
+  que lanzan binarios de la instancia. No los edita. No cubre la carpeta Inicio,
+  tareas programadas ni servicios.
+- Límite: el CMD ejecuta el actualizador de la versión instalada, así que la mejora
+  sólo aplica al actualizar desde una instancia que ya la contenga (0.3.3 o posterior).
+- Regresiones en test_self_update.py (`-k wait_for_closed -k autostart_entries
+  -k real_stop_processes`), no ejecutadas. No verificado en una actualización real.
+
 ## Helpers Expand-* por tubería (25 de noviembre)
 
 - extras/antigravity 2.35.1 falló a otro usuario (sin log local). Su installer.script
