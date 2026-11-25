@@ -80,6 +80,15 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.3.2 — 2026-11-25
+
+### Commits incluidos
+
+- improved downloads and pipes for proccess ([8528683](https://github.com/danielgube/mito/commit/85286837112a8244eae139050b087f26764902b6))
+- improved downloads and pipes for proccess ([3129ff9](https://github.com/danielgube/mito/commit/3129ff9ab1f7a674eac2cb96c7e8e4d5421aaac4))
+
+[Comparar cambios](https://github.com/danielgube/mito/compare/228980eef57b36e6c26cf845f57fc28ad59b0a8b...3129ff9ab1f7a674eac2cb96c7e8e4d5421aaac4)
+
 ## 0.3.1 — 2026-11-24
 
 ### Commits incluidos
