@@ -601,5 +601,16 @@
   "Agregar": "Lägg till",
   "No se ha encontrado ninguna aplicación.": "Inget program hittades.",
   "Buscando aplicaciones en el menú Inicio y el escritorio del host…": "Söker efter program i värdens Start-meny och på skrivbordet…",
-  "No se pudieron revisar los accesos del host: {p1}": "Kunde inte kontrollera värdens genvägar: {p1}"
+  "No se pudieron revisar los accesos del host: {p1}": "Kunde inte kontrollera värdens genvägar: {p1}",
+  "DESCARGANDO": "HÄMTAR",
+  "Extrayendo {p1}…": "Packar upp {p1}…",
+  "PUBLICANDO": "PUBLICERAR",
+  "Publicando {p1}; ya no se puede cancelar.": "Publicerar {p1}; kan inte längre avbrytas.",
+  "Cancelar instalación": "Avbryt installationen",
+  "{p1}/{p2} archivos": "{p1}/{p2} filer",
+  "{p1} de {p2}": "{p1} av {p2}",
+  "{p1} recibidos": "{p1} mottaget",
+  "INSTALANDO": "INSTALLERAR",
+  "Cancelando…": "Avbryter…",
+  "Instalación cancelada. No se ha publicado nada.": "Installationen avbröts. Inget publicerades."
 }

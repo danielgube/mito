@@ -620,6 +620,30 @@ class EngineTests(unittest.TestCase):
         with self.assertRaisesRegex(YitoError, 'dentro del payload'):
             expand(self.root, payload, payload/'nested.7z', self.root/'outside')
 
+    def test_installer_script_pipes_archives_into_expand_helper(self):
+        # Same shape as extras/antigravity: NSIS payload in $PLUGINSDIR piped by Get-Item.
+        private_tools = Path(__file__).resolve().parents[1]/'tools/7zip'
+        shutil.copytree(private_tools, self.root/'core/tools/7zip')
+        def nested_download(url, path, expected=None, **kwargs):
+            nested = io.BytesIO()
+            with zipfile.ZipFile(nested, 'w') as archive:
+                archive.writestr('Tool.exe', b'nested fixture')
+                archive.writestr('resources/app-update.yml', b'url: https://example.org')
+            with zipfile.ZipFile(path, 'w') as archive:
+                archive.writestr('$PLUGINSDIR/app-64.7z', nested.getvalue())
+                archive.writestr('$R0/uninstall.exe', b'discard')
+        self.bucket({'nested': self.manifest(bin='Tool.exe', installer={'script': [
+            'Get-Item "$dir\\`$PLUGINSDIR\\app*.7z" | Expand-7zipArchive -DestinationPath "$dir"',
+            'Remove-Item "$dir\\`$*" -Force -Recurse',
+        ]})})
+        with patch('mito.engine.download', nested_download):
+            records = self.engine.install('nested', log=lambda _: None)
+        payload = self.root/next(iter(records.values()))['path']
+        self.assertEqual((payload/'Tool.exe').read_bytes(), b'nested fixture')
+        self.assertTrue((payload/'resources/app-update.yml').is_file())
+        self.assertFalse((payload/'$PLUGINSDIR').exists())
+        self.assertFalse((payload/'$R0').exists())
+
     def test_pre_install_persist_scope_and_architecture_override(self):
         script = [
             'if (Test-Path "$persist_dir/saved.txt") { Copy-Item "$persist_dir/saved.txt" "$dir/seed.txt" }',

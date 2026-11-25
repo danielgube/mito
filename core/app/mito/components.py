@@ -239,6 +239,12 @@ def publish_plan(engine, records, current, profile, data, log):
             staged = stage/'new'/str(index)
             engine._install_payload(key, record['manifest'], staged, log)
             write_json(staged/'.mito.json', {'key':key, 'manifest_sha256':record['manifest_sha256'], 'record':record})
+        # Last point where cancelling discards only staging; from here on the
+        # plan replaces stable paths and must finish or roll back by itself.
+        from . import operation
+        operation.checkpoint()
+        operation.phase(tr('PUBLICANDO'), tr('Publicando {p1}; ya no se puede cancelar.', p1=', '.join(changed)),
+                        cancellable=False)
         # Recheck after downloads: another process may have opened a binary.
         for target in targets:
             check_unused(target)

@@ -387,6 +387,14 @@ integridad la garantiza el hash declarado; sin hash la descarga queda sin
 protección de integridad, aceptado porque esas descargas ya exigen confirmación
 explícita y HTTP está permitido: MITO prioriza funcionar en todos los escenarios.
 
+Tras un corte, transfer.download conserva los bytes recibidos y reanuda con Range
+sólo si el resultado sigue siendo verificable (If-Range con ETag fuerte o
+Last-Modified, o hash declarado); si no, o si el servidor no continúa el archivo,
+empieza de cero. El progreso y la cancelación llegan por mito.operation: una
+Operation por hilo, no-op sin ella. Cancelar interrumpe la lectura en curso y el
+motor lo comprueba entre pasos hasta publish_plan; sustituir rutas estables no es
+cancelable. La UI muestra OperationDialog durante instalaciones.
+
 La URL determina un nombre local estable: alias #/nombre o último segmento de
 la ruta, decodificado y validado como nombre Windows. Se ignoran query, nombres
 de redirecciones y Content-Disposition; una ruta vacía requiere alias. Se admiten

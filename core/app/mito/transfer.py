@@ -1,11 +1,13 @@
 from .i18n import tr
 import hashlib
 import http.client
+import queue
 import re
 from pathlib import Path
 import shutil
 import ssl
 import stat
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -117,13 +119,92 @@ def _build_opener(root, *, insecure=False):
     return proxy_opener(root, None, *handlers)
 
 
+def _content_range(headers):
+    """(start, complete size or None) of a 206 response, None when malformed."""
+    match = re.fullmatch(r'\s*bytes\s+(\d+)-(\d+)/(\d+|\*)\s*', (headers.get('Content-Range') or '') if headers else '')
+    if not match:
+        return None
+    return int(match[1]), None if match[3] == '*' else int(match[3])
+
+
+def _validator(headers):
+    """Value for If-Range: a strong ETag or Last-Modified, so a changed file restarts."""
+    if not headers:
+        return None
+    etag = (headers.get('ETag') or '').strip()
+    if etag and not etag.startswith('W/'):
+        return etag
+    return (headers.get('Last-Modified') or '').strip() or None
+
+
+class _Stream:
+    """Network side of one attempt, in its own daemon thread.
+
+    On Windows nothing reliably wakes a blocked socket read from another thread
+    (shutdown does not), so the caller never reads: it waits on a queue and can
+    leave at once on cancellation. The abandoned thread ends at the next data or
+    at the socket timeout, and only it touches and closes the response."""
+    def __init__(self, opener, request, timeout=60):
+        self.events = queue.Queue(maxsize=16)
+        self.stop = threading.Event()
+        threading.Thread(target=self._run, args=(opener, request, timeout),
+                         name='mito-download', daemon=True).start()
+
+    def _put(self, item):
+        while not self.stop.is_set():
+            try:
+                self.events.put(item, timeout=.25)
+                return True
+            except queue.Full:
+                pass
+        return False
+
+    def _run(self, opener, request, timeout):
+        try:
+            with opener.open(request, timeout=timeout) as response:
+                if not self._put(('response', response)):
+                    return
+                # read1 returns what has arrived instead of waiting for a full block,
+                # so progress keeps moving on slow links.
+                read = getattr(response, 'read1', response.read)
+                while not self.stop.is_set():
+                    chunk = read(256 * 1024)
+                    if not self._put(('chunk', chunk)) or not chunk:
+                        return
+        except BaseException as exc:
+            self._put(('error', exc))
+
+    def next(self, check=None):
+        while True:
+            if check is not None:
+                check()
+            try:
+                kind, value = self.events.get(timeout=.25)
+            except queue.Empty:
+                continue
+            if kind == 'error':
+                raise value
+            return value
+
+    def close(self):
+        self.stop.set()
+
+
 def download(url: str, destination: Path, expected: str | None = None, *, root=None,
              max_bytes=MAX_DOWNLOAD, attempts=5, delay=2):
+    """Download with retries. After an interruption it resumes with Range from the
+    bytes already received when the server allows it and the result stays verifiable
+    (If-Range validator or declared hash); otherwise it starts again. An attempt that
+    received at least 1 MiB restores the retry budget, so slow but advancing
+    connections are not abandoned. The thread's operation (see operation.py)
+    receives progress and can cancel at any time, also during a stalled read."""
+    from . import operation
     if urllib.parse.urlsplit(url).scheme not in ('http', 'https'):
         raise YitoError(tr('Las descargas requieren HTTP o HTTPS'))
     has_hash = hash_verifier(expected)[0] is not None
     destination.parent.mkdir(parents=True, exist_ok=True)
-    request = urllib.request.Request(url.split('#')[0], headers={'User-Agent': 'MITO/0.1'})
+    address = url.split('#')[0]
+    monitor = operation.current()
     # Salidas de log: se mantienen en español, sin pasar por i18n.
     if has_hash:
         cert_notice = ('Aviso: certificado TLS no verificable; reintentando sin verificarlo '
@@ -131,76 +212,159 @@ def download(url: str, destination: Path, expected: str | None = None, *, root=N
     else:
         cert_notice = ('Aviso: certificado TLS no verificable; reintentando sin verificarlo '
                        'ni comprobar la integridad (descarga sin hash)')
+    attempts = max(1, attempts)
     insecure = False
-    remaining = max(1, attempts)
+    remaining = attempts
     pause = max(0.0, delay)
+    # State kept across attempts so an interrupted transfer can resume.
+    received, length, validator, resumed = 0, None, None, False
+    hasher, digest = hash_verifier(expected)
+    head, content_type, final_url = b'', '', address
+
+    def warn(message):
+        print(message, flush=True)
+        operation.note(message)
+
+    def retry(message):
+        nonlocal pause
+        warn(f'{message}; reintentando la descarga ({attempts - remaining + 1}/{attempts})')
+        try:
+            operation.wait(pause)
+        except operation.Cancelled:
+            destination.unlink(missing_ok=True)
+            raise
+        pause *= 2
+
+    def stop_if_cancelled():
+        if monitor is not None and monitor.cancelled:
+            destination.unlink(missing_ok=True)
+            monitor.check()
+
     while True:
         remaining -= 1
-        hasher, digest = hash_verifier(expected)
+        stop_if_cancelled()
+        resumable = (received > 0 and (validator is not None or has_hash)
+                     and destination.is_file() and destination.stat().st_size == received)
+        headers = {'User-Agent': 'MITO/0.1'}
+        if resumable:
+            headers['Range'] = f'bytes={received}-'
+            if validator is not None:
+                headers['If-Range'] = validator
+        request = urllib.request.Request(address, headers=headers)
+        before = received
         opener = _build_opener(root, insecure=insecure)
+        stream = _Stream(opener, request)
+        check = monitor.check if monitor is not None else None
         try:
-            with opener.open(request, timeout=60) as response, destination.open('wb') as output:
-                total = 0
-                head = b''
-                final_url = getattr(response, 'geturl', lambda: None)() or request.full_url
-                headers = getattr(response, 'headers', None)
-                content_type = headers.get_content_type() if hasattr(headers, 'get_content_type') else ''
-                while chunk := response.read(1024 * 1024):
-                    if len(head) < 512:
-                        head += chunk[:512 - len(head)]
-                    total += len(chunk)
-                    if total > max_bytes:
-                        if max_bytes == MAX_DOWNLOAD:
-                            raise YitoError(tr('Descarga excede el límite de 4 GiB'))
-                        raise YitoError(f'Descarga excede el límite de {max_bytes} bytes')
-                    if hasher is not None:
-                        hasher.update(chunk)
-                    output.write(chunk)
+            try:
+                response = stream.next(check)
+                response_headers = getattr(response, 'headers', None)
+                partial = getattr(response, 'status', 200) == 206
+                span = _content_range(response_headers) if partial else None
+                if partial and not (resumable and span is not None and span[0] == received):
+                    # A fragment that does not continue the file: next attempt from zero.
+                    received, length, validator = 0, None, None
+                    raise http.client.HTTPException('respuesta parcial inesperada del servidor')
+                if partial:
+                    length = span[1] if span[1] is not None else length
+                    mode, resumed = 'ab', True
+                    warn(f'Aviso: reanudando la descarga desde {received} bytes')
+                else:
+                    if resumable:
+                        warn('Aviso: el servidor no admite reanudar; la descarga empieza de nuevo')
+                    received = before = 0
+                    resumed = False
+                    hasher, digest = hash_verifier(expected)
+                    head = b''
+                    final_url = getattr(response, 'geturl', lambda: None)() or address
+                    content_type = (response_headers.get_content_type()
+                                    if hasattr(response_headers, 'get_content_type') else '')
+                    declared = (response_headers.get('Content-Length') or '').strip() if response_headers else ''
+                    length = int(declared) if declared.isdigit() else None
+                    validator = _validator(response_headers)
+                    mode = 'wb'
+                operation.transfer(received, length)
+                # The first block is always reported: a link that stalls right after
+                # it must not leave the dialog (and cancellation) showing nothing.
+                reported = 0.0
+                with destination.open(mode) as output:
+                    while chunk := stream.next(check):
+                        if received + len(chunk) > max_bytes:
+                            if max_bytes == MAX_DOWNLOAD:
+                                raise YitoError(tr('Descarga excede el límite de 4 GiB'))
+                            raise YitoError(f'Descarga excede el límite de {max_bytes} bytes')
+                        output.write(chunk)
+                        if len(head) < 512:
+                            head += chunk[:512 - len(head)]
+                        if hasher is not None:
+                            hasher.update(chunk)
+                        received += len(chunk)
+                        if time.monotonic() - reported >= 0.25:
+                            operation.transfer(received, length)
+                            reported = time.monotonic()
+                operation.transfer(received, length)
+                if length is not None and received < length:
+                    raise http.client.IncompleteRead(b'', length - received)
+            finally:
+                stream.close()
+        except operation.Cancelled:
+            destination.unlink(missing_ok=True)
+            raise
         except urllib.error.HTTPError as exc:
             exc.close()
-            destination.unlink(missing_ok=True)
+            stop_if_cancelled()
+            if resumable and exc.code == 416 and remaining:
+                # The partial file no longer matches the server: start again.
+                received, length = 0, None
+                warn('Aviso: el servidor rechazó reanudar; la descarga empieza de nuevo')
+                continue
             # Errores transitorios de servidor, proxy o gateway: se reintentan.
             # Errores 4xx (salvo 408 y 429) son permanentes y abortan sin reintento.
             if remaining and (exc.code >= 500 or exc.code in (408, 429)):
-                print(f'Aviso: HTTP {exc.code}; reintentando la descarga '
-                      f'({attempts - remaining + 1}/{max(1, attempts)})', flush=True)
-                time.sleep(pause)
-                pause *= 2
+                retry(f'Aviso: HTTP {exc.code}')
                 continue
+            destination.unlink(missing_ok=True)
             raise
         except urllib.error.URLError as exc:
-            destination.unlink(missing_ok=True)
+            stop_if_cancelled()
             if isinstance(getattr(exc, 'reason', None), ssl.SSLCertVerificationError) and not insecure:
                 insecure = True
-                print(cert_notice, flush=True)
+                warn(cert_notice)
                 continue
             if remaining:
-                print(f'Aviso: error de red ({exc.reason}); reintentando la descarga '
-                      f'({attempts - remaining + 1}/{max(1, attempts)})', flush=True)
-                time.sleep(pause)
-                pause *= 2
+                retry(f'Aviso: error de red ({exc.reason})')
                 continue
+            destination.unlink(missing_ok=True)
             raise
         except (OSError, http.client.HTTPException) as exc:
-            destination.unlink(missing_ok=True)
-            # Cortes de conexión, timeouts y lecturas incompletas: se reintentan.
+            stop_if_cancelled()
+            # Cortes de conexión, timeouts y lecturas incompletas: se reintentan
+            # conservando lo recibido para reanudar. Si el intento avanzó, el
+            # presupuesto de reintentos y la espera vuelven a empezar.
+            if received - before >= 1024 * 1024:
+                remaining, pause = attempts, max(0.0, delay)
             if remaining:
-                print(f'Aviso: conexión interrumpida ({exc}); reintentando la descarga '
-                      f'({attempts - remaining + 1}/{max(1, attempts)})', flush=True)
-                time.sleep(pause)
-                pause *= 2
+                retry(f'Aviso: conexión interrumpida ({exc})')
                 continue
+            destination.unlink(missing_ok=True)
             raise
         except BaseException:
             destination.unlink(missing_ok=True)
             raise
         else:
+            total = received
             # Checked before the hash and also without one: a hash-less install
             # must never publish an intercepted HTML page as the component.
             if web_page(request.full_url, content_type, head):
                 destination.unlink(missing_ok=True)
                 raise web_page_error(final_url, request.full_url, total)
             if hasher is not None and hasher.hexdigest().lower() != digest:
+                if resumed and remaining:
+                    # Joining parts of a file that changed meanwhile: one full download decides.
+                    warn('Aviso: el hash no coincide tras reanudar; la descarga empieza de nuevo')
+                    received, length, validator, resumed = 0, None, None, False
+                    destination.unlink(missing_ok=True)
+                    continue
                 destination.unlink(missing_ok=True)
                 if root is not None:
                     from .diagnostics import write

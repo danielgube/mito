@@ -13,6 +13,7 @@ from .catalog import Catalog, array, effective, fingerprint
 from .storage import YitoError, identifier, command_name, inside, mutation, read_json, write_json
 from .transfer import download, extract_zip, download_hashes
 from .diagnostics import step
+from . import operation
 
 
 def move_whole(source, target, *, wait=0.0, sleep=time.sleep, clock=time.monotonic, outcome=None):
@@ -326,15 +327,19 @@ class Engine:
                 if expected is None:
                     log(tr('{p0}: descarga sin hash declarado ({p2}/{p4})', p0=(key), p2=(index + 1), p4=(len(urls))))
                 log(tr('Descargando {p1} {p3} ({p5}/{p7})', p1=(key), p3=(manifest['version']), p5=(index + 1), p7=(len(urls))))
+                operation.phase(tr('DESCARGANDO'), tr('Descargando {p1} {p3} ({p5}/{p7})', p1=(key), p3=(manifest['version']), p5=(index + 1), p7=(len(urls))))
                 archive = stage / f'download-{index}'
                 with step(self.root, 'install', 'download-and-hash', key):
                     download(url, archive, expected, root=self.root)
+                operation.checkpoint()
                 expanded = stage / f'expanded-{index}'
                 from .archives import extract
                 from .transfer import download_filename
                 filename = download_filename(url)
+                operation.phase(tr('PREPARANDO ARCHIVOS'), tr('Extrayendo {p1}…', p1=key))
                 with step(self.root, 'install', 'extract', key):
                     extracted = extract(archive, expanded, self.root, filename, log=log, innosetup=m.get('innosetup', False))
+                operation.checkpoint()
                 def positional(field):
                     value = m.get(field)
                     if isinstance(value, list):
@@ -368,12 +373,17 @@ class Engine:
                     copied += 1
                     if copied % 1000 == 0 and copied < total:
                         log(tr('Archivos {p1}: {p2}/{p3}', p1=key, p2=copied, p3=total))
+                    if copied % 50 == 0 or copied == total:
+                        operation.transfer(copied, total, unit='files')
+                        operation.checkpoint()
                     return result
                 with step(self.root, 'install', 'copy-payload', key):
                     # Moving freshly extracted files can block for minutes on
                     # hosts that scan new files; announce it so it never looks hung.
-                    log(LongStep(tr('Moviendo {p1} archivos de {p2} a su carpeta. Con muchos archivos este paso puede tardar varios minutos; MITO sigue trabajando.',
-                                    p1=total, p2=key), active=True))
+                    moving = tr('Moviendo {p1} archivos de {p2} a su carpeta. Con muchos archivos este paso puede tardar varios minutos; MITO sigue trabajando.',
+                                p1=total, p2=key)
+                    operation.phase(tr('PREPARANDO ARCHIVOS'), moving)
+                    log(LongStep(moving, active=True))
                     try:
                         # Waiting for the antivirus pays off while it costs less than
                         # the per-file fallback (~0.2 s per file), capped at 30 s.
@@ -388,17 +398,22 @@ class Engine:
                             shutil.copytree(source, target, dirs_exist_ok=True, copy_function=copy_file)
                     finally:
                         log(LongStep(tr('Archivos {p1}: {p2}/{p3}', p1=key, p2=copied, p3=total), active=False))
+                operation.checkpoint()
             if m.get('innosetup'):
                 from .inno import restore_declared_targets
                 restore_declared_targets(payload, [s[0] for s in m.get('shortcuts', [])] +
                                          [path for path, _, _ in self.bins(m)])
             from .hooks import run_pre_install, run_installer
             from .bucket_resources import sources as hook_sources, prepare as prepare_resources
+            operation.phase(tr('PREPARANDO ARCHIVOS'), tr('Preparando {p1}', p1=key))
             prepare_resources(self.root, hook_sources(self.catalog, key, m), stage / 'hook-buckets', log)
+            operation.checkpoint()
             with step(self.root, 'install', 'pre-install', key):
                 run_pre_install(self.root, key, m, payload, log)
+            operation.checkpoint()
             with step(self.root, 'install', 'installer', key):
                 run_installer(self.root, key, m, payload, log)
+            operation.checkpoint()
             log(tr('Validando {p1}', p1=key))
             # Validate command targets before publishing the payload.
             with step(self.root, 'install', 'validate', key):

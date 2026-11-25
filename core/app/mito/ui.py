@@ -1,6 +1,7 @@
 from .i18n import tr
 import json
 import subprocess
+import time
 from rich.text import Text
 from textual import work
 from textual.app import App, ComposeResult
@@ -632,6 +633,108 @@ class LongStepDialog(ModalScreen):
             return
         self.query_one('#long-step-elapsed', Static).update(tr('Tiempo transcurrido: {p1} s', p1=self.elapsed))
         self.elapsed += 1
+
+    def finish(self):
+        # Another dialog may sit on top; the next tick closes this one then.
+        self.finished = True
+        if self.is_attached and self is self.app.screen:
+            self.dismiss(None)
+
+
+def human_size(value):
+    size = float(value or 0)
+    for unit in ('B', 'KB', 'MB', 'GB'):
+        if size < 1024 or unit == 'GB':
+            return f'{size:.0f} {unit}' if unit == 'B' else f'{size:.1f} {unit}'
+        size /= 1024
+
+
+class OperationDialog(ModalScreen):
+    """Progress of the running installation, with cooperative cancellation.
+
+    It reads the Operation state the engine updates from its worker thread and
+    closes itself when the operation ends. Cancelling is offered until publishing."""
+    DEFAULT_CSS = """
+    OperationDialog { align: center middle; background: #00000088; }
+    #operation-dialog { width: 76; max-width: 95%; height: auto; padding: 1 2; border: round #e5ba65; background: #153429; }
+    #operation-dialog Static { height: auto; margin-bottom: 1; }
+    #operation-title { color: #e5ba65; text-style: bold; }
+    #operation-bar { width: 100%; margin-bottom: 1; }
+    #operation-note { color: #e5ba65; }
+    #operation-elapsed { color: #9fb59a; }
+    #operation-cancel { width: 100%; }
+    """
+
+    def __init__(self, operation):
+        super().__init__()
+        self.operation = operation
+        self.finished = False
+        self.started = time.monotonic()
+        self.phase = None
+        self.samples = []
+
+    def compose(self):
+        from textual.widgets import ProgressBar
+        with Vertical(id='operation-dialog'):
+            yield Static('', id='operation-title')
+            yield Static('', id='operation-text', markup=False)
+            yield ProgressBar(total=None, show_eta=False, id='operation-bar')
+            yield Static('', id='operation-detail')
+            yield Static('', id='operation-note', markup=False)
+            yield Static('', id='operation-elapsed')
+            yield Button(tr('Cancelar instalación'), id='operation-cancel', variant='error')
+
+    def on_mount(self):
+        self.tick()
+        self.set_interval(.25, self.tick)
+
+    def detail(self, state):
+        received, total = state.get('received'), state.get('total')
+        if received is None:
+            return ''
+        if state.get('unit') == 'files':
+            return tr('{p1}/{p2} archivos', p1=received, p2=total if total is not None else '?')
+        now = time.monotonic()
+        self.samples = [(t, r) for t, r in self.samples if now - t <= 5 and r <= received] + [(now, received)]
+        first_time, first_received = self.samples[0]
+        speed = (received - first_received) / (now - first_time) if now - first_time >= 1 else None
+        text = (tr('{p1} de {p2}', p1=human_size(received), p2=human_size(total)) if total
+                else tr('{p1} recibidos', p1=human_size(received)))
+        if speed is not None:
+            text += f' · {human_size(speed)}/s'
+        return text
+
+    def tick(self):
+        from textual.widgets import ProgressBar
+        state = self.operation.state
+        if self.finished or not state.get('active'):
+            self.finish()
+            return
+        if state.get('started') != self.phase:
+            self.phase, self.samples = state.get('started'), []
+        self.query_one('#operation-title', Static).update(state.get('title') or tr('INSTALANDO'))
+        self.query_one('#operation-text', Static).update(state.get('text') or '')
+        bar = self.query_one('#operation-bar', ProgressBar)
+        received, total = state.get('received'), state.get('total')
+        if total:
+            bar.update(total=total, progress=min(received or 0, total))
+        else:
+            bar.update(total=None)
+        self.query_one('#operation-detail', Static).update(self.detail(state))
+        self.query_one('#operation-note', Static).update(state.get('note') or '')
+        self.query_one('#operation-elapsed', Static).update(
+            tr('Tiempo transcurrido: {p1} s', p1=int(time.monotonic() - self.started)))
+        button = self.query_one('#operation-cancel', Button)
+        if self.operation.cancelled:
+            button.label, button.disabled = tr('Cancelando…'), True
+        else:
+            button.disabled = not state.get('cancellable')
+
+    def on_button_pressed(self, event):
+        event.stop()
+        if event.button.id == 'operation-cancel' and self.operation.state.get('cancellable'):
+            self.operation.cancel()
+            self.tick()
 
     def finish(self):
         # Another dialog may sit on top; the next tick closes this one then.
@@ -1412,8 +1515,28 @@ class YitoApp(App):
         for indicator in self.query('#busy-indicator'):
             indicator.update('')
 
+    def schedule_operation_dialog(self, operation):
+        """Show the progress dialog when the operation still runs after 2 s."""
+        self.set_timer(2, lambda: self.show_operation_dialog(operation))
+
+    def show_operation_dialog(self, operation):
+        if (operation.state.get('active') and getattr(self, 'current_operation', None) is operation
+                and getattr(self, 'operation_dialog', None) is None):
+            self.operation_dialog = OperationDialog(operation)
+            self.push_screen(self.operation_dialog)
+
+    def close_operation_dialog(self):
+        self.current_operation = None
+        dialog, self.operation_dialog = getattr(self, 'operation_dialog', None), None
+        if dialog is not None:
+            dialog.finish()
+
     def long_step(self, line):
         """Show the engine's step without progress after 2 s; hide it when it ends."""
+        operation = getattr(self, 'current_operation', None)
+        if operation is not None and operation.state.get('active'):
+            # The progress dialog already shows this step.
+            return
         self.long_step_sequence = getattr(self, 'long_step_sequence', 0) + 1
         sequence = self.long_step_sequence
         if line.active:
@@ -1544,6 +1667,18 @@ class YitoApp(App):
             self.call_from_thread(self.write_log, message, level)
         def confirm(downloads):
             return self.call_from_thread(self.confirm_unverified, downloads)
+        from contextlib import ExitStack
+        from .operation import Cancelled, Operation, monitored
+        scheduled = []
+        def progress(state):
+            # The dialog polls the state; only its first appearance needs the UI thread.
+            if state.get('active') and not scheduled:
+                scheduled.append(True)
+                self.call_from_thread(self.schedule_operation_dialog, current)
+        current = Operation(progress)
+        self.current_operation = current
+        scope = ExitStack()
+        scope.enter_context(monitored(current))
         try:
             if action == 'check-updates':
                 self.call_from_thread(self.wait_startup_updates)
@@ -1681,6 +1816,8 @@ class YitoApp(App):
                         log(tr('Actualizando {p1}…', p1=(bucket)))
                         log(tr('{p0}: {p2} manifiestos', p0=(bucket), p2=(self.engine.catalog.import_bucket(bucket, source))))
                 self.entries = []
+        except Cancelled:
+            log(tr('Instalación cancelada. No se ha publicado nada.'), level='error')
         except Exception as exc:
             capture(self.engine.root, exc, operation='ui.' + action,
                     component=target if isinstance(target, str) and '/' in target else None)
@@ -1690,6 +1827,8 @@ class YitoApp(App):
                 # Not a MITO fault: explain it in a centered dialog, not only in the log.
                 self.call_from_thread(self.push_screen, DownloadIntegrityDialog(exc))
         finally:
+            scope.close()
+            self.call_from_thread(self.close_operation_dialog)
             self.call_from_thread(self.operation_done, profile)
 
     async def operation_done(self, profile):

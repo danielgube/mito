@@ -601,5 +601,16 @@
   "Agregar": "Adaugă",
   "No se ha encontrado ninguna aplicación.": "Nu a fost găsită nicio aplicație.",
   "Buscando aplicaciones en el menú Inicio y el escritorio del host…": "Se caută aplicații în meniul Start și pe desktopul gazdei…",
-  "No se pudieron revisar los accesos del host: {p1}": "Nu s-au putut verifica scurtăturile gazdei: {p1}"
+  "No se pudieron revisar los accesos del host: {p1}": "Nu s-au putut verifica scurtăturile gazdei: {p1}",
+  "DESCARGANDO": "DESCĂRCARE",
+  "Extrayendo {p1}…": "Se extrage {p1}…",
+  "PUBLICANDO": "PUBLICARE",
+  "Publicando {p1}; ya no se puede cancelar.": "Se publică {p1}; nu mai poate fi anulată.",
+  "Cancelar instalación": "Anulează instalarea",
+  "{p1}/{p2} archivos": "{p1}/{p2} fișiere",
+  "{p1} de {p2}": "{p1} din {p2}",
+  "{p1} recibidos": "{p1} primiți",
+  "INSTALANDO": "INSTALARE",
+  "Cancelando…": "Se anulează…",
+  "Instalación cancelada. No se ha publicado nada.": "Instalare anulată. Nu s-a publicat nimic."
 }

@@ -390,6 +390,35 @@ class UITests(AsyncTestCase):
                     self.assertNotIsInstance(app.screen, LongStepDialog)
                     self.assertIn('Archivos java/graalvm: 566/566', app.log_messages)
 
+    async def test_install_progress_dialog_shows_bytes_and_cancels_the_installation(self):
+        from mito import operation
+        from mito.ui import OperationDialog
+        def install(target, log, confirm):
+            operation.phase('DESCARGANDO', 'Descargando extras/antigravity 2.35.1 (1/1)')
+            operation.transfer(5 * 1024 * 1024, 20 * 1024 * 1024)
+            for _ in range(200):
+                operation.wait(.05)
+            raise AssertionError('la cancelación no llegó al motor')
+        with tempfile.TemporaryDirectory() as tmp:
+            engine = Engine(Path(tmp))
+            engine.create_profile('test')
+            app = YitoApp(engine)
+            with patch('mito.network.Network.check', return_value=True), \
+                 patch.object(app, 'install_from_catalog', side_effect=install):
+                async with app.run_test(size=(130,42)) as pilot:
+                    await pilot.pause()
+                    app.begin('install', 'test', 'extras/antigravity')
+                    self.assertTrue(await until(pilot, lambda: isinstance(app.screen, OperationDialog)))
+                    await until(pilot, lambda: 'MB' in ' '.join(str(s.render()) for s in app.screen.query('Static')))
+                    text = ' '.join(str(s.render()) for s in app.screen.query('Static'))
+                    self.assertIn('extras/antigravity', text)
+                    self.assertIn('5.0 MB de 20.0 MB', text)
+                    self.assertTrue(await click(pilot, '#operation-cancel'))
+                    await until(pilot, lambda: not isinstance(app.screen, OperationDialog))
+                    self.assertNotIsInstance(app.screen, OperationDialog)
+                    await until(pilot, lambda: 'Instalación cancelada. No se ha publicado nada.' in app.log_messages)
+                    self.assertIn('Instalación cancelada. No se ha publicado nada.', app.log_messages)
+
     async def test_periodic_network_check_turns_button_red_without_prompting(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

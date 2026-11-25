@@ -601,5 +601,16 @@
   "Agregar": "Hinzufügen",
   "No se ha encontrado ninguna aplicación.": "Keine Anwendung gefunden.",
   "Buscando aplicaciones en el menú Inicio y el escritorio del host…": "Suche nach Anwendungen im Startmenü und auf dem Desktop des Hosts…",
-  "No se pudieron revisar los accesos del host: {p1}": "Die Verknüpfungen des Hosts konnten nicht geprüft werden: {p1}"
+  "No se pudieron revisar los accesos del host: {p1}": "Die Verknüpfungen des Hosts konnten nicht geprüft werden: {p1}",
+  "DESCARGANDO": "HERUNTERLADEN",
+  "Extrayendo {p1}…": "{p1} wird entpackt…",
+  "PUBLICANDO": "VERÖFFENTLICHEN",
+  "Publicando {p1}; ya no se puede cancelar.": "{p1} wird veröffentlicht; Abbrechen ist nicht mehr möglich.",
+  "Cancelar instalación": "Installation abbrechen",
+  "{p1}/{p2} archivos": "{p1}/{p2} Dateien",
+  "{p1} de {p2}": "{p1} von {p2}",
+  "{p1} recibidos": "{p1} empfangen",
+  "INSTALANDO": "INSTALLATION",
+  "Cancelando…": "Wird abgebrochen…",
+  "Instalación cancelada. No se ha publicado nada.": "Installation abgebrochen. Es wurde nichts veröffentlicht."
 }

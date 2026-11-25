@@ -254,3 +254,89 @@ class TransferTests(unittest.TestCase):
             server.shutdown()
             server.server_close()
             thread.join()
+
+    def serve(self, handler):
+        server = ThreadingHTTPServer(('127.0.0.1', 0), handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        def stop():
+            server.shutdown()
+            server.server_close()
+            thread.join()
+        self.addCleanup(stop)
+        return f'http://127.0.0.1:{server.server_port}'
+
+    def test_interrupted_download_resumes_with_range_from_received_bytes(self):
+        payload = bytes(range(256)) * 64
+        requests = []
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *args): pass
+            def do_GET(self):
+                requests.append({'range': self.headers.get('Range'), 'if-range': self.headers.get('If-Range')})
+                validator = '"v1"' if self.path == '/etag' else None
+                wanted = self.headers.get('Range')
+                if wanted and self.path != '/ignores-range':
+                    start = int(wanted.removeprefix('bytes=').rstrip('-'))
+                    self.send_response(206)
+                    self.send_header('Content-Range', f'bytes {start}-{len(payload) - 1}/{len(payload)}')
+                    self.send_header('Content-Length', str(len(payload) - start))
+                    if validator: self.send_header('ETag', validator)
+                    self.end_headers()
+                    self.wfile.write(payload[start:])
+                    return
+                self.send_response(200)
+                self.send_header('Content-Length', str(len(payload)))
+                if validator: self.send_header('ETag', validator)
+                self.end_headers()
+                # First full response stops halfway; HTTP/1.0 then closes the connection.
+                self.wfile.write(payload if len(requests) > 1 else payload[:len(payload) // 2])
+        base = self.serve(Handler)
+        digest = hashlib.sha256(payload).hexdigest()
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / 'download'
+            # ETag validator, no hash: resumes with Range + If-Range.
+            download(f'{base}/etag', target, None, delay=0)
+            self.assertEqual(target.read_bytes(), payload)
+            self.assertEqual(requests[1], {'range': f'bytes={len(payload) // 2}-', 'if-range': '"v1"'})
+            # Declared hash, no validator: resumes with Range only.
+            requests.clear()
+            download(f'{base}/plain', target, digest, delay=0)
+            self.assertEqual(target.read_bytes(), payload)
+            self.assertEqual(requests[1]['range'], f'bytes={len(payload) // 2}-')
+            # Neither validator nor hash: the content cannot be checked, so it restarts.
+            requests.clear()
+            download(f'{base}/plain', target, None, delay=0)
+            self.assertEqual(target.read_bytes(), payload)
+            self.assertEqual([r['range'] for r in requests], [None, None])
+            # A server that ignores Range answers 200: start again, never append.
+            requests.clear()
+            download(f'{base}/ignores-range', target, digest, delay=0)
+            self.assertEqual(target.read_bytes(), payload)
+            self.assertEqual(len(requests), 2)
+
+    def test_cancellation_interrupts_a_stalled_read_and_discards_the_partial_file(self):
+        import time
+        from mito.operation import Cancelled, Operation, monitored
+        release = threading.Event()
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *args): pass
+            def do_GET(self):
+                self.send_response(200)
+                self.send_header('Content-Length', '100000')
+                self.end_headers()
+                self.wfile.write(b'x' * 1000)
+                self.wfile.flush()
+                release.wait(20)
+        base = self.serve(Handler)
+        self.addCleanup(release.set)
+        progressed = threading.Event()
+        operation = Operation(lambda state: progressed.set() if state.get('received') else None)
+        threading.Thread(target=lambda: progressed.wait(20) and operation.cancel(), daemon=True).start()
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / 'download'
+            started = time.monotonic()
+            with monitored(operation), self.assertRaises(Cancelled):
+                download(f'{base}/stall', target, None, delay=0)
+            # The read timeout is 60 s; cancelling must not wait for it.
+            self.assertLess(time.monotonic() - started, 15)
+            self.assertFalse(target.exists())

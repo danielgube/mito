@@ -601,5 +601,16 @@
   "Agregar": "Cuir leis",
   "No se ha encontrado ninguna aplicación.": "Níor aimsíodh feidhmchlár ar bith.",
   "Buscando aplicaciones en el menú Inicio y el escritorio del host…": "Ag lorg feidhmchlár i roghchlár Tosaigh agus ar dheasc an óstaigh…",
-  "No se pudieron revisar los accesos del host: {p1}": "Níorbh fhéidir aicearraí an óstaigh a sheiceáil: {p1}"
+  "No se pudieron revisar los accesos del host: {p1}": "Níorbh fhéidir aicearraí an óstaigh a sheiceáil: {p1}",
+  "DESCARGANDO": "Á ÍOSLÓDÁIL",
+  "Extrayendo {p1}…": "{p1} á bhaint amach…",
+  "PUBLICANDO": "Á FHOILSIÚ",
+  "Publicando {p1}; ya no se puede cancelar.": "{p1} á fhoilsiú; ní féidir é a chealú a thuilleadh.",
+  "Cancelar instalación": "Cealaigh an tsuiteáil",
+  "{p1}/{p2} archivos": "{p1}/{p2} comhad",
+  "{p1} de {p2}": "{p1} as {p2}",
+  "{p1} recibidos": "{p1} faighte",
+  "INSTALANDO": "Á SHUITEÁIL",
+  "Cancelando…": "Á chealú…",
+  "Instalación cancelada. No se ha publicado nada.": "Suiteáil cealaithe. Níor foilsíodh aon rud."
 }

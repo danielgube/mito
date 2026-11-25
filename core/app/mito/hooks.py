@@ -33,52 +33,56 @@ try {
     function warn { param([string]$Message) Write-Output "Aviso: $Message" }
     function error { param([string]$Message) throw $Message }
     function abort { param([string]$Message) throw $Message }
+    # Like Scoop, the Expand-* helpers accept the archive by pipeline
+    # (Get-Item ... | Expand-7zipArchive); FullName binds files and directories by
+    # their complete path. Each piped archive is expanded in turn.
+    function Invoke-MitoExpand {
+        param([string]$Kind, [string]$Name, [string]$Path, [string]$DestinationPath, [string]$ExtractDir, [bool]$Removal)
+        if (!$DestinationPath) { $DestinationPath = Split-Path $Path }
+        $arguments = @('-B', '-I', '-m', 'mito.hooks')
+        if ($Kind) { $arguments += $Kind }
+        & $context.python @arguments $context.root $dir $Path $DestinationPath $ExtractDir
+        if ($LASTEXITCODE -ne 0) { throw "$Name falló" }
+        if ($Removal) { Remove-Item -LiteralPath $Path -Force }
+    }
     function Expand-7zipArchive {
         [CmdletBinding()]
         param(
-            [Parameter(Mandatory=$true, Position=0)][string]$Path,
-            [Parameter(Position=1)][string]$DestinationPath = (Split-Path $Path),
+            [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)][Alias('FullName')][string]$Path,
+            [Parameter(Position=1)][string]$DestinationPath,
             [string]$ExtractDir = '.',
             [switch]$Removal
         )
-        & $context.python -B -I -m mito.hooks $context.root $dir $Path $DestinationPath $ExtractDir
-        if ($LASTEXITCODE -ne 0) { throw 'Expand-7zipArchive falló' }
-        if ($Removal) { Remove-Item -LiteralPath $Path -Force }
+        process { Invoke-MitoExpand '' 'Expand-7zipArchive' $Path $DestinationPath $ExtractDir $Removal }
     }
     function Expand-InnoArchive {
         [CmdletBinding()]
         param(
-            [Parameter(Mandatory=$true, Position=0)][string]$Path,
-            [Parameter(Position=1)][string]$DestinationPath = (Split-Path $Path),
+            [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)][Alias('FullName')][string]$Path,
+            [Parameter(Position=1)][string]$DestinationPath,
             [string]$ExtractDir = '{app}',
             [switch]$Removal
         )
-        & $context.python -B -I -m mito.hooks inno $context.root $dir $Path $DestinationPath $ExtractDir
-        if ($LASTEXITCODE -ne 0) { throw 'Expand-InnoArchive falló' }
-        if ($Removal) { Remove-Item -LiteralPath $Path -Force }
+        process { Invoke-MitoExpand 'inno' 'Expand-InnoArchive' $Path $DestinationPath $ExtractDir $Removal }
     }
     function Expand-DarkArchive {
         [CmdletBinding()]
         param(
-            [Parameter(Mandatory=$true, Position=0)][string]$Path,
-            [Parameter(Position=1)][string]$DestinationPath = (Split-Path $Path),
+            [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)][Alias('FullName')][string]$Path,
+            [Parameter(Position=1)][string]$DestinationPath,
             [switch]$Removal
         )
-        & $context.python -B -I -m mito.hooks dark $context.root $dir $Path $DestinationPath '.'
-        if ($LASTEXITCODE -ne 0) { throw 'Expand-DarkArchive falló' }
-        if ($Removal) { Remove-Item -LiteralPath $Path -Force }
+        process { Invoke-MitoExpand 'dark' 'Expand-DarkArchive' $Path $DestinationPath '.' $Removal }
     }
     function Expand-MsiArchive {
         [CmdletBinding()]
         param(
-            [Parameter(Mandatory=$true, Position=0)][string]$Path,
-            [Parameter(Position=1)][string]$DestinationPath = (Split-Path $Path),
+            [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)][Alias('FullName')][string]$Path,
+            [Parameter(Position=1)][string]$DestinationPath,
             [string]$ExtractDir = '.',
             [switch]$Removal
         )
-        & $context.python -B -I -m mito.hooks msi $context.root $dir $Path $DestinationPath $ExtractDir
-        if ($LASTEXITCODE -ne 0) { throw 'Expand-MsiArchive falló' }
-        if ($Removal) { Remove-Item -LiteralPath $Path -Force }
+        process { Invoke-MitoExpand 'msi' 'Expand-MsiArchive' $Path $DestinationPath $ExtractDir $Removal }
     }
     function Get-HelperPath {
         [CmdletBinding()]

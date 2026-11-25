@@ -1,5 +1,51 @@
 # Estado al 23 de septiembre de 2026
 
+## Helpers Expand-* por tubería (25 de noviembre)
+
+- extras/antigravity 2.35.1 falló a otro usuario (sin log local). Su installer.script
+  hace `Get-Item "$dir\`$PLUGINSDIR\app*.7z" | Expand-7zipArchive -DestinationPath "$dir"`.
+  Reproducido en Windows PowerShell 5.1 con la firma anterior: «faltan uno o varios
+  de los parámetros obligatorios: Path», porque Path no aceptaba tubería.
+- Expand-7zipArchive, Expand-InnoArchive, Expand-DarkArchive y Expand-MsiArchive
+  aceptan Path por valor y por propiedad (alias FullName), con bloque process para
+  varios archivos; DestinationPath por defecto se calcula por archivo. Lógica común
+  en Invoke-MitoExpand. Helper genérico, sin excepciones por componente.
+- post_install de antigravity (desactivar app-update.yml) sigue omitido: su
+  actualizador integrado queda activo. Regresión añadida sin ejecutar:
+  `-k test_installer_script_pipes_archives`. Pendiente instalación real.
+
+## Descargas reanudables, progreso y cancelación de instalaciones (25 de noviembre)
+
+- Caso real: extras/antigravity por VPN inestable; la descarga se detenía minutos y
+  cada reintento empezaba de cero, sin progreso visible ni forma de cancelar.
+- transfer.download conserva lo recibido tras un corte y reanuda con
+  `Range: bytes=N-` cuando el resultado sigue siendo verificable: ETag fuerte o
+  Last-Modified como If-Range, o hash declarado. Sin validador ni hash empieza de
+  cero. 200 ante Range, 416 o un 206 que no continúa el archivo reinician desde
+  cero; un hash distinto tras reanudar repite una descarga completa antes de fallar.
+  Content-Length incompleto se trata como corte. Un intento que recibe ≥1 MiB
+  restaura el presupuesto de reintentos y la espera.
+- operation.py: Operation por hilo (contextvar) con fase, bytes/archivos, aviso y
+  cancelación cooperativa. Sin Operation todo es no-op (CLI, bootstrap, MCP).
+  La red de cada intento va en un hilo daemon que pasa bloques por una cola; el
+  hilo del motor sólo espera la cola y comprueba la cancelación cada 0,25 s, así
+  que no espera al timeout de 60 s. En Windows shutdown() no despierta un recv
+  bloqueado (comprobado); el hilo abandonado termina con el siguiente dato o el timeout. El motor comprueba la cancelación tras descargar, extraer, mover (cada
+  50 archivos en la copia por archivo), recursos, pre_install e installer, y por
+  última vez en publish_plan antes de sustituir rutas estables; desde ahí la fase
+  PUBLICANDO no es cancelable. Extracción y hooks en curso terminan antes de cancelar.
+- UI: OperationDialog sustituye a LongStepDialog durante instalaciones (este queda
+  para LongStep sin Operation). Aparece a los 2 s con barra, bytes, velocidad,
+  aviso de reintento/reanudación, tiempo y «Cancelar instalación». Cancelar deja
+  «Instalación cancelada. No se ha publicado nada.» sin enviar error tracking.
+- Límites: MCP no conecta todavía su cancelación de jobs con Operation; la caché
+  parcial no sobrevive a cerrar MITO (vive en el staging temporal de la instalación).
+- Regresiones añadidas sin ejecutar: reanudación con ETag, con hash, reinicio sin
+  ambos y servidor que ignora Range; cancelación de lectura bloqueada; diálogo con
+  bytes y cancelación. Validación pendiente del usuario:
+  `core\tools\python\python.exe -B -I -m unittest discover -s core\tests -k test_interrupted_download -k test_cancellation_interrupts -k test_install_progress_dialog -k test_long_engine_step -k test_bundles_cover -v`
+  y una instalación real con red inestable.
+
 ## Correcciones de pruebas tras la suite de 357 casos (28 de septiembre)
 
 - El usuario reporta dos fallos y un error; la release se detuvo sin publicar.
@@ -2212,9 +2258,9 @@ con directorios VSCODE_PORTABLE distintos, verificados por pruebas de entorno.
    manteniendo la revisión explícita al cambiar hooks/manifiestos.
 3. Restaurar desde lock, quitar componentes de un profile, eliminar profiles y
    recolectar payloads sin referencias. Diseñar protección de datos para borrados.
-4. Vista dedicada de componentes seleccionados, progreso por bytes, cancelación
-   cooperativa y edición del workspace. Los workers actuales evitan bloquear la UI
-   durante descargas, pero no ofrecen cancelación de instalación.
+4. Vista dedicada de componentes seleccionados y edición del workspace. El
+   progreso por bytes y la cancelación cooperativa de instalaciones ya existen
+   (OperationDialog); falta conectarla a la cancelación de jobs MCP.
 5. Ampliar pruebas gráficas con dos VS Code simultáneos y Java de cada terminal.
 6. Proxies/certificados corporativos explícitos, exportación/importación,
    actualización del core y, después, Pocketools.
