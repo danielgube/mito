@@ -492,7 +492,9 @@ class EngineTests(unittest.TestCase):
         self.assertIn('function Expand-InnoArchive', SCRIPT)
         self.assertIn('function Get-HelperPath', SCRIPT)
         self.assertIn('function Invoke-ExternalCommand', SCRIPT)
-        self.assertIn("-m mito.hooks inno", SCRIPT)
+        # All Expand-* helpers share Invoke-MitoExpand, which runs `python -m mito.hooks <kind>`.
+        self.assertIn("@('-B', '-I', '-m', 'mito.hooks')", SCRIPT)
+        self.assertIn("Invoke-MitoExpand 'inno' 'Expand-InnoArchive'", SCRIPT)
 
     def test_installer_unsupported_fields_and_malformed_scripts_fail_before_download(self):
         for installer in (True, False, 'setup.exe', [], {'file':'setup.exe'},

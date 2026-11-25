@@ -11,8 +11,14 @@
   varios archivos; DestinationPath por defecto se calcula por archivo. Lógica común
   en Invoke-MitoExpand. Helper genérico, sin excepciones por componente.
 - post_install de antigravity (desactivar app-update.yml) sigue omitido: su
-  actualizador integrado queda activo. Regresión añadida sin ejecutar:
-  `-k test_installer_script_pipes_archives`. Pendiente instalación real.
+  actualizador integrado queda activo. Regresión `-k test_installer_script_pipes_archives`
+  pasada por el usuario. Pendiente instalación real.
+- `mito release` v0.3.2 se detuvo sin publicar: test_installer_runner_exposes_generic_inno_helpers
+  buscaba el literal anterior (ajustado a Invoke-MitoExpand) y
+  test_clone_materializes_blobs_without_checkout_and_retains_git falló con WinError 5
+  al renombrar el clon recién creado en home/tmp. El clon de pocketools reintenta
+  ahora el rename hasta 10 s ante PermissionError (antivirus/EDR), como move_whole.
+  No verificado que esa fuera la causa; pendiente repetir la release.
 
 ## Descargas reanudables, progreso y cancelación de instalaciones (25 de noviembre)
 

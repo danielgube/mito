@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
+import time
 
 from .i18n import tr
 from .network import proxy_environment, validate_url
@@ -105,7 +106,17 @@ def clone(engine, url, destination):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(git.run(['cat-file', 'blob', oid.decode('ascii')]))
             git.run(['read-tree', 'HEAD'])
-        folder.rename(destination)
+        # Antivirus or EDR may hold the freshly written .git files for a moment
+        # and deny the rename (WinError 5); retry briefly before failing.
+        deadline = time.monotonic() + 10
+        while True:
+            try:
+                folder.rename(destination)
+                break
+            except PermissionError:
+                if time.monotonic() >= deadline:
+                    raise
+                time.sleep(.25)
 
 
 def file_stamp(folder, relative):
