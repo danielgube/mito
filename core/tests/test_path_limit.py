@@ -57,7 +57,15 @@ $exact = 'C:\\' + ('x' * {path_limit.MAX_ROOT - 3})
                                     capture_output=True, text=True, encoding='utf-8', timeout=60)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(result.stdout.strip().splitlines()[-1], 'True,False,False,False')
-        self.assertIn('[int]$Maximum = ' + str(path_limit.MAX_ROOT), functions)
+        self.assertIn('return ' + str(path_limit.MAX_ROOT), functions)
+
+    def test_environment_can_only_raise_the_threshold(self):
+        downloads = 'C:\\Users\\usuario\\Downloads\\mito-0.3.1-windows-x64'
+        with patch.dict(os.environ, MITO_ROOT_PATH_LIMIT='1000'):
+            self.assertIsNone(path_limit.problem(downloads, enabled=lambda: False))
+        for value in ('5', 'x', ''):
+            with self.subTest(value=value), patch.dict(os.environ, MITO_ROOT_PATH_LIMIT=value):
+                self.assertEqual(path_limit.maximum(), path_limit.MAX_ROOT)
 
 
 if __name__ == '__main__':

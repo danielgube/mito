@@ -35,7 +35,14 @@ function Test-YitoLongPaths {
 
 # Mismo contrato que mito/path_limit.py: sin rutas largas en Windows, la raíz de
 # MITO debe estar cerca de la del disco para que quepan árboles profundos.
-function Get-YitoRootPathProblem([string]$Root, [int]$Maximum = 32, [bool]$LongPaths = (Test-YitoLongPaths)) {
+function Get-YitoRootPathLimit {
+    # MITO_ROOT_PATH_LIMIT sólo amplía el umbral (pruebas en carpetas temporales).
+    $value = 0
+    if ([int]::TryParse([string]$env:MITO_ROOT_PATH_LIMIT, [ref]$value) -and $value -gt 32) { return $value }
+    return 32
+}
+
+function Get-YitoRootPathProblem([string]$Root, [int]$Maximum = (Get-YitoRootPathLimit), [bool]$LongPaths = (Test-YitoLongPaths)) {
     $full = [IO.Path]::GetFullPath($Root).TrimEnd('\')
     if ($full.Length -le $Maximum -or $LongPaths) { return $null }
     return ('La carpeta de MITO tiene una ruta demasiado larga (' + $full.Length + ' caracteres; máximo ' + $Maximum + '): ' + $full +

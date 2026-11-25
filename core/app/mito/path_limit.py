@@ -23,12 +23,22 @@ def long_paths_enabled():
         return False
 
 
+def maximum():
+    """MITO_ROOT_PATH_LIMIT can only raise the threshold (tests in temporary folders)."""
+    try:
+        value = int(os.environ.get('MITO_ROOT_PATH_LIMIT', ''))
+    except ValueError:
+        return MAX_ROOT
+    return max(value, MAX_ROOT)
+
+
 def problem(root, enabled=long_paths_enabled):
     """Message explaining why this root is too long, or None when it is acceptable."""
     full = os.path.abspath(Path(root)).rstrip('\\/')
-    if len(full) <= MAX_ROOT or enabled():
+    limit = maximum()
+    if len(full) <= limit or enabled():
         return None
     return tr('La carpeta de MITO tiene una ruta demasiado larga ({p1} caracteres; máximo {p2}): {p3}\n'
               'Windows limita las rutas a 260 caracteres y algunas aplicaciones no se podrían instalar.\n'
               'Mueve la carpeta más cerca de la raíz del disco, por ejemplo C:\\mito, y vuelve a ejecutar mito.cmd.',
-              p1=len(full), p2=MAX_ROOT, p3=full)
+              p1=len(full), p2=limit, p3=full)

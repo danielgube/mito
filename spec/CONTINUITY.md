@@ -29,6 +29,14 @@
 - Límite: una raíz corta no garantiza árboles arbitrariamente profundos; no se usa `\\?\`
   ni se da todavía un error específico al superar 260 en una instalación.
 - Regresión `core\tests\test_path_limit.py`, no ejecutada.
+- La release se detuvo: test_diagnostics ejecuta bootstrap.ps1 en carpetas temporales
+  (`home\tmp\tmpXXXXXXXX`, 33 caracteres) y recibía el código 3 de la comprobación.
+  `MITO_ROOT_PATH_LIMIT` (Python y PowerShell) sólo puede subir el umbral; esas pruebas
+  lo fijan en 1000. En la misma ejecución falló
+  test_application_buttons_only_visible_for_active_launchable_app (0 botones y
+  update-checks.lock bloqueado al limpiar): su worker de arranque consultaba los
+  catálogos reales por red. Ahora se simula `refresh_installed` y se esperan los
+  workers antes de comprobar. No verificado.
 
 ## Procesos residentes al actualizar MITO (25 de noviembre)
 

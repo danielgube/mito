@@ -9,6 +9,10 @@ from unittest.mock import patch
 
 from mito import diagnostics
 
+# Temporary roots are usually longer than the portable limit; these tests cover
+# other bootstrap phases, so they raise the threshold (test_path_limit covers it).
+TEMPORARY_ROOT = dict(os.environ, MITO_ROOT_PATH_LIMIT='1000')
+
 
 class DiagnosticTests(unittest.TestCase):
     def setUp(self):
@@ -93,7 +97,7 @@ foreach ($response in @('', 'n', 'yes', 's', 'si', 'sí', ' S ')) {
         (self.root / 'config.properties').write_text('posthog.enabled=false')
         result = subprocess.run(['powershell.exe', '-NoLogo', '-NoProfile', '-NonInteractive',
                                  '-ExecutionPolicy', 'Bypass', '-File', str(core / 'bootstrap.ps1')],
-                                capture_output=True, text=True, timeout=20)
+                                capture_output=True, text=True, timeout=20, env=TEMPORARY_ROOT)
         self.assertEqual(result.returncode, 2, result.stderr)
         self.assertFalse((core / 'tools').exists())
         self.assertFalse((self.root / 'logs/pending').exists())
@@ -140,7 +144,7 @@ foreach ($response in @('', 'n', 'yes', 's', 'si', 'sí', ' S ')) {
         (self.root / 'config.properties').write_text('posthog.enabled=false')
         result = subprocess.run(['powershell.exe', '-NoLogo', '-NoProfile', '-NonInteractive',
                                  '-ExecutionPolicy', 'Bypass', '-File', str(core / 'bootstrap.ps1')],
-                                capture_output=True, text=True, timeout=20)
+                                capture_output=True, text=True, timeout=20, env=TEMPORARY_ROOT)
         self.assertEqual(result.returncode, 1)
         records = [json.loads(line) for line in (self.root / 'logs/mito.log').read_text(encoding='utf-8-sig').splitlines()]
         self.assertEqual(records[-1]['phase'], 'read-bootstrap-lock')

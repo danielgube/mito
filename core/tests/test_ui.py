@@ -713,8 +713,13 @@ class UITests(AsyncTestCase):
             installation=engine.install_id('extras/editor',record)
             engine.save_profile('test',{'workspace':'test','apps':[installation],'env':{}})
             app=YitoApp(engine)
-            with patch('mito.shortcuts.application_link',return_value=root/'Desktop/editor.lnk') as link, patch.object(engine, 'launch') as launch:
+            # The startup component check would query the real catalog sources over the network.
+            with patch('mito.shortcuts.application_link',return_value=root/'Desktop/editor.lnk') as link, patch.object(engine, 'launch') as launch, \
+                    patch.object(engine.catalog, 'refresh_installed', return_value=0):
                 async with app.run_test(size=(150,45)) as pilot:
+                    # Startup workers (update checks) may rebuild the list and hold
+                    # update-checks.lock; wait for them before asserting or cleaning up.
+                    await app.workers.wait_for_complete()
                     await pilot.pause()
                     self.assertEqual(len([b for b in app.query('.component Button') if b.id.startswith(('open-', 'link-'))]),2)
                     self.assertTrue(all(button.region.height == 1 for button in app.query('.component Button')))
