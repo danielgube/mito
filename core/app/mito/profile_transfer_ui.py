@@ -4,7 +4,7 @@ import subprocess
 from textual import work
 from .localized_ui import ModalScreen
 from textual.containers import VerticalScroll
-from textual.widgets import Button, Input, Static
+from textual.widgets import Button, Checkbox, Input, Static
 
 
 def choose_export_file(initial_directory):
@@ -14,7 +14,7 @@ def choose_export_file(initial_directory):
 Add-Type -AssemblyName System.Windows.Forms
 $dialog = New-Object System.Windows.Forms.OpenFileDialog
 $dialog.Title = 'MITO - Importar profile'
-$dialog.Filter = 'Profiles MITO (*.mito.json;*.json)|*.mito.json;*.json|Todos los archivos (*.*)|*.*'
+$dialog.Filter = 'Profiles MITO (*.mito.json;*.json;*.zip)|*.mito.json;*.json;*.zip|Todos los archivos (*.*)|*.*'
 $dialog.InitialDirectory = [Console]::In.ReadToEnd()
 $dialog.CheckFileExists = $true
 $dialog.Multiselect = $false
@@ -26,7 +26,7 @@ try {
 """
     from .native_ui import localize_script
     script = localize_script(script, 'MITO - Importar profile',
-        'Profiles MITO (*.mito.json;*.json)|*.mito.json;*.json|Todos los archivos (*.*)|*.*')
+        'Profiles MITO (*.mito.json;*.json;*.zip)|*.mito.json;*.json;*.zip|Todos los archivos (*.*)|*.*')
     result = subprocess.run(['powershell.exe', '-NoLogo', '-NoProfile', '-STA', '-Command', script],
                             input=str(initial_directory), capture_output=True, text=True, encoding='utf-8',
                             check=True, creationflags=subprocess.CREATE_NO_WINDOW)
@@ -41,16 +41,20 @@ class TransferPathDialog(ModalScreen):
     #transfer-path Input, #transfer-path Button { margin-top: 1; width: 100%; }
     """
 
-    def __init__(self, root, profile=None):
+    def __init__(self, root, profile=None, archive=False):
         super().__init__()
-        self.root, self.profile = root, profile
+        self.root, self.profile, self.archive = root, profile, archive
 
     def compose(self):
         with VerticalScroll(id='transfer-path'):
             yield Static(tr('EXPORTAR PROFILE') if self.profile else tr('IMPORTAR PROFILE'))
-            yield Static(tr('Sólo componentes activos. Sin variables, sesiones ni datos de aplicaciones.'))
-            value = str(self.root/'exports'/f'{self.profile}.mito.json') if self.profile else ''
-            yield Input(value=value, placeholder=tr('Ruta del archivo JSON'), id='transfer-file')
+            if self.archive:
+                yield Static(tr('Componentes activos y archivos de la tabla, tal cual, incluidas credenciales. Sin variables ni sesiones.'))
+            else:
+                yield Static(tr('Sólo componentes activos. Sin variables, sesiones ni datos de aplicaciones.'))
+            extension = '.mito.zip' if self.archive else '.mito.json'
+            value = str(self.root/'exports'/f'{self.profile}{extension}') if self.profile else ''
+            yield Input(value=value, placeholder=tr('Ruta del archivo'), id='transfer-file')
             if not self.profile:
                 yield Button(tr('Examinar…'), id='transfer-browse')
                 yield Input(placeholder=tr('Nombre del nuevo profile'), id='transfer-name')
@@ -108,18 +112,21 @@ class TransferPathDialog(ModalScreen):
         self.dismiss((path, name))
 
 
-class ImportReviewDialog(ModalScreen[bool]):
+class ImportReviewDialog(ModalScreen):
+    """Dismiss: False cancela; True sin archivos; con archivos, destinos a sobrescribir."""
     BINDINGS = [('escape', 'cancel', 'Cancelar')]
     DEFAULT_CSS = """
     ImportReviewDialog { align: center middle; background: #00000088; }
     #import-review { width: 90; height: auto; max-height: 85%; padding: 1 2; border: round #b5dc64; background: #153429; }
     #import-review Static { height: auto; margin-bottom: 1; }
+    #import-review Checkbox { margin-bottom: 1; }
     #import-review Button { width: 100%; margin-top: 1; }
     """
 
-    def __init__(self, name, records, installed):
+    def __init__(self, name, records, installed, items=()):
         super().__init__()
         self.profile_name, self.records, self.installed = name, records, installed
+        self.items = list(items)
 
     def compose(self):
         with VerticalScroll(id='import-review'):
@@ -134,7 +141,18 @@ class ImportReviewDialog(ModalScreen[bool]):
                 yield Static(f'{record["key"]} · {version} · {state}', markup=False)
             if not self.records:
                 yield Static(tr('Se creará un profile vacío.'))
-            yield Static(tr('Sin datos ni variables del origen. Se aplicarán tus variables globales locales.'))
+            if self.items:
+                yield Static(tr('Archivos de configuración:'))
+                states = {'new': tr('Nuevo'), 'same': tr('Idéntico, se omite'),
+                          'different': tr('Ya existe con otro contenido; se conserva salvo que marques Sobrescribir')}
+                for index, item in enumerate(self.items):
+                    state = tr('Propio del nuevo profile') if item['own'] else states[item['state']]
+                    yield Static(f'{item["target"]} · {state}', markup=False)
+                    if not item['own'] and item['state'] == 'different':
+                        yield Checkbox(tr('Sobrescribir'), id=f'import-overwrite-{index}')
+                yield Static(tr('Sin variables del origen. Se aplicarán tus variables globales locales.'))
+            else:
+                yield Static(tr('Sin datos ni variables del origen. Se aplicarán tus variables globales locales.'))
             yield Button(tr('Cancelar'), id='import-cancel')
             yield Button(tr('Instalar y crear profile'), id='import-confirm', variant='primary')
 
@@ -146,4 +164,11 @@ class ImportReviewDialog(ModalScreen[bool]):
 
     def on_button_pressed(self, event):
         event.stop()
-        self.dismiss(event.button.id == 'import-confirm')
+        if event.button.id != 'import-confirm':
+            self.dismiss(False)
+        elif not self.items:
+            self.dismiss(True)
+        else:
+            # Archivo a archivo: sólo los marcados se sobrescriben.
+            self.dismiss([str(item['target']) for index, item in enumerate(self.items)
+                          if self.query(f'#import-overwrite-{index}') and self.query_one(f'#import-overwrite-{index}', Checkbox).value])

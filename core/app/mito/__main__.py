@@ -262,9 +262,22 @@ def main(argv=None):
                         return input('¿Continuar? [s/N] ').strip().lower() == 's'
                     except (EOFError, KeyboardInterrupt):
                         return False
-                import_profile(engine, args.source, args.name,
-                    confirm_plan=lambda records: ask([f'{r["key"]} {r["version"]}' + (' (retenida)' if r.get('pinned') else '')
-                                                      for r in records.values()]),
+                def review(records, items=None):
+                    lines = [f'{r["key"]} {r["version"]}' + (' (retenida)' if r.get('pinned') else '')
+                             for r in records.values()]
+                    states = {'new': 'nuevo', 'same': 'idéntico, se omite', 'different': 'ya existe con otro contenido'}
+                    if items:
+                        lines.append('Archivos de configuración:')
+                        lines += [f'  {item["target"]} · ' + ('propio del nuevo profile' if item['own'] else states[item['state']])
+                                  for item in items]
+                    if not ask(lines):
+                        return False
+                    if items is None:
+                        return True
+                    # Archivo a archivo, nunca en bloque.
+                    return [item['target'] for item in items if not item['own'] and item['state'] == 'different'
+                            and ask([f'¿Sobrescribir {item["target"]}?'])]
+                import_profile(engine, args.source, args.name, confirm_plan=review,
                     confirm_unverified=lambda downloads: ask(['Descargas sin hash:', *downloads]))
             elif args.action == 'list':
                 print('\n'.join(engine.profiles()) or 'Todavía no hay profiles')

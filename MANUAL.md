@@ -179,17 +179,31 @@ nuevo; usa `%MITO_WORKSPACE%` en CMD y `$env:MITO_WORKSPACE` en PowerShell.
 
 ### Compartir profiles
 
-**Exportar** crea un JSON con los nombres `bucket/app` activos. No incluye binarios,
-versiones, variables, workspace, persistencia, proxy ni aplicaciones del host.
+**Exportar** crea un JSON con los nombres `bucket/app` activos y las versiones
+retenidas. No incluye binarios, variables, workspace, proxy ni aplicaciones del host.
 
-**Importar** permite elegir ese JSON y un nombre nuevo. Antes de continuar muestra
-el plan, las dependencias, qué está instalado y qué se sustituirá. Utiliza las
-versiones disponibles en los catálogos del destinatario; no es un lock histórico.
-Si la preparación falla, el profile no se crea.
+**Archivos de configuración** (en Gestionar profile) es una tabla manual de archivos
+y carpetas que viajan con el profile: por ejemplo `.m2/settings.xml`, `.npmrc`,
+`.gitconfig` o el `.vscode` del workspace. Escribe la ruta o elígela con
+**Archivo…** / **Carpeta…**; debe estar en home, en el workspace del profile o en
+el persist de un componente activo. MITO no decide qué es configuración: viaja lo
+que añadas, tal cual, incluidas credenciales si las contiene. El límite es 2 MiB y
+1000 archivos; no está pensado para librerías, cachés ni binarios. No se siguen
+junctions ni symlinks. Quitar una fila nunca borra el archivo. Si la tabla tiene
+filas, el export es un ZIP (`.mito.zip`); si no, sigue siendo el JSON anterior.
+
+**Importar** permite elegir ese JSON o ZIP y un nombre nuevo. Antes de continuar
+muestra el plan, las dependencias, qué está instalado, qué se sustituirá y, si hay
+archivos, el destino y el estado de cada uno. Los archivos que ya existen con otro
+contenido en home o en carpetas compartidas se conservan salvo que marques
+**Sobrescribir** en cada uno; el persist aislado y el workspace nuevos del profile
+importado se escriben siempre. Utiliza las versiones disponibles en los catálogos
+del destinatario; no es un lock histórico. Si la preparación falla, el profile no
+se crea y los archivos escritos se revierten.
 
 ```bat
-mito.cmd profile export desarrollo entorno.mito.json
-mito.cmd profile import entorno.mito.json --name equipo
+mito.cmd profile export desarrollo entorno.mito.zip
+mito.cmd profile import entorno.mito.zip --name equipo
 ```
 
 ### Eliminar un profile
@@ -268,6 +282,11 @@ La actualización sustituye los binarios en la misma ruta, reconstruye las copia
 profile cuando corresponda y conserva activación y persistencia. También actualiza
 componentes inactivos sin activarlos. Cierra la aplicación antes de actualizar y
 abre nuevas pestañas después.
+
+Con más de una actualización compatible pendiente, Inicio muestra **Actualizar
+todos (N)**. Actualiza los componentes uno a uno, cada uno con su propio plan y su
+confirmación de descargas sin hash, y se detiene en el primer fallo o cancelación:
+los ya actualizados se conservan. Los retenidos no se incluyen.
 
 ### Eliminar
 

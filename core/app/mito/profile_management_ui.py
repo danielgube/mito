@@ -32,6 +32,7 @@ class ManageProfileDialog(ModalScreen):
                 yield Button(tr('Importar'), id='import-profile')
             yield Button(tr('Acceso directo'), id='mito-shortcut', disabled=not self.profile)
             yield Button(tr('Configuración'), id='profile-configuration', disabled=not self.profile)
+            yield Button(tr('Archivos de configuración'), id='profile-files', disabled=not self.profile)
             yield Button(tr('Eliminar profile'), id='delete-profile', variant='error', disabled=not self.can_delete)
 
     def action_cancel(self):

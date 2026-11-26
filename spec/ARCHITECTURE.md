@@ -994,20 +994,116 @@ dependencia. Cambiar sólo la retención también republica el payload.
 release_version la quita sin tocar binarios. Sigue habiendo una versión por
 componente, en la misma ruta; profiles y accesos no fijan versión.
 
-## Intercambio de profiles sin datos
+## Intercambio de profiles
 
-profile_transfer exporta exclusivamente {apps: [bucket/app,...]} desde las selecciones
-activas; deduplica nombres y no copia el JSON del profile ni los records instalados.
-El lector rechaza campos adicionales e identificadores que no sean bucket/app.
+profile_transfer exporta {apps: [bucket/app,...]} desde las selecciones activas y,
+si los hay, pinned {bucket/app: versión} de los componentes retenidos y los
+archivos de configuración elegidos en la tabla `files` del profile. Deduplica
+nombres y no copia el JSON del profile, `env`, records instalados, aplicaciones del
+host, «En host», «Abrir con», protocolos, accesos ni el workspace completo.
+
 La importación usa los catálogos del destinatario y Engine.install con una lista de
 peticiones: un plan completo de dependencias, revisión antes de descargar y la
 confirmación habitual de hashes ausentes. Sólo tras éxito escribe un profile nuevo
-con workspace propio, apps resueltas y env vacío; no sobrescribe profiles existentes.
-No importa fuentes, versiones históricas ni manifiestos externos. La revisión distingue
-componentes ya instalados de sustituciones que afectan a los demás profiles. Si la
-instalación termina y falla después la creación del nuevo profile, los componentes
-quedan instalados; un fallo durante la publicación del plan revierte sus binarios.
+con workspace propio, apps resueltas, env vacío y la tabla `files` recibida (si no
+está vacía); no sobrescribe profiles existentes. No importa fuentes, versiones
+históricas ni manifiestos externos. La revisión distingue componentes ya instalados
+de sustituciones que afectan a los demás profiles. Si la instalación termina y falla
+después la creación del nuevo profile, los componentes quedan instalados; un fallo
+durante la publicación del plan revierte sus binarios.
 
+### Tabla de archivos del profile
+
+El JSON del profile admite `files`, una lista elegida manualmente por el usuario
+(profile_files.py). MITO no sugiere, detecta ni clasifica rutas: no hay listas por
+producto, por extensión ni heurísticas de configuración/caché. Cada entrada es un
+archivo o una carpeta:
+
+- `{"root": "home", "path": ".m2/settings.xml"}`
+- `{"root": "workspace", "path": ".vscode"}`
+- `{"root": "persist", "app": "bucket/app", "path": "data/user-data/User"}`
+
+`home` es la raíz única `home/`; `workspace` es el workspace del profile;
+`persist` es `persist_root` del componente para ese profile (aislado o compartido
+según la regla genérica persist + shortcuts). `app` es obligatorio sólo con
+`persist`. `path` es relativo, con separador `/`, validado con portable_path (sin
+`.`/`..`, unidades, rutas absolutas, `:` ni nombres reservados). En home se
+rechazan las áreas internas `profiles/`, `persist/` y `tmp/`, que contienen nombres
+de profile o datos de otros. Se rechazan duplicados sin distinguir mayúsculas y
+entradas contenidas en otra. Una entrada puede apuntar a una ruta inexistente.
+
+El botón Archivos de Gestionar profile abre la tabla con raíz, ruta y tamaño actual.
+Añadir acepta una ruta escrita o elegida con los selectores nativos de archivo o
+carpeta y la traduce: primero al persist_root de un componente activo del profile,
+después al workspace y después a home. Quitar una entrada nunca borra el archivo.
+Guardar valida la lista completa bajo el lock y conserva el resto del profile.
+
+### Formato y exportación
+
+Sin archivos en la tabla, el export sigue siendo el JSON anterior, legible por
+versiones previas de MITO. Con archivos, es un ZIP que nunca sobrescribe el destino:
+
+- `mito-profile.json`: `{"format": 1, "apps": [...], "pinned": {...}, "files": [...]}`.
+- `files/home/<path>`, `files/workspace/<path>` y
+  `files/persist/<bucket>/<app>/<path>` con el contenido de cada entrada.
+
+Las carpetas se recorren recursivamente y sólo se empaquetan archivos regulares; no
+se conservan carpetas vacías, atributos, ACL ni fechas. No se siguen junctions ni
+symlinks: una entrada que sea o atraviese un punto de reanálisis se rechaza, y los
+que aparezcan dentro de una carpeta se omiten y se indican en el log. Así no entran
+el AppData real del host («En host») ni payloads enlazados. Los hardlinks de
+persist se leen como archivos normales. Las entradas inexistentes se omiten del
+ZIP y de su `files`, y se indican en el log. Una entrada `persist` exige que su
+componente siga activo.
+
+Sólo se transportan archivos de configuración: el contenido total está limitado a
+2 MiB y a 1000 archivos. Superarlo cancela la exportación indicando el tamaño; el
+límite es la única barrera contra librerías, cachés o binarios, sin listas por
+extensión. Los archivos viajan tal cual, incluidas credenciales o tokens: MITO no
+inspecciona contenidos y la responsabilidad es de quien exporta, como indica el
+diálogo.
+
+### Importación de archivos
+
+Se aceptan el JSON antiguo y el ZIP, detectado por contenido. Antes de instalar se
+valida el ZIP completo: `mito-profile.json` de hasta 1 MiB, campos conocidos,
+`format` 1 y `files` con las reglas de la tabla; cada miembro debe estar dentro de
+una entrada declarada, sin nombres no normalizados, duplicados sin distinguir
+mayúsculas, carpetas, cifrado ni miembros fuera de `mito-profile.json` y `files/`.
+Se aplican los mismos límites (2 MiB, 1000 archivos), también al descomprimir.
+Una entrada `persist` cuyo `app` no esté en `apps` se rechaza.
+
+La revisión del plan, antes de descargar, añade los archivos con su destino real en
+esta instancia y su estado. Son destinos propios del profile nuevo su persist
+aislado y su workspace si la importación lo crea: se escriben siempre, porque sólo
+pueden contener los valores por defecto. Los demás (home, persist compartido y un
+workspace preexistente) afectan a otros profiles:
+
+- nuevo: se crea;
+- idéntico: se omite;
+- distinto: se omite por defecto; el usuario puede marcar sobrescribir archivo a
+  archivo, nunca en bloque. La CLI pregunta por cada uno.
+
+Tras instalar, y antes de publicar el profile, se escriben los archivos bajo el
+lock. Para cada componente con entradas `persist` se ejecuta antes prepare_payload
+del profile nuevo, como al activarlo, para que existan sus valores por defecto. Cada
+destino compartido se recalcula: si un archivo revisado como nuevo existe ya, se
+omite y se indica. Sobrescribir escribe sobre el mismo archivo para conservar los
+hardlinks de persist; crear usa un temporal en la misma carpeta y renombrado. Si
+una escritura falla, se eliminan los archivos creados, se restauran los
+sobrescritos y no se crea el profile; los componentes, la copia por profile y su
+persist preparado quedan, como en un fallo de creación.
+
+### Repositorios de profiles (fase 2, propuesta no implementada)
+
+`profiles.<nombre>=<Git HTTP/HTTPS o carpeta local>` en config.properties declarará
+un repositorio de sólo lectura, obtenido y validado como las pocketools (sin hooks,
+filtros, submódulos, LFS, `.git` ni enlaces). La raíz contendrá `profiles.json`
+`{"info": texto}` y una carpeta por profile con el mismo contenido que el ZIP
+desempaquetado (`mito-profile.json` y `files/`). La UI listará los profiles de cada
+repositorio, e Importar usará exactamente el flujo anterior con nombre nuevo
+elegido por el usuario. Sin sincronización ni vínculo con el origen: una versión
+nueva del repositorio se importa como otro profile. No se ejecutan scripts.
 
 ## Conversión del almacenamiento anterior
 

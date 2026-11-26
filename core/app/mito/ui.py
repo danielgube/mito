@@ -785,6 +785,7 @@ class YitoApp(App):
     #home-actions { height: 3; margin-top: 1; }
     #home-actions Button { width: 1fr; }
     #browse { margin-right: 1; }
+    #bulk-update { margin-left: 1; }
     #busy-indicator { height: 3; padding: 1; color: #FFD166; text-style: bold; }
     .host-component { overflow-x: auto; }
     .host-component.component-row-dark { background: #593300; }
@@ -831,7 +832,7 @@ class YitoApp(App):
                 yield Select([(p, p) for p in self.engine.profiles()], prompt=tr('Selecciona un profile'), id='profile')
                 yield Button(tr('Gestionar profile'), id='manage-profile')
                 yield Label(tr('ACCIONES'), id='actions-title', classes='title')
-                yield Button(tr('Inicio · Instalados'), id='home-button')
+                yield Button(tr('Inicio · Instalados'), id='home-button', variant='success')
                 yield Button(tr('Buscar actualizaciones'), id='check-updates')
                 updater = Button(tr('Actualizar MITO'), id='self-update', variant='success')
                 updater.display = False
@@ -853,6 +854,9 @@ class YitoApp(App):
                     with Horizontal(id='home-actions'):
                         yield Button(tr('Buscar e instalar nuevos componentes'), id='browse', variant='primary')
                         yield Button(tr('Agregar aplicación del host'), id='host-add')
+                        bulk = Button(tr('Actualizar todos ({p1})', p1=0), id='bulk-update', variant='success')
+                        bulk.display = False
+                        yield bulk
                 with Vertical(id='catalog-page', classes='page'):
                     yield Label(tr('BUSCAR E INSTALAR · CATÁLOGOS SCOOP'), classes='title')
                     yield Input(placeholder=tr('Buscar aplicación, runtime o herramienta…'), id='search')
@@ -1106,6 +1110,7 @@ class YitoApp(App):
             from .host_exposure import linked as exposure_linked
             from .open_with import entries as open_with_entries
             catalog = dict(self.engine.catalog.all())
+            pending = []
             for index, (installation, lock) in enumerate(self.inventory.items()):
                 self.row_ids[str(index)] = installation
                 label = f'{lock["key"]}   ·   {lock["version"]}' + (f'   ·   {tr("retenida")}' if lock.get('pinned') else '')
@@ -1126,6 +1131,8 @@ class YitoApp(App):
                     button = Button(tr('Actualizar'), id=f'update-{index}', classes='component-update', variant='success', disabled=self.busy or candidate['status'] != 'Compatible')
                     button.tooltip = tr('Versión {p1} · {p3}', p1=(candidate['version']), p3=(tr(candidate['status'])))
                     widgets.append(button)
+                    if candidate['status'] == 'Compatible':
+                        pending.append(installation)
                 widgets.append(Button(tr('Eliminar'), id=f'remove-{index}', classes='component-remove', disabled=self.busy))
                 shade = 'component-row-light' if len(rows) % 2 else 'component-row-dark'
                 rows.append(Horizontal(*widgets, classes=f'component {shade}'))
@@ -1145,6 +1152,12 @@ class YitoApp(App):
                            Button(tr('Eliminar'), id=f'host-remove-{identity}', classes='component-remove', disabled=self.busy)]
                 shade = 'component-row-light' if len(rows) % 2 else 'component-row-dark'
                 rows.append(Horizontal(*widgets, classes=f'component host-component {shade}'))
+            # Sólo con más de una actualización compatible pendiente.
+            self.pending_updates = pending
+            bulk = self.query_one('#bulk-update', Button)
+            bulk.label = tr('Actualizar todos ({p1})', p1=(len(pending)))
+            bulk.display = len(pending) > 1
+            bulk.disabled = self.busy
             if rows:
                 await container.mount(*rows)
             else:
@@ -1368,6 +1381,10 @@ class YitoApp(App):
             self.push_screen(ManageProfileDialog(profile, bool(profile) and len(self.engine.profiles()) > 1),
                              lambda result: self.manage_profile_result(profile, result))
             return
+        if action == 'bulk-update':
+            if len(getattr(self, 'pending_updates', [])) > 1:
+                self.begin('update-all', profile, list(self.pending_updates))
+            return
         if action not in ('create', 'refresh', 'install', 'versions') and not action.startswith(('remove-', 'update-', 'info-', 'expose-')) and not profile:
             self.notify(tr('Selecciona un profile'), severity='warning')
             return
@@ -1453,12 +1470,21 @@ class YitoApp(App):
             self.begin(action, profile, name)
         elif action == 'profile-configuration':
             self.open_configuration(profile)
+        elif action == 'profile-files':
+            self.open_profile_files(profile)
         elif action in ('export-profile', 'import-profile'):
             from .profile_transfer_ui import TransferPathDialog
             def chosen(selection):
                 if selection:
                     self.begin(action, profile, selection)
-            self.push_screen(TransferPathDialog(self.engine.root, profile if action == 'export-profile' else None), chosen)
+            from .storage import YitoError
+            archive = False
+            if action == 'export-profile':
+                try:
+                    archive = bool(self.engine.profile(profile).get('files'))
+                except (OSError, ValueError, YitoError) as exc:
+                    capture(self.engine.root, exc, operation='profile.export')
+            self.push_screen(TransferPathDialog(self.engine.root, profile if action == 'export-profile' else None, archive), chosen)
         elif action == 'mito-shortcut':
             def confirmed(result):
                 if result is not None:
@@ -1490,6 +1516,17 @@ class YitoApp(App):
                     self.refresh_mcp_monitor()
                     self.check_network()
         self.push_screen(dialog, saved)
+
+    def open_profile_files(self, profile):
+        from .profile_files_ui import ProfileFilesDialog
+        from .storage import YitoError
+        try:
+            dialog = ProfileFilesDialog(self.engine, profile)
+        except (OSError, ValueError, YitoError) as exc:
+            capture(self.engine.root, exc, operation='profile.files.open')
+            self.notify(str(exc), severity='error')
+            return
+        self.push_screen(dialog, lambda saved: self.notify(tr('Archivos del profile guardados.')) if saved else None)
 
     def begin(self, action, profile, target, active=None, badge=None, coupled=False, arguments=(), shortcut=None, color=None):
         self.start_busy_indicator()
@@ -1657,9 +1694,9 @@ class YitoApp(App):
             return
         link(self.engine.root, identity, kind, folder, replace=replace)
 
-    async def confirm_import(self, name, records):
+    async def confirm_import(self, name, records, items=()):
         from .profile_transfer_ui import ImportReviewDialog
-        return await self.push_screen_wait(ImportReviewDialog(name, records, self.engine.installed()))
+        return await self.push_screen_wait(ImportReviewDialog(name, records, self.engine.installed(), items))
 
     @work(thread=True, exit_on_error=False)
     def operation(self, action, profile, target, active, badge, coupled, arguments, shortcut=None, color=None):
@@ -1771,12 +1808,12 @@ class YitoApp(App):
                 log(tr('Profile {p1} creado', p1=(profile)))
             elif action == 'export-profile':
                 from .profile_transfer import export_profile
-                path = export_profile(self.engine, profile, target[0])
+                path = export_profile(self.engine, profile, target[0], log=log)
                 log(tr('Profile exportado: {p1}', p1=(path)))
             elif action == 'import-profile':
                 from .profile_transfer import import_profile
                 profile = import_profile(self.engine, target[0], target[1],
-                    confirm_plan=lambda records: self.call_from_thread(self.confirm_import, target[1], records),
+                    confirm_plan=lambda records, items=(): self.call_from_thread(self.confirm_import, target[1], records, items),
                     confirm_unverified=confirm, log=log)
             elif action == 'toggle':
                 self.engine.set_active(profile, target, active)
@@ -1786,6 +1823,9 @@ class YitoApp(App):
             elif action == 'update-component':
                 from .components import update
                 update(self.engine, target, log, confirm_unverified=confirm)
+            elif action == 'update-all':
+                from .components import update_all
+                update_all(self.engine, target, log, confirm_unverified=confirm)
             elif action == 'install':
                 self.install_from_catalog(target, log, confirm)
             elif action == 'versions':

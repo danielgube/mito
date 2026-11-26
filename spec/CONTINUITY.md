@@ -2527,3 +2527,47 @@ No hay repositorio Git inicializado ni publicación remota creada por esta tarea
   (además de una F en test_host_data_ui). Ahora, si no se descubre nada, se va
   directo al selector nativo, y esos tests simulan discover con []. Test del
   diálogo (filtro, Agregar, Examinar) añadido en test_host_apps.py, sin ejecutar.
+
+## Archivos de configuración en profiles (25 de noviembre de 2026)
+
+- Contrato en ARCHITECTURE.md («Intercambio de profiles»). Decisiones del usuario:
+  retrocompatible, sólo archivos de configuración y rutas, límite 2 MiB (y 1000
+  archivos), sin `env` en el export.
+- profile_files.py: tabla manual `files` del profile con raíces home, workspace y
+  persist por componente; rutas relativas validadas con portable_path; en home se
+  rechazan `profiles/`, `persist/` y `tmp/`. Sin listas por producto ni extensión.
+- Export: sin filas, el JSON anterior; con filas, ZIP con `mito-profile.json`
+  (format 1, apps, pinned, files) y `files/<raíz>/...`. No sigue junctions ni
+  symlinks: una entrada que los atraviesa se rechaza y los internos se omiten con log.
+- Import: valida el ZIP entero antes de instalar (miembros declarados, sin `..`,
+  duplicados, carpetas, cifrado ni enlaces; límites también al leer). La revisión
+  del plan lista cada archivo: nuevo, idéntico o distinto. Persist aislado y
+  workspace creados por la importación son propios y se escriben siempre; en home,
+  persist compartido o workspace preexistente, lo distinto se conserva salvo marca
+  archivo a archivo (la CLI pregunta uno a uno). Antes de escribir persist se ejecuta
+  prepare_payload del profile nuevo para que existan sus valores por defecto.
+  Sobrescribir escribe en el mismo archivo (hardlinks de persist); un fallo revierte
+  creados y sobrescritos y no crea el profile.
+- UI: botón «Archivos de configuración» en Gestionar profile (profile_files_ui.py),
+  revisión de importación con casillas Sobrescribir y nombre por defecto `.mito.zip`
+  cuando hay filas. Textos en los 24 catálogos; el filtro del selector de importación
+  se reconstruyó en todos los idiomas (varios tenían espacios que rompían el patrón).
+- Límites: no se conservan carpetas vacías, atributos ni fechas; las rutas absolutas
+  dentro de los archivos viajan tal cual; un fallo tras prepare_payload deja la copia
+  por profile y su persist preparado. Repositorios de profiles (fase 2) sin implementar.
+- Regresiones en core/tests/test_profile_transfer.py (tabla, traducción de rutas,
+  JSON heredado, ida y vuelta ZIP, cancelación, límite, junctions, ZIP inseguros,
+  destinos persist y rollback), sin ejecutar. Sin prueba de interfaz nueva.
+
+## Actualizar todos y color de Inicio (26 de noviembre de 2026)
+
+- «Inicio · Instalados» usa variant success (verde). Se probó y se revirtió un
+  juego de iconos Unicode en botones: el usuario prefiere los textos sin iconos.
+- Inicio muestra «Actualizar todos (N)» sólo con más de una actualización
+  compatible pendiente (las mismas filas que muestran Actualizar habilitado; los
+  retenidos no tienen candidata). components.update_all llama a update en orden:
+  cada componente conserva su plan atómico y su confirmación de hashes ausentes;
+  omite los que ya no tienen actualización (p. ej. actualizados como dependencia)
+  y se detiene en el primer fallo o cancelación conservando los ya actualizados.
+- Regresiones en test_components.py (pending_updates y update_all), sin ejecutar.
+  Sin prueba de interfaz nueva.

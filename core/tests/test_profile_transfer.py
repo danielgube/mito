@@ -112,6 +112,198 @@ class ProfileTransferTests(unittest.TestCase):
         self.assertEqual((record['version'], record['pinned']), ('0.9', pin))
         self.assertEqual(seen[1]['main/tool']['pinned'], pin)
 
+    def other_instance(self, name='other'):
+        other = Engine(self.root/name)
+        other.initialize()
+        write_json(other.root/'core/buckets/main.json', {'apps':{'tool':self.manifest}})
+        return other
+
+    def write(self, path, content):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+
+    def test_files_table_accepts_only_relative_paths_in_declared_roots(self):
+        from mito.profile_files import entries
+        valid = [{'root':'home','path':'.m2/settings.xml'}, {'root':'workspace','path':'.vscode'},
+                 {'root':'persist','app':'Main/Tool','path':'data/User'}]
+        self.assertEqual(entries(valid)[2], {'root':'persist','app':'main/tool','path':'data/User'})
+        for value in ([{'root':'home','path':'../outside'}], [{'root':'home','path':'C:/x'}],
+                      [{'root':'home','path':'a\\b'}], [{'root':'home','path':'/abs'}],
+                      [{'root':'home','path':'tmp/x'}], [{'root':'home','path':'Profiles/p/persist'}],
+                      [{'root':'host','path':'x'}], [{'root':'persist','path':'x'}],
+                      [{'root':'home','app':'main/tool','path':'x'}], [{'root':'home','path':'a:b'}],
+                      [{'root':'home','path':'.npmrc'},{'root':'home','path':'.NPMRC'}],
+                      [{'root':'home','path':'.m2'},{'root':'home','path':'.m2/settings.xml'}],
+                      [{'root':'home','path':'x','extra':1}], {'root':'home','path':'x'}):
+            with self.subTest(value=value), self.assertRaises(YitoError):
+                entries(value)
+
+    def test_translate_maps_real_paths_to_roots(self):
+        from mito.profile_files import translate
+        self.engine.create_profile('source')
+        home = self.engine.root/'home'
+        self.assertEqual(translate(self.engine,'source',home/'.m2'/'settings.xml'), {'root':'home','path':'.m2/settings.xml'})
+        self.assertEqual(translate(self.engine,'source',self.engine.root/'workspaces'/'source'/'.vscode'),
+                         {'root':'workspace','path':'.vscode'})
+        for path in (self.root/'outside.txt', home, home/'tmp'/'x', home/'profiles'/'source'/'persist'/'x'):
+            with self.subTest(path=path), self.assertRaises(YitoError):
+                translate(self.engine,'source',path)
+
+    def test_export_without_files_keeps_legacy_json(self):
+        self.engine.create_profile('source')
+        path = export_profile(self.engine,'source',self.root/'legacy.json',log=lambda _:None)
+        self.assertEqual(json.loads(path.read_text()), {'apps':[]})
+
+    def test_files_roundtrip_without_overwriting_shared_files_by_default(self):
+        from mito.profile_files import save
+        self.engine.create_profile('source')
+        home, workspace = self.engine.root/'home', self.engine.root/'workspaces'/'source'
+        self.write(home/'.m2'/'settings.xml', b'<settings/>')
+        self.write(home/'.npmrc', b'registry=source')
+        self.write(workspace/'.vscode'/'settings.json', b'{}')
+        self.write(workspace/'.vscode'/'sub'/'launch.json', b'[]')
+        save(self.engine,'source',[{'root':'home','path':'.m2/settings.xml'},{'root':'home','path':'.npmrc'},
+                                   {'root':'workspace','path':'.vscode'},{'root':'home','path':'missing.cfg'}])
+        self.assertEqual(self.engine.profile('source')['env'], {})
+        logs = []
+        path = export_profile(self.engine,'source',self.root/'source.mito.zip',log=logs.append)
+        with zipfile.ZipFile(path) as archive:
+            self.assertEqual(sorted(archive.namelist()), ['files/home/.m2/settings.xml','files/home/.npmrc',
+                'files/workspace/.vscode/settings.json','files/workspace/.vscode/sub/launch.json','mito-profile.json'])
+            manifest = json.loads(archive.read('mito-profile.json'))
+        self.assertEqual(manifest['format'], 1)
+        self.assertNotIn('env', manifest)
+        self.assertNotIn({'root':'home','path':'missing.cfg'}, manifest['files'])
+        self.assertTrue(any('missing.cfg' in line for line in logs))
+        with self.assertRaises(FileExistsError):
+            export_profile(self.engine,'source',path,log=lambda _:None)
+        # Destino: .npmrc ya existe con otro contenido y es compartido por sus profiles.
+        other = self.other_instance()
+        self.write(other.root/'home'/'.npmrc', b'registry=local')
+        seen = []
+        def review(records, items=None):
+            seen.append(items)
+            return True
+        import_profile(other, path, 'copy', review, log=lambda _:None)
+        states = {item['path']: (item['state'], item['own']) for item in seen[0]}
+        self.assertEqual(states['.npmrc'], ('different', False))
+        self.assertEqual(states['.vscode/settings.json'], ('new', True))
+        self.assertEqual((other.root/'home'/'.npmrc').read_bytes(), b'registry=local')
+        self.assertEqual((other.root/'home'/'.m2'/'settings.xml').read_bytes(), b'<settings/>')
+        self.assertEqual((other.root/'workspaces'/'copy'/'.vscode'/'sub'/'launch.json').read_bytes(), b'[]')
+        self.assertEqual(other.profile('copy')['files'], manifest['files'])
+        self.assertEqual(other.profile('copy')['env'], {})
+        # Sobrescribir sólo lo marcado, archivo a archivo.
+        target = str(other.root/'home'/'.npmrc')
+        import_profile(other, path, 'second', lambda records, items=None: [target], log=lambda _:None)
+        self.assertEqual((other.root/'home'/'.npmrc').read_bytes(), b'registry=source')
+
+    def test_cancelled_file_review_creates_nothing(self):
+        from mito.profile_files import save
+        self.engine.create_profile('source')
+        self.write(self.engine.root/'home'/'.gitconfig', b'[user]')
+        save(self.engine,'source',[{'root':'home','path':'.gitconfig'}])
+        path = export_profile(self.engine,'source',self.root/'source.zip',log=lambda _:None)
+        other = self.other_instance()
+        with self.assertRaises(YitoError):
+            import_profile(other, path, 'copy', lambda records, items=None: False, log=lambda _:None)
+        self.assertFalse((other.root/'home'/'.gitconfig').exists())
+        self.assertNotIn('copy', other.profiles())
+
+    def test_export_limit_rejects_heavy_content_without_leaving_files(self):
+        from mito.profile_files import save, MAX_BYTES
+        self.engine.create_profile('source')
+        self.write(self.engine.root/'home'/'.m2'/'repository'/'lib.jar', b'0' * (MAX_BYTES + 1))
+        save(self.engine,'source',[{'root':'home','path':'.m2'}])
+        destination = self.root/'heavy.zip'
+        with self.assertRaises(YitoError):
+            export_profile(self.engine,'source',destination,log=lambda _:None)
+        self.assertFalse(destination.exists())
+
+    def test_export_never_follows_junctions(self):
+        import subprocess
+        from mito.profile_files import save
+        self.engine.create_profile('source')
+        outside = self.root/'host-data'
+        self.write(outside/'secret.txt', b'host')
+        config = self.engine.root/'home'/'.config'
+        self.write(config/'app.json', b'{}')
+        link = config/'host'
+        result = subprocess.run(['cmd', '/c', 'mklink', '/J', str(link), str(outside)], capture_output=True)
+        if result.returncode:
+            self.skipTest('No se pudo crear una junction')
+        import os
+        # rmdir quita sólo el punto de reanálisis, nunca el contenido del destino.
+        self.addCleanup(lambda: link.exists() and os.rmdir(link))
+        save(self.engine,'source',[{'root':'home','path':'.config'}])
+        logs = []
+        path = export_profile(self.engine,'source',self.root/'links.zip',log=logs.append)
+        with zipfile.ZipFile(path) as archive:
+            self.assertEqual(sorted(archive.namelist()), ['files/home/.config/app.json','mito-profile.json'])
+        self.assertTrue(any('.config/host' in line for line in logs))
+        save(self.engine,'source',[{'root':'home','path':'.config/host/secret.txt'}])
+        with self.assertRaises(YitoError):
+            export_profile(self.engine,'source',self.root/'through.zip',log=lambda _:None)
+
+    def test_import_rejects_unsafe_archives(self):
+        manifest = {'format':1,'apps':[],'files':[{'root':'home','path':'.npmrc'}]}
+        cases = {
+            'undeclared': [('files/home/other.cfg', b'x')],
+            'traversal': [('files/home/../escape', b'x')],
+            'outside files': [('readme.txt', b'x')],
+            'unknown root': [('files/host/.npmrc', b'x')],
+            'duplicate case': [('files/home/.npmrc', b'x'), ('files/home/.NPMRC', b'x')],
+        }
+        for case, members in cases.items():
+            path = self.root/f'{case}.zip'
+            with zipfile.ZipFile(path,'w') as archive:
+                archive.writestr('mito-profile.json', json.dumps(manifest))
+                for name, content in members:
+                    archive.writestr(name, content)
+            with self.subTest(case=case), self.assertRaises(YitoError):
+                read_export(path)
+        for bad in ({'format':2,'apps':[]}, {'format':1,'apps':[],'env':{'A':'b'}},
+                    {'format':1,'apps':[],'files':[{'root':'persist','app':'main/tool','path':'x'}]}):
+            path = self.root/'manifest.zip'
+            path.unlink(missing_ok=True)
+            with zipfile.ZipFile(path,'w') as archive:
+                archive.writestr('mito-profile.json', json.dumps(bad))
+            with self.subTest(manifest=bad), self.assertRaises(YitoError):
+                read_export(path)
+
+    def test_persist_destinations_follow_generic_isolation(self):
+        from mito.profile_files import plan
+        other = self.other_instance()
+        isolated = {'key':'main/tool','manifest':dict(self.manifest, persist='data', shortcuts=[['app.exe','Tool']])}
+        shared = {'key':'main/lib','manifest':dict(self.manifest, persist='data')}
+        self.write(other.root/'home'/'persist'/'main'/'lib'/'data'/'conf.txt', b'local')
+        items = plan(other, 'copy', {'main/tool':isolated, 'main/lib':shared},
+                     {('persist','main/tool','data/conf.txt'): b'remote', ('persist','main/lib','data/conf.txt'): b'remote'})
+        by_app = {item['app']: item for item in items}
+        self.assertEqual(by_app['main/tool']['target'], other.root/'home/profiles/copy/persist/main/tool/data/conf.txt')
+        self.assertTrue(by_app['main/tool']['own'])
+        self.assertEqual((by_app['main/lib']['state'], by_app['main/lib']['own']), ('different', False))
+
+    def test_failed_write_rolls_back_created_and_overwritten_files(self):
+        import os
+        from mito import profile_files
+        other = self.other_instance()
+        home = other.root/'home'
+        self.write(home/'keep.cfg', b'local')
+        contents = {('home', None, 'keep.cfg'): b'remote', ('home', None, 'new/a.cfg'): b'a',
+                    ('home', None, 'new/b.cfg'): b'b'}
+        items = profile_files.plan(other, 'copy', {}, contents)
+        real, calls = os.replace, []
+        def failing(source, target):
+            calls.append(target)
+            if len(calls) == 2:
+                raise OSError('disk full')
+            return real(source, target)
+        with patch('mito.profile_files.os.replace', failing), self.assertRaises(OSError):
+            profile_files.write(other, 'copy', {}, items, {str(home/'keep.cfg')}, lambda _:None)
+        self.assertEqual((home/'keep.cfg').read_bytes(), b'local')
+        self.assertFalse((home/'new').exists())
+
     def test_import_rejects_profiles_with_extra_data_and_invalid_identifiers(self):
         for data in ({'apps':[], 'env':{'TOKEN':'secret'}}, {'apps':['../app']}, {'apps':['https://example.org']}, {'apps':{}},
                      {'apps':['main/tool'],'pinned':{'main/other':'1'}}, {'apps':['main/tool'],'pinned':{'main/tool':'../1'}},

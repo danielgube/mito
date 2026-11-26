@@ -128,6 +128,36 @@ class ComponentTests(unittest.TestCase):
         self.assertEqual(self.engine.installed()['versions/tool']['version'], '1.9')
         self.assertEqual(self.engine.installed()[self.old_id]['version'], '2.0')
 
+    def test_pending_updates_lists_only_compatible_newer_versions(self):
+        from mito.components import pending_updates
+        other = dict(self.old, key='main/other', path='core/apps/main/other')
+        write_json(self.root/other['path']/'.mito.json', {'key':other['key'], 'record':other, 'manifest_sha256':other['manifest_sha256']})
+        newer = dict(self.old['manifest'], version='2.0')
+        unsupported = dict(newer, installer={'file':'setup.exe'})
+        self.assertEqual(pending_updates(self.engine, {'main/tool':newer, 'main/other':unsupported}), [self.old_id])
+        self.assertEqual(sorted(pending_updates(self.engine, {'main/tool':newer, 'main/other':newer})), ['main/other', self.old_id])
+        self.assertEqual(pending_updates(self.engine, {'main/tool':self.old['manifest']}), [])
+
+    def test_update_all_runs_each_update_and_stops_at_first_failure(self):
+        from mito import components
+        calls = []
+        def fake_update(engine, installation, log=print, confirm_unverified=None):
+            calls.append(installation)
+            if installation == 'main/broken':
+                raise YitoError('download failed')
+            return installation
+        newer = {'version':'2.0', 'status':'Compatible'}
+        def candidate(engine, lock, catalog=None):
+            # main/done ya se actualizó como dependencia: se omite sin error.
+            return None if lock['key'] == 'main/done' else newer
+        inventory = {key: {'key': key} for key in ('main/a', 'main/done', 'main/broken', 'main/c')}
+        with patch.object(self.engine, 'installed', return_value=inventory), \
+                patch('mito.components.update', fake_update), patch('mito.components.available_update', candidate):
+            self.assertEqual(components.update_all(self.engine, ['main/a', 'main/done'], log=lambda _:None), ['main/a'])
+            with self.assertRaises(YitoError):
+                components.update_all(self.engine, ['main/a', 'main/broken', 'main/c'], log=lambda _:None)
+        self.assertEqual(calls, ['main/a', 'main/a', 'main/broken'])
+
     def test_update_layout_change_is_rejected_before_install(self):
         new = dict(self.old['manifest'], version='2.0', persist='other-data')
         write_json(self.root/'core/buckets/main.json', {'apps':{'tool':new}})

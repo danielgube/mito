@@ -189,6 +189,35 @@ def update(engine, installation, log=print, confirm_unverified=None):
     return old['key']
 
 
+def pending_updates(engine, catalog=None):
+    """Instalaciones con una versión posterior compatible en el catálogo local."""
+    catalog = dict(engine.catalog.all()) if catalog is None else catalog
+    result = []
+    for installation, lock in engine.installed().items():
+        candidate = available_update(engine, lock, catalog)
+        if candidate and candidate['status'] == 'Compatible':
+            result.append(installation)
+    return result
+
+
+def update_all(engine, installations, log=print, confirm_unverified=None):
+    """Actualiza en orden, cada componente con su propio plan atómico.
+
+    Se detiene en el primer fallo o cancelación: los ya actualizados se conservan.
+    Omite los que ya no tienen actualización (p. ej. actualizados como dependencia).
+    """
+    updated = []
+    for position, installation in enumerate(installations, 1):
+        lock = engine.installed().get(installation)
+        candidate = available_update(engine, lock) if lock else None
+        if not candidate or candidate['status'] != 'Compatible':
+            continue
+        log(tr('Actualizando {p1} de {p3}: {p5}', p1=(position), p3=(len(installations)), p5=(installation)))
+        updated.append(update(engine, installation, log, confirm_unverified=confirm_unverified))
+    log(tr('Componentes actualizados: {p1}', p1=(len(updated))))
+    return updated
+
+
 def publish_plan(engine, records, current, profile, data, log):
     """Caller holds mutation lock. Stage the entire plan before replacing stable paths."""
     from .isolation import isolated, payload_path, prepare_payload
