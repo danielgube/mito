@@ -80,6 +80,14 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.3.4 — 2026-11-26
+
+### Commits incluidos
+
+- update all and profile configs added ([fcf0970](https://github.com/danielgube/mito/commit/fcf0970d42147655bad1c3d8326f20cbff6a382b))
+
+[Comparar cambios](https://github.com/danielgube/mito/compare/807f24adef77fc7b9c989240168b24f1545ac4fb...fcf0970d42147655bad1c3d8326f20cbff6a382b)
+
 ## 0.3.3 — 2026-11-25
 
 ### Commits incluidos
