@@ -80,6 +80,16 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.3.6 — 2026-11-27
+
+### Commits incluidos
+
+- icons added for improved interface and user experience ([600c4aa](https://github.com/danielgube/mito/commit/600c4aa0af1b5caa769bf1ceed35e14f365cc17c))
+- improved release system ([b0c00c5](https://github.com/danielgube/mito/commit/b0c00c5a6685113989515a5bd190d649f69565ee))
+- tests hotfixeds ([1efe39e](https://github.com/danielgube/mito/commit/1efe39e41668402086f816fb2615549e5bc8c114))
+
+[Comparar cambios](https://github.com/danielgube/mito/compare/86491c7afa42d2b781395c6bad7bd381bee61562...1efe39e41668402086f816fb2615549e5bc8c114)
+
 ## 0.3.5 — 2026-11-27
 
 ### Commits incluidos
