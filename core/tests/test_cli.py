@@ -2,7 +2,7 @@ from pathlib import Path
 from contextlib import nullcontext
 import unittest
 import tempfile
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 from mito.__main__ import main
 
@@ -20,7 +20,10 @@ class CLITests(unittest.TestCase):
                     patch('mito.publish.publish') as publish, patch('builtins.print'):
                 engine = self.engine(engine_type)
                 self.assertEqual(main(['release', *arguments, '--output', 'out']), 0)
-                publish.assert_called_once_with(engine, 'out', kind=kind)
+                publish.assert_called_once_with(engine, 'out', kind=kind, confirm=ANY)
+                # The CLI asks before discarding a stale pending release; EOF declines.
+                with patch('builtins.input', side_effect=EOFError):
+                    self.assertFalse(publish.call_args.kwargs['confirm'](['pendiente']))
 
     def test_local_release_only_builds_current_version(self):
         with patch('mito.__main__.Engine') as engine_type, \
