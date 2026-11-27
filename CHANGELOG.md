@@ -80,6 +80,16 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.3.5 — 2026-11-27
+
+### Commits incluidos
+
+- multidownloads in separate process and proxy intercteptions repared ([392abcc](https://github.com/danielgube/mito/commit/392abcc3c68c6db42c65a91dd81e37793073d64f))
+- git environment upgraded ([2f99c32](https://github.com/danielgube/mito/commit/2f99c329687f3652b1bf47140765ff1887c8a88d))
+- tests hotfixeds ([ddb8e56](https://github.com/danielgube/mito/commit/ddb8e5670dab88cd2c202d98771335b22e793dfa))
+
+[Comparar cambios](https://github.com/danielgube/mito/compare/493b460084992750a1dac4314dbea1713daa4a77...ddb8e5670dab88cd2c202d98771335b22e793dfa)
+
 ## 0.3.4 — 2026-11-26
 
 ### Commits incluidos
