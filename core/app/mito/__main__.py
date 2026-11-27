@@ -320,7 +320,13 @@ def main(argv=None):
                 print(build_release(engine, args.output))
             else:
                 from .publish import publish
-                print(publish(engine, args.output, kind=args.kind or 'hotfix'))
+                def discard(lines):
+                    print('\n'.join(lines))
+                    try:
+                        return input('¿Descartarla y continuar con una versión nueva? [s/N] ').strip().lower() == 's'
+                    except (EOFError, KeyboardInterrupt):
+                        return False
+                print(publish(engine, args.output, kind=args.kind or 'hotfix', confirm=discard))
         elif args.command == 'shortcut':
             from .shortcuts import mito_link
             with mutation(engine.root):

@@ -150,6 +150,50 @@ class PublishTests(unittest.TestCase):
             self.assertFalse(pending.exists())
             self.assertEqual(calls[-1],('PATCH','/releases/1'))
 
+    def test_stale_pending_release_is_discarded_only_if_unpublished_and_confirmed(self):
+        from mito.storage import read_json
+        for case in ('declined', 'published', 'confirmed'):
+            with self.subTest(case=case), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp).resolve()
+                engine = Engine(root)
+                source = root / 'core/app/mito/__init__.py'
+                source.parent.mkdir(parents=True)
+                source.write_text('__version__ = "0.1.1"\n', encoding='utf-8')
+                pending = root / 'core/state/pending-release.json'
+                write_json(pending, {'version': '0.1.1', 'commit': 'old', 'body': 'Notas'})
+                asked = []
+
+                def git(root, *args, **kwargs):
+                    if args == ('push', 'origin', 'main'):
+                        raise YitoError('red no disponible')
+                    if args[:2] == ('ls-remote', 'origin'):
+                        return 'old\trefs/tags/v0.1.1' if case == 'published' else ''
+                    return {('rev-parse', '--show-toplevel'): root.as_posix(),
+                            ('remote', 'get-url', 'origin'): 'https://github.com/danielgube/mito.git',
+                            ('branch', '--show-current'): 'main',
+                            ('rev-parse', 'HEAD'): 'abc',
+                            ('rev-parse', 'origin/main'): 'abc',
+                            ('show', '-s', '--format=%an', 'HEAD'): 'autor'}.get(args, '')
+
+                with patch('mito.publish.git', git), patch('mito.publish.GitHub') as api, \
+                        patch('mito.publish.commit_notes', return_value='- Iconos'), \
+                        patch('mito.publish.subprocess.run') as run:
+                    api.return_value.request.side_effect = [{'permissions': {'push': True}}, []]
+                    run.return_value.returncode = 0
+                    with self.assertRaises(YitoError) as error:
+                        publish(engine, log=lambda _: None,
+                                confirm=lambda lines: asked.append(lines) or case == 'confirmed')
+                state = read_json(pending)
+                if case == 'confirmed':
+                    # Restarted from HEAD with the next version; it stopped at the push.
+                    self.assertEqual(str(error.exception), 'red no disponible')
+                    self.assertEqual((state['version'], state['commit']), ('0.1.2', 'abc'))
+                else:
+                    self.assertEqual(state['commit'], 'old')
+                    self.assertIn('pendiente de otro commit', str(error.exception))
+                    # Something already on GitHub is never offered for discarding.
+                    self.assertEqual(len(asked), 0 if case == 'published' else 1)
+
     def test_dirty_checkout_does_not_authenticate_or_publish(self):
         with tempfile.TemporaryDirectory() as tmp:
             engine=Engine(Path(tmp))

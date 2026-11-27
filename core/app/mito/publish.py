@@ -124,14 +124,27 @@ def next_version(local, releases, kind='hotfix'):
     return f'{major}.{minor}.{patch + 1}'
 
 
-def publish(engine, output=None, log=print, *, kind='hotfix'):
+def all_releases(api):
+    """Every release, drafts included (the tags endpoint does not return drafts)."""
+    releases = []
+    page = 1
+    while True:
+        batch = api.request('GET', f'/releases?per_page=100&page={page}')
+        releases.extend(batch)
+        if len(batch) < 100:
+            return releases
+        page += 1
+
+
+def publish(engine, output=None, log=print, *, kind='hotfix', confirm=None):
+    """confirm(lines) -> bool may discard a pending release that never reached GitHub."""
     if kind not in ('mayor', 'minor', 'hotfix'):
         raise YitoError('Tipo de release inválido: usa mayor, minor o hotfix')
     with mutation(engine.root / "core/state/publisher"):
-        return _publish(engine, output, log, kind=kind)
+        return _publish(engine, output, log, kind=kind, confirm=confirm)
 
 
-def _publish(engine, output=None, log=print, *, kind='hotfix'):
+def _publish(engine, output=None, log=print, *, kind='hotfix', confirm=None):
     root = engine.root
     if git(root, 'rev-parse', '--show-toplevel').replace('\\','/').casefold() != root.as_posix().casefold():
         raise YitoError('release requiere el checkout Git de MITO')
@@ -147,22 +160,31 @@ def _publish(engine, output=None, log=print, *, kind='hotfix'):
     pending_path = root / 'core/state/pending-release.json'
     pending = read_json(pending_path) if pending_path.exists() else None
     head = git(root, 'rev-parse', 'HEAD')
+    releases = None
+    if pending and (head != pending['commit'] or detected_version(root) != pending['version']):
+        # Interrupted before GitHub received anything for its tag (commits made since then):
+        # it can be discarded and restarted from HEAD with the next version, on request.
+        tag = f'v{pending["version"]}'
+        releases = all_releases(api)
+        published = any(release.get('tag_name') == tag for release in releases) \
+            or git(root, 'ls-remote', 'origin', f'refs/tags/{tag}')
+        if published or not confirm or not confirm([
+                f'Hay una release pendiente de v{pending["version"]} del commit {pending["commit"][:7]}, '
+                f'y HEAD es {head[:7]}.',
+                f'GitHub no tiene tag ni release {tag}: se puede descartar y publicar HEAD como versión nueva.']):
+            raise YitoError('Hay una release pendiente de otro commit; vuelve a ese commit para reanudar'
+                            + (f' (GitHub ya tiene {tag})' if published else ''))
+        pending_path.unlink()
+        pending = None
+        log(f'Release pendiente v{tag[1:]} descartada.')
     if pending:
-        if head != pending['commit'] or detected_version(root) != pending['version']:
-            raise YitoError('Hay una release pendiente de otro commit; vuelve a ese commit para reanudar')
         version = pending['version']
         log(f'Reanudando v{version}; se conserva la versión pendiente sin aplicar otro incremento…')
     else:
         if head != git(root, 'rev-parse', 'origin/main'):
             raise YitoError('Haz push de main antes de crear la release')
-        releases = []
-        page = 1
-        while True:
-            batch = api.request('GET', f'/releases?per_page=100&page={page}')
-            releases.extend(batch)
-            if len(batch) < 100:
-                break
-            page += 1
+        if releases is None:
+            releases = all_releases(api)
         version = next_version(detected_version(root), releases, kind)
         notes = commit_notes(root, head)
         changelog = root / 'CHANGELOG.md'

@@ -20,6 +20,16 @@
 - Regresiones añadidas sin ejecutar: test_profile_transfer (`-k sanitize`,
   `-k detected_files`), test_components (`-k hold_installed`), test_open_with
   (`-k preset`) y test_ui (`-k home_checkboxes`).
+- Inicio: nombre y versión en columnas de ancho fijo (cell_len); retenida = 🔒.
+  Botones de icono con tooltip: ▶ Abrir (verde), 🔗 Acc. directo, ℹ️ Info,
+  🗑️ Eliminar (variant error). ▶️ con VS16 se dibuja monocromo en Windows Terminal;
+  los emoji llevan VS16 para que Textual los mida como 2 columnas.
+- release: una release pendiente de otro commit (p. ej. interrumpida y con commits
+  posteriores) se puede descartar tras confirmar en la CLI, sólo si GitHub no tiene
+  tag ni release (borradores incluidos) con su versión; continúa desde HEAD con la
+  versión siguiente (la pendiente queda como número saltado). Si GitHub ya tiene
+  algo, sigue exigiendo volver a ese commit. Regresión sin ejecutar:
+  test_publish `-k stale_pending`.
 
 ## Raíz Inno {code_*} en extract_dir (25 de noviembre)
 
