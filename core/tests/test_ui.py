@@ -717,6 +717,15 @@ class UITests(AsyncTestCase):
                     self.assertTrue(all(row.styles.margin.bottom == 1 for row in rows))
                     self.assertEqual([row.has_class('component-row-light') for row in rows], [False, True, False])
                     self.assertTrue(all(checkbox.region.height == 1 for checkbox in app.query('.component Checkbox')))
+                    # Only the box toggles: a click on the name changes nothing.
+                    await pilot.click('.component-name')
+                    await app.workers.wait_for_complete()
+                    await pilot.pause()
+                    self.assertEqual(engine.profile('first')['apps'], [])
+                    await click(pilot, '#version-0')
+                    self.assertTrue(await until(pilot, lambda: app.screen.query('#version-retention-hold')))
+                    await click(pilot, '#version-retention-cancel')
+                    await pilot.pause()
                     for index in range(3):
                         await click(pilot, f'#active-{index}')
                         await app.workers.wait_for_complete()

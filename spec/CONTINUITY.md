@@ -1,5 +1,26 @@
 # Estado al 23 de septiembre de 2026
 
+## Detectar configuraciones, sanitizar, repositorio de profiles y retener versión (27 de noviembre)
+
+- Presets de Extensiones mostraban «Extensión no válida: Select.NULL» aunque
+  funcionaban: esta Textual no tiene `Select.BLANK` (hereda `Widget.BLANK = False`) y
+  el `clear()` reemitía Changed con `Select.NULL`. Corregido en open_with_ui (sólo
+  valores str), mcp_ui y el selector de profiles (`Select.NULL`).
+- Inicio: la casilla ya no lleva el nombre como etiqueta; sólo la casilla activa o
+  desactiva. El nombre es texto y la versión un botón que abre Retener versión /
+  Liberar para actualizar (components.hold_version, pinned source "installed").
+- Archivos de configuración: Detectar… ofrece rutas habituales (SUGGESTIONS) que
+  existan en home o workspace; cada fila indica credenciales detectadas y la casilla
+  Sanitizar, que sustituye los valores por XXX sólo en el ZIP exportado.
+- `profiles.repository` (Git HTTP/HTTPS o carpeta local) y Gestionar profile →
+  Repositorio de profiles: lista *.mito.json/*.mito.zip e Instalar = Importar.
+- Límites: la detección de credenciales es heurística por nombre de clave y URL;
+  valores sin clave reconocible (p. ej. `github-oauth` de Composer) viajan tal cual.
+  Un solo repositorio; no publica en él. No probado con un repositorio Git real.
+- Regresiones añadidas sin ejecutar: test_profile_transfer (`-k sanitize`,
+  `-k detected_files`), test_components (`-k hold_installed`), test_open_with
+  (`-k preset`) y test_ui (`-k home_checkboxes`).
+
 ## Raíz Inno {code_*} en extract_dir (25 de noviembre)
 
 - extras/antigravity-ide 2.7.0 (innosetup, `extract_dir: "{code_GetDestDir}"`) falló a

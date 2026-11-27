@@ -1,12 +1,20 @@
-"""Archivos de configuración elegidos manualmente en la tabla `files` de un profile.
+"""Archivos de configuración elegidos por el usuario en la tabla `files` de un profile.
 
-MITO no sugiere ni clasifica rutas: no hay listas por producto ni por extensión.
 El usuario decide qué viaja; el límite de tamaño es la única barrera frente a
 librerías, cachés o binarios. Nunca se siguen junctions ni symlinks.
+
+SUGGESTIONS es sólo una ayuda del diálogo, como los presets de «Abrir con»:
+rutas habituales de herramientas de desarrollo que se ofrecen si existen en home
+o en el workspace. No cambian el motor ni la exportación de ninguna herramienta.
+
+Credenciales: detección genérica por contenido (claves user/password/token…,
+URLs con usuario:clave). Una entrada con sanitize sustituye esos valores por XXX
+sólo dentro del ZIP exportado; el archivo real nunca se modifica.
 """
 from .i18n import tr
 import os
 from pathlib import Path
+import re
 import stat
 import tempfile
 import zipfile
@@ -18,6 +26,38 @@ MAX_BYTES = 2 * 1024 * 1024
 MAX_FILES = 1000
 MANIFEST = 'mito-profile.json'
 REPARSE_POINT = 0x400
+MASK = 'XXX'
+# (herramienta, ruta relativa) buscadas en home y en el workspace del profile.
+SUGGESTIONS = (
+    ('Maven', '.m2/settings.xml'),
+    ('Maven', '.m2/settings-security.xml'),
+    ('Maven', '.mvn/maven.config'),
+    ('Node.js · npm', '.npmrc'),
+    ('Yarn', '.yarnrc'),
+    ('Yarn', '.yarnrc.yml'),
+    ('Bun', '.bunfig.toml'),
+    ('Git', '.gitconfig'),
+    ('Git', '.git-credentials'),
+    ('Gradle', '.gradle/gradle.properties'),
+    ('Gradle', '.gradle/init.gradle'),
+    ('Python · pip', 'AppData/Roaming/pip/pip.ini'),
+    ('Python · pip', 'pip.ini'),
+    ('Python · PyPI', '.pypirc'),
+    ('Conda', '.condarc'),
+    ('NuGet', 'AppData/Roaming/NuGet/NuGet.Config'),
+    ('NuGet', 'NuGet.Config'),
+    ('Docker', '.docker/config.json'),
+    ('Kubernetes', '.kube/config'),
+    ('Cargo', '.cargo/config.toml'),
+    ('Cargo', '.cargo/credentials.toml'),
+    ('Go', 'AppData/Roaming/go/env'),
+    ('Composer', 'AppData/Roaming/Composer/auth.json'),
+    ('RubyGems', '.gem/credentials'),
+    ('Bundler', '.bundle/config'),
+    ('AWS', '.aws/config'),
+    ('AWS', '.aws/credentials'),
+    ('SSH', '.ssh/config'),
+)
 
 
 def component_key(value):
@@ -39,7 +79,9 @@ def relative_path(path):
 
 
 def normalize(value):
-    if not isinstance(value, dict) or value.get('root') not in ROOTS or not set(value) <= {'root', 'app', 'path'}:
+    if (not isinstance(value, dict) or value.get('root') not in ROOTS
+            or not set(value) <= {'root', 'app', 'path', 'sanitize'}
+            or not isinstance(value.get('sanitize', False), bool)):
         raise YitoError(tr('Entrada de archivos no válida: {p1}', p1=(f'{value!r}')))
     root = value['root']
     if (root == 'persist') != ('app' in value):
@@ -51,6 +93,8 @@ def normalize(value):
     if root == 'persist':
         entry['app'] = component_key(value['app'])
     entry['path'] = path
+    if value.get('sanitize'):
+        entry['sanitize'] = True
     return entry
 
 
@@ -182,6 +226,110 @@ def size(engine, profile, data, locks, entry):
     return total
 
 
+SECRET_WORDS = {'user', 'username', 'login', 'password', 'passwd', 'pwd', 'passphrase', 'token', 'auth',
+                'authtoken', 'secret', 'credential', 'credentials', 'apikey'}
+KEY_QUALIFIERS = {'api', 'access', 'private', 'secret', 'client'}
+PLACEHOLDERS = {'', MASK.casefold(), 'true', 'false', 'yes', 'no', 'null', 'none', '~'}
+URL_CREDENTIALS = re.compile(r'(?P<pre>\b[a-z][a-z0-9+.-]*://)(?P<user>[^/\s:@\'"<>]+):(?P<value>[^/\s@\'"<>]+)(?P<post>@)', re.I)
+XML_ELEMENT = re.compile(r'(?P<pre><(?P<key>[\w.:-]+)(?:\s[^<>]*)?>)(?P<value>[^<]*)(?P<post></(?P=key)\s*>)')
+XML_KEY_VALUE = re.compile(r'(?P<pre>\bkey\s*=\s*"(?P<key>[^"]*)"[^<>]*?\bvalue\s*=\s*")(?P<value>[^"]*)(?P<post>")', re.I)
+JSON_PAIR = re.compile(r'(?P<pre>"(?P<key>[^"\\\r\n]+)"\s*:\s*")(?P<value>(?:[^"\\\r\n]|\\.)*)(?P<post>")')
+ASSIGNMENT = re.compile(r'^(?P<pre>[ \t]*(?P<key>[^\s#;=:"\'<>\[][^=\r\n]*?)[ \t]*=[ \t]*)(?P<value>[^\r\n]*?)(?P<post>[ \t]*)$', re.M)
+YAML_PAIR = re.compile(r'^(?P<pre>[ \t]*(?:-[ \t]+)?(?P<key>[A-Za-z_][\w.-]*)[ \t]*:[ \t]+)(?P<value>[^\r\n#]*?)(?P<post>[ \t]*(?:#[^\r\n]*)?)$', re.M)
+
+
+def sensitive(key):
+    """Generic by name: segments user/password/token/auth/secret… or *key with a qualifier."""
+    words = {word.casefold() for word in re.findall(r'[A-Z]?[a-z]+|[A-Z]+(?![a-z])|\d+', str(key))}
+    return bool(words & SECRET_WORDS) or ('key' in words and bool(words & KEY_QUALIFIERS))
+
+
+def placeholder(value):
+    """Values that are no secret: empty, booleans, XXX or a variable reference."""
+    text = value.strip().strip('\'"').strip()
+    return (text.casefold() in PLACEHOLDERS or text.startswith(('${', '$(', '{{'))
+            or bool(re.fullmatch(r'\$[A-Za-z_]\w*|%[^%\s]+%', text)))
+
+
+def masked(value):
+    quote = value[:1] if len(value) >= 2 and value[0] == value[-1] and value[0] in '\'"' else ''
+    return quote + MASK + quote
+
+
+def sanitize(content):
+    """(bytes with each credential value replaced by XXX, replacements). Binary content is untouched."""
+    bom = content.startswith(b'\xef\xbb\xbf')
+    try:
+        text = content[3:].decode('utf-8') if bom else content.decode('utf-8')
+    except UnicodeDecodeError:
+        return content, 0
+    if '\0' in text:
+        return content, 0
+    count = 0
+
+    def replace(match, check_key=True):
+        nonlocal count
+        if (check_key and not sensitive(match['key'])) or placeholder(match['value']):
+            return match[0]
+        count += 1
+        return match['pre'] + masked(match['value']) + match['post']
+
+    def url(match):
+        nonlocal count
+        if placeholder(match['value']):
+            return match[0]
+        count += 1
+        return match['pre'] + MASK + ':' + MASK + match['post']
+
+    text = URL_CREDENTIALS.sub(url, text)
+    for pattern in (XML_ELEMENT, XML_KEY_VALUE, JSON_PAIR, ASSIGNMENT, YAML_PAIR):
+        text = pattern.sub(replace, text)
+    if not count:
+        return content, 0
+    return (b'\xef\xbb\xbf' if bom else b'') + text.encode('utf-8'), count
+
+
+def credentials(engine, profile, data, locks, entry):
+    """Credential values detected in the current files of an entry (0 if it does not exist)."""
+    base = base_of(engine, profile, data, locks, entry)
+    target = join(base, entry['path'])
+    if crosses_link(base, entry['path']) or not os.path.lexists(target):
+        return 0
+    found = total = 0
+    for count, (_, source, length) in enumerate(gather(target, entry['path'], []), 1):
+        total += length
+        if total > MAX_BYTES or count > MAX_FILES:
+            break
+        found += sanitize(source.read_bytes())[1]
+    return found
+
+
+def detect(engine, profile):
+    """SUGGESTIONS that exist as regular files in home or the workspace, without links.
+
+    [(herramienta, entrada, tamaño, credenciales)]; sanitize viene marcado si hay credenciales.
+    """
+    data = engine.profile(profile)
+    locks = engine.selected(data)
+    result = []
+    for root in ('home', 'workspace'):
+        for tool, path in SUGGESTIONS:
+            entry = normalize({'root': root, 'path': path})
+            base = base_of(engine, profile, data, locks, entry)
+            target = join(base, path)
+            try:
+                if crosses_link(base, path) or not stat.S_ISREG(os.lstat(target).st_mode):
+                    continue
+                length = os.lstat(target).st_size
+                found = sanitize(target.read_bytes())[1] if length <= MAX_BYTES else 0
+            except OSError:
+                continue
+            if found:
+                entry['sanitize'] = True
+            result.append((tool, entry, length, found))
+    return result
+
+
 def pack(engine, profile, data, locks, log):
     """Entradas presentes y miembros (nombre en el ZIP, archivo) dentro de los límites."""
     present, members, total = [], [], 0
@@ -196,7 +344,7 @@ def pack(engine, profile, data, locks, log):
         skipped = []
         for path, source, length in gather(target, entry['path'], skipped):
             total += length
-            members.append((member_prefix(entry) + path, source))
+            members.append((member_prefix(entry) + path, source, bool(entry.get('sanitize'))))
             if total > MAX_BYTES or len(members) > MAX_FILES:
                 raise too_large()
         for path in skipped:
@@ -214,11 +362,14 @@ def write_archive(destination, manifest, members):
             archive.writestr(zipfile.ZipInfo(MANIFEST, (1980, 1, 1, 0, 0, 0)),
                              json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', zipfile.ZIP_DEFLATED)
             total = 0
-            for name, source in members:
+            for name, source, *flags in members:
                 content = source.read_bytes()
                 total += len(content)
                 if total > MAX_BYTES:
                     raise too_large()
+                if flags and flags[0]:
+                    # Only the exported copy: the file in the profile keeps its values.
+                    content = sanitize(content)[0]
                 archive.writestr(zipfile.ZipInfo(name, (1980, 1, 1, 0, 0, 0)), content, zipfile.ZIP_DEFLATED)
     except BaseException:
         destination.unlink(missing_ok=True)

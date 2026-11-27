@@ -96,7 +96,8 @@ class OpenWithDialog(ModalScreen[object]):
     def on_select_changed(self, event: Select.Changed):
         event.stop()
         if event.select.id in ('open-with-common', 'open-with-preset'):
-            if event.value is not Select.BLANK:
+            # clear() emits another Changed with Select.NULL: never parse it.
+            if isinstance(event.value, str) and event.value:
                 self.add(event.value)
                 event.select.clear()
         elif event.select.id == 'open-with-entry':

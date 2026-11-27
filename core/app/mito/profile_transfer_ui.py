@@ -49,7 +49,7 @@ class TransferPathDialog(ModalScreen):
         with VerticalScroll(id='transfer-path'):
             yield Static(tr('EXPORTAR PROFILE') if self.profile else tr('IMPORTAR PROFILE'))
             if self.archive:
-                yield Static(tr('Componentes activos y archivos de la tabla, tal cual, incluidas credenciales. Sin variables ni sesiones.'))
+                yield Static(tr('Componentes activos y archivos de la tabla. Las credenciales viajan tal cual salvo en los archivos marcados «Sanitizar», donde se sustituyen por XXX. Sin variables ni sesiones.'))
             else:
                 yield Static(tr('Sólo componentes activos. Sin variables, sesiones ni datos de aplicaciones.'))
             extension = '.mito.zip' if self.archive else '.mito.json'

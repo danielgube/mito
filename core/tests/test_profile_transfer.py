@@ -311,3 +311,43 @@ class ProfileTransferTests(unittest.TestCase):
             write_json(self.file,data)
             with self.subTest(data=data), self.assertRaises(YitoError):
                 read_export(self.file)
+
+    def test_sanitize_masks_credentials_generically_and_keeps_references(self):
+        from mito.profile_files import sanitize
+        cases = {
+            b'<server><id>r</id><username>me</username><password>{enc}</password></server>':
+                b'<server><id>r</id><username>XXX</username><password>XXX</password></server>',
+            b'<password>${env.PASS}</password>': b'<password>${env.PASS}</password>',
+            b'registry=https://r/\n//r/:_authToken=npm_1\nalways-auth=true\n':
+                b'registry=https://r/\n//r/:_authToken=XXX\nalways-auth=true\n',
+            b'proxy=http://u:p4ss@proxy:8080': b'proxy=http://XXX:XXX@proxy:8080',
+            b'{"auths": {"x": {"auth": "ZGE="}}, "credsStore": "desktop"}':
+                b'{"auths": {"x": {"auth": "XXX"}}, "credsStore": "desktop"}',
+            b'npmAuthToken: "abc"\nregion: eu\n': b'npmAuthToken: "XXX"\nregion: eu\n',
+            b'<add key="ClearTextPassword" value="s3" />': b'<add key="ClearTextPassword" value="XXX" />',
+            b'\xef\xbb\xbftoken = abc\n': b'\xef\xbb\xbftoken = XXX\n',
+        }
+        for source, expected in cases.items():
+            with self.subTest(source=source):
+                self.assertEqual(sanitize(source)[0], expected)
+        self.assertEqual(sanitize(b'\x00binary password=x'), (b'\x00binary password=x', 0))
+        self.assertEqual(sanitize(b'\xff\xfe'), (b'\xff\xfe', 0))
+
+    def test_detected_files_export_sanitized_copy_and_keep_originals(self):
+        from mito.profile_files import detect, save
+        self.engine.create_profile('source')
+        home, workspace = self.engine.root/'home', self.engine.root/'workspaces'/'source'
+        settings = b'<settings><servers><server><password>secret</password></server></servers></settings>'
+        self.write(home/'.m2'/'settings.xml', settings)
+        self.write(workspace/'.npmrc', b'registry=https://r/\n')
+        found = {(entry['root'], entry['path']): (entry.get('sanitize'), count) for _, entry, _, count in detect(self.engine, 'source')}
+        self.assertEqual(found, {('home', '.m2/settings.xml'): (True, 1), ('workspace', '.npmrc'): (None, 0)})
+        save(self.engine, 'source', [{'root':'home','path':'.m2/settings.xml','sanitize':True}])
+        self.assertEqual(self.engine.profile('source')['files'], [{'root':'home','path':'.m2/settings.xml','sanitize':True}])
+        path = export_profile(self.engine, 'source', self.root/'clean.mito.zip', log=lambda _:None)
+        with zipfile.ZipFile(path) as archive:
+            self.assertEqual(archive.read('files/home/.m2/settings.xml'),
+                             b'<settings><servers><server><password>XXX</password></server></servers></settings>')
+        self.assertEqual((home/'.m2'/'settings.xml').read_bytes(), settings)
+        with self.assertRaises(YitoError):
+            save(self.engine, 'source', [{'root':'home','path':'x','sanitize':'yes'}])

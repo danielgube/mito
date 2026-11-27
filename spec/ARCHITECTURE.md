@@ -1020,7 +1020,12 @@ pins={key: origen}. El registro de .mito.json guarda pinned {version, source,
 commit}. Mientras exista, available_update no propone versiones y el plan de
 instalación conserva el manifiesto instalado aunque el componente aparezca como
 dependencia. Cambiar sólo la retención también republica el payload.
-release_version la quita sin tocar binarios. Sigue habiendo una versión por
+release_version la quita sin tocar binarios. hold_version retiene la versión ya
+instalada sin reinstalar: escribe pinned {version, source: "installed"} en el
+registro, con el mismo efecto que una versión elegida (Actualizar no la propone y el
+export la incluye en pinned). En Inicio, la versión de cada fila es un botón que abre
+el diálogo Retener versión / Liberar para actualizar; sólo la casilla de la fila
+activa o desactiva el componente. Sigue habiendo una versión por
 componente, en la misma ruta; profiles y accesos no fijan versión.
 
 ## Intercambio de profiles
@@ -1043,12 +1048,11 @@ durante la publicación del plan revierte sus binarios.
 
 ### Tabla de archivos del profile
 
-El JSON del profile admite `files`, una lista elegida manualmente por el usuario
-(profile_files.py). MITO no sugiere, detecta ni clasifica rutas: no hay listas por
-producto, por extensión ni heurísticas de configuración/caché. Cada entrada es un
-archivo o una carpeta:
+El JSON del profile admite `files`, una lista elegida por el usuario
+(profile_files.py). Cada entrada es un archivo o una carpeta, con `sanitize: true`
+opcional:
 
-- `{"root": "home", "path": ".m2/settings.xml"}`
+- `{"root": "home", "path": ".m2/settings.xml", "sanitize": true}`
 - `{"root": "workspace", "path": ".vscode"}`
 - `{"root": "persist", "app": "bucket/app", "path": "data/user-data/User"}`
 
@@ -1066,6 +1070,24 @@ Añadir acepta una ruta escrita o elegida con los selectores nativos de archivo 
 carpeta y la traduce: primero al persist_root de un componente activo del profile,
 después al workspace y después a home. Quitar una entrada nunca borra el archivo.
 Guardar valida la lista completa bajo el lock y conserva el resto del profile.
+
+Detectar… es una ayuda del diálogo, como los presets de «Abrir con»:
+`profile_files.SUGGESTIONS` lista rutas habituales de herramientas de desarrollo
+(Maven `.m2/settings.xml`, npm `.npmrc`, Yarn, Git, Gradle, pip, PyPI, Conda, NuGet,
+Docker, Kubernetes, Cargo, Go, Composer, RubyGems, Bundler, AWS, SSH config) y las
+ofrece con casilla si existen como archivo regular, sin enlaces, en home o en el
+workspace del profile. No toca el motor, la exportación ni la activación de ningún
+componente; ampliar la lista es añadir tuplas (herramienta, ruta). Nunca sugiere
+claves privadas ni carpetas completas.
+
+Credenciales: `sanitize` detecta por contenido, sin reglas por producto, valores de
+claves cuyo nombre contiene user/username/login/password/passwd/pwd/passphrase/
+token/auth/secret/credential/apikey (o key con api/access/private/secret/client),
+en elementos XML, pares `key="…" value="…"`, JSON, líneas `clave=valor` y YAML
+`clave: valor`, además de `usuario:clave@` en URLs. Omite vacíos, booleanos, XXX y
+referencias (`${…}`, `$VAR`, `%VAR%`). Sólo texto UTF-8 (con o sin BOM); binarios
+intactos. La tabla y Detectar muestran el número de credenciales y la casilla
+Sanitizar (marcada al detectar credenciales).
 
 ### Formato y exportación
 
@@ -1088,9 +1110,11 @@ componente siga activo.
 Sólo se transportan archivos de configuración: el contenido total está limitado a
 2 MiB y a 1000 archivos. Superarlo cancela la exportación indicando el tamaño; el
 límite es la única barrera contra librerías, cachés o binarios, sin listas por
-extensión. Los archivos viajan tal cual, incluidas credenciales o tokens: MITO no
-inspecciona contenidos y la responsabilidad es de quien exporta, como indica el
-diálogo.
+extensión. Los archivos viajan tal cual salvo las entradas con `sanitize`, cuyos
+valores detectados se sustituyen por XXX sólo en la copia del ZIP; el archivo real
+no cambia. La detección es heurística: lo no reconocido viaja tal cual y la
+responsabilidad es de quien exporta, como indica el diálogo. `sanitize` viaja en
+`files` y se conserva en el profile importado.
 
 ### Importación de archivos
 
@@ -1123,16 +1147,20 @@ una escritura falla, se eliminan los archivos creados, se restauran los
 sobrescritos y no se crea el profile; los componentes, la copia por profile y su
 persist preparado quedan, como en un fallo de creación.
 
-### Repositorios de profiles (fase 2, propuesta no implementada)
+### Repositorio de profiles
 
-`profiles.<nombre>=<Git HTTP/HTTPS o carpeta local>` en config.properties declarará
-un repositorio de sólo lectura, obtenido y validado como las pocketools (sin hooks,
-filtros, submódulos, LFS, `.git` ni enlaces). La raíz contendrá `profiles.json`
-`{"info": texto}` y una carpeta por profile con el mismo contenido que el ZIP
-desempaquetado (`mito-profile.json` y `files/`). La UI listará los profiles de cada
-repositorio, e Importar usará exactamente el flujo anterior con nombre nuevo
-elegido por el usuario. Sin sincronización ni vínculo con el origen: una versión
-nueva del repositorio se importa como otro profile. No se ejecutan scripts.
+`profiles.repository=<Git HTTP/HTTPS o carpeta local absoluta>` en config.properties
+(opcional, vacío por defecto) declara un repositorio de sólo lectura
+(profile_repository.py). Git se obtiene como las pocketools: clone superficial sin
+checkout, hooks ni submódulos y `git archive` a `core/cache/profile-repository`,
+sustituido en cada sincronización; una carpeta local se lee en su sitio. Se listan
+los archivos exportados por MITO (`*.mito.json`, `*.mito.zip`, hasta 4 MiB, 500
+entradas, sin `.git` ni enlaces), validados con read_export: componentes, retenidas
+y archivos, o el error. Gestionar profile → Repositorio de profiles muestra la lista
+con un nombre editable (el del archivo); Instalar ejecuta exactamente Importar, con
+su revisión, versiones retenidas y confirmación de hashes. Sin vínculo con el
+origen: una versión nueva del repositorio se instala como otro profile. Publicar en
+el repositorio queda fuera: se hace con Exportar y Git del usuario.
 
 ## Conversión del almacenamiento anterior
 

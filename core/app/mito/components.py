@@ -160,6 +160,24 @@ def install_version(engine, key, manifest, pin, log=print, confirm_unverified=No
     return key
 
 
+def hold_version(engine, installation, log=print):
+    """Retiene la versión instalada tal cual; el payload y su manifiesto no cambian.
+    Igual que una versión elegida en Versiones: Actualizar no la sustituye y
+    exportar/importar el profile la reproduce."""
+    with mutation(engine.root):
+        lock = engine.installed().get(installation)
+        if not lock:
+            raise YitoError(tr('El componente ya no está instalado'))
+        marker = inside(engine.root, lock['path']) / '.mito.json'
+        metadata = read_json(marker)
+        if metadata['record'].get('pinned'):
+            return False
+        metadata['record']['pinned'] = {'version': str(lock['version']), 'source': 'installed'}
+        write_json(marker, metadata)
+    log(tr('{p1} {p3} retenido: Actualizar no lo sustituirá hasta liberarlo.', p1=lock['key'], p3=lock['version']))
+    return True
+
+
 def release_version(engine, installation, log=print):
     """Quita la retención; el payload y su versión no cambian."""
     with mutation(engine.root):

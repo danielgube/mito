@@ -124,7 +124,7 @@ class MCPJobsDialog(ModalScreen):
         if action == 'mcp-jobs-close': self.action_close()
         elif action in ('mcp-read', 'mcp-cancel-job'):
             job_id = self.query_one('#mcp-job', Select).value
-            if job_id is Select.BLANK: return
+            if job_id is Select.NULL: return
             if action == 'mcp-cancel-job': self.app.mcp.cancel(job_id)
             else:
                 self.app.mcp._send({'type': 'output', 'job_id': job_id,

@@ -3,7 +3,7 @@ import json
 import subprocess
 from textual import work
 from textual.containers import Horizontal, Vertical, VerticalScroll
-from textual.widgets import Button, Input, Static
+from textual.widgets import Button, Checkbox, Input, Static
 from .dialog_header import DialogHeader
 from .localized_ui import ModalScreen
 from .storage import YitoError
@@ -61,16 +61,88 @@ def human_size(value):
     return f'{value / 1024 / 1024:.1f} MiB'
 
 
+def credentials_text(count):
+    return tr('{p1} credenciales', p1=count) if count else ''
+
+
 class FileRow(Horizontal):
-    def __init__(self, entry, size):
+    def __init__(self, entry, size, found=0):
         super().__init__(classes='file-row')
-        self.entry, self.size = entry, size
+        self.entry, self.size, self.found = entry, size, found
 
     def compose(self):
         from .profile_files import label
         yield Static(label(self.entry), classes='file-label', markup=False)
+        yield Static(credentials_text(self.found), classes='file-credentials', markup=False)
         yield Static(self.size, classes='file-size', markup=False)
+        checkbox = Checkbox(tr('Sanitizar'), value=bool(self.entry.get('sanitize')), classes='file-sanitize')
+        checkbox.tooltip = tr('Al exportar, sustituye usuarios, contraseñas y tokens por XXX. El archivo del profile no cambia.')
+        yield checkbox
         yield Button(tr('Quitar'), classes='file-remove', variant='error')
+
+    def current(self):
+        entry = {key: value for key, value in self.entry.items() if key != 'sanitize'}
+        if self.query_one('.file-sanitize', Checkbox).value:
+            entry['sanitize'] = True
+        return entry
+
+
+class DetectFilesDialog(ModalScreen):
+    """Configuraciones habituales encontradas; dismiss con las entradas marcadas o None."""
+    BINDINGS = [('escape', 'cancel', 'Cerrar')]
+    DEFAULT_CSS = """
+    DetectFilesDialog { align: center middle; background: #00000088; }
+    #detect-files-dialog { width: 95%; max-width: 130; height: auto; max-height: 90%; padding: 1 2; border: round #b5dc64; background: #153429; }
+    #detect-files-dialog > Static { height: auto; margin-bottom: 1; }
+    #detect-files-rows { height: auto; max-height: 24; }
+    .detect-row { height: 3; align-vertical: middle; }
+    .detect-row Checkbox { width: 1fr; }
+    .detect-row .detect-sanitize { width: 18; }
+    #detect-files-actions { height: auto; align-horizontal: right; margin-top: 1; }
+    #detect-files-actions Button { margin-left: 1; }
+    """
+
+    def __init__(self, found):
+        super().__init__()
+        self.found = list(found)
+
+    def compose(self):
+        from .profile_files import label
+        with Vertical(id='detect-files-dialog'):
+            yield DialogHeader(tr('DETECTAR CONFIGURACIONES'), 'detect-files-close')
+            if self.found:
+                yield Static(tr('Archivos habituales de herramientas de desarrollo encontrados en home y en el workspace. Marca los que deben viajar con el profile.'))
+            else:
+                yield Static(tr('No se ha encontrado ninguna configuración habitual nueva en home ni en el workspace.'))
+            with VerticalScroll(id='detect-files-rows'):
+                for index, (tool, entry, length, found) in enumerate(self.found):
+                    text = f'{tool} · {label(entry)} · {human_size(length)}'
+                    if found:
+                        text += ' · ' + credentials_text(found)
+                    with Horizontal(classes='detect-row'):
+                        yield Checkbox(text, value=True, id=f'detect-add-{index}')
+                        yield Checkbox(tr('Sanitizar'), value=bool(entry.get('sanitize')), id=f'detect-sanitize-{index}', classes='detect-sanitize')
+            with Horizontal(id='detect-files-actions'):
+                yield Button(tr('Cancelar'), id='detect-files-cancel')
+                yield Button(tr('Añadir'), id='detect-files-add', variant='primary', disabled=not self.found)
+
+    def action_cancel(self):
+        self.dismiss(None)
+
+    def on_button_pressed(self, event):
+        event.stop()
+        if event.button.id != 'detect-files-add':
+            self.dismiss(None)
+            return
+        chosen = []
+        for index, (_, entry, _, _) in enumerate(self.found):
+            if not self.query_one(f'#detect-add-{index}', Checkbox).value:
+                continue
+            entry = {key: value for key, value in entry.items() if key != 'sanitize'}
+            if self.query_one(f'#detect-sanitize-{index}', Checkbox).value:
+                entry['sanitize'] = True
+            chosen.append(entry)
+        self.dismiss(chosen)
 
 
 class ProfileFilesDialog(ModalScreen):
@@ -84,10 +156,13 @@ class ProfileFilesDialog(ModalScreen):
     .file-row { height: 3; align-vertical: middle; }
     .file-label { width: 1fr; height: 3; content-align: left middle; }
     .file-size { width: 14; height: 3; content-align: right middle; margin: 0 1; }
+    .file-credentials { width: 18; height: 3; content-align: right middle; color: #FFD166; }
+    .file-sanitize { width: 16; }
     .file-remove { width: 10; min-width: 10; }
     #profile-files-add-row { height: 3; margin-top: 1; }
     #profile-files-path { width: 1fr; margin: 0 1 0 0; }
     #profile-files-add-row Button { width: auto; min-width: 10; margin: 0 1 0 0; }
+    #profile-files-add-row #profile-files-detect { margin: 0 2 0 0; }
     #profile-files-error { height: auto; color: #ff7070; margin-top: 1; }
     #profile-files-save { width: 100%; margin-top: 1; }
     """
@@ -107,6 +182,16 @@ class ProfileFilesDialog(ModalScreen):
         except (OSError, YitoError):
             return '?'
 
+    def found(self, entry):
+        from .profile_files import credentials
+        try:
+            return credentials(self.engine, self.profile, self.data, self.locks, entry)
+        except (OSError, YitoError):
+            return 0
+
+    def row(self, entry):
+        return FileRow(entry, self.size_text(entry), self.found(entry))
+
     def compose(self):
         with Vertical(id='profile-files-dialog'):
             yield DialogHeader(tr('ARCHIVOS DE CONFIGURACIÓN'), 'profile-files-close')
@@ -114,8 +199,9 @@ class ProfileFilesDialog(ModalScreen):
                          id='profile-files-context', markup=False)
             with VerticalScroll(id='profile-files-rows'):
                 for entry in self.initial:
-                    yield FileRow(entry, self.size_text(entry))
+                    yield self.row(entry)
             with Horizontal(id='profile-files-add-row'):
+                yield Button(tr('Detectar…'), id='profile-files-detect', variant='primary')
                 yield Input(placeholder=tr('Ruta de un archivo o carpeta'), id='profile-files-path')
                 yield Button(tr('Archivo…'), id='profile-files-browse-file')
                 yield Button(tr('Carpeta…'), id='profile-files-browse-folder')
@@ -124,7 +210,34 @@ class ProfileFilesDialog(ModalScreen):
             yield Button(tr('Guardar'), id='profile-files-save', variant='primary')
 
     def current(self):
-        return [row.entry for row in self.query(FileRow)]
+        return [row.current() for row in self.query(FileRow)]
+
+    def detect(self):
+        from .profile_files import detect
+        error = self.query_one('#profile-files-error', Static)
+        try:
+            found = detect(self.engine, self.profile)
+        except (OSError, ValueError, YitoError) as exc:
+            error.update(str(exc))
+            return
+        present = {(entry['root'], entry.get('app'), entry['path'].casefold()) for entry in self.current()}
+        found = [item for item in found if (item[1]['root'], None, item[1]['path'].casefold()) not in present]
+        self.app.push_screen(DetectFilesDialog(found), self.detected)
+
+    async def detected(self, chosen):
+        from .profile_files import entries
+        if not chosen or not self.is_mounted:
+            return
+        error = self.query_one('#profile-files-error', Static)
+        rows = self.query_one('#profile-files-rows')
+        for entry in chosen:
+            try:
+                entries(self.current() + [entry])
+            except YitoError as exc:
+                # Contenida en una carpeta ya añadida: se omite y se indica.
+                error.update(str(exc))
+                continue
+            await rows.mount(self.row(entry))
 
     def action_cancel(self):
         self.dismiss(False)
@@ -154,6 +267,8 @@ class ProfileFilesDialog(ModalScreen):
         error.update('')
         if action == 'profile-files-close':
             self.action_cancel()
+        elif action == 'profile-files-detect':
+            self.detect()
         elif action in ('profile-files-browse-file', 'profile-files-browse-folder'):
             for button in self.query('#profile-files-add-row Button'):
                 button.disabled = True
@@ -172,7 +287,7 @@ class ProfileFilesDialog(ModalScreen):
             except (OSError, ValueError, YitoError) as exc:
                 error.update(str(exc))
                 return
-            row = FileRow(entry, self.size_text(entry))
+            row = self.row(entry)
             await self.query_one('#profile-files-rows').mount(row)
             row.scroll_visible(immediate=True)
             field.value = ''

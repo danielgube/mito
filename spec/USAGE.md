@@ -497,6 +497,24 @@ es tan sencillo como:
 {"apps": ["main/nodejs", "main/python", "java/temurin21-jdk"]}
 ```
 
+**Archivos de configuración** añade archivos que viajan en un `.mito.zip`.
+**Detectar…** propone los habituales (Maven `settings.xml`, `.npmrc`, `.gitconfig`,
+Gradle, pip, NuGet, Docker…) que existan en home o en el workspace. Si contienen
+usuarios, contraseñas o tokens, la fila lo indica y marca **Sanitizar**: al exportar
+esos valores se sustituyen por XXX en el ZIP, sin tocar tu archivo.
+
+Para compartir profiles en equipo, configura `profiles.repository` con una URL Git
+HTTP/HTTPS o una carpeta local con exports (`*.mito.json`, `*.mito.zip`). Gestionar
+profile → **Repositorio de profiles** los lista; **Instalar** sigue la importación
+normal con un nombre nuevo.
+
+## Retener una versión
+
+En Inicio, pulsa la versión de un componente: **Retener versión** evita que
+Actualizar la sustituya y hace que la importación de un profile exportado instale
+exactamente esa versión. **Liberar para actualizar** vuelve a proponer la del
+catálogo. Sólo la casilla de cada fila activa o desactiva el componente.
+
 ## Gestión de profiles
 
 La barra lateral muestra PROFILES (selector y Gestionar profile) y ACCIONES

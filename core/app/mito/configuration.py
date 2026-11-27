@@ -29,6 +29,7 @@ PROPERTIES = {
     'network.check_status': (None, '204'),
     'network.timeout_seconds': (None, '4'),
     'network.poll_seconds': (None, '20'),
+    'profiles.repository': (None, ''),
     'shortcut.badgeText': (None, 'MITO'),
     'shortcut.badgeColor': (('negro', 'rojo', 'azul', 'naranja', 'rosa', 'verde', 'marron', 'morado'), 'naranja'),
 }
@@ -81,6 +82,9 @@ def validated(engine, pairs, profile=False):
         if key == 'network.check_status':
             if not value.isdecimal() or not 100 <= int(value) <= 599:
                 raise YitoError(tr('{p0}: introduce un código HTTP entre 100 y 599', p0=(key)))
+        if key == 'profiles.repository' and value:
+            from .profile_repository import validate_source as validate_repository
+            validate_repository(value)
         if key == 'shortcut.badgeText':
             from .shortcuts import badge_text
             badge_text(engine, value)

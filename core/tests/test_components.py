@@ -276,6 +276,21 @@ class ComponentTests(unittest.TestCase):
         self.assertEqual(available_update(self.engine,lock)['version'],'2.0')
         self.assertFalse(release_version(self.engine,'main/tool',log=quiet))
 
+    def test_hold_installed_version_without_reinstalling(self):
+        from mito.components import hold_version
+        quiet=lambda _:None
+        write_json(self.root/'core/buckets/main.json',{'apps':{'tool':dict(self.old['manifest'],version='2.0')}})
+        before=self.engine.installed()['main/tool']
+        with patch('mito.engine.download', side_effect=AssertionError('no download')):
+            self.assertTrue(hold_version(self.engine,'main/tool',log=quiet))
+            self.assertFalse(hold_version(self.engine,'main/tool',log=quiet))
+        lock=self.engine.installed()['main/tool']
+        self.assertEqual(lock['pinned'],{'version':str(before['version']),'source':'installed'})
+        self.assertEqual((lock['version'],lock['manifest_sha256']),(before['version'],before['manifest_sha256']))
+        self.assertIsNone(available_update(self.engine,lock))
+        self.assertTrue(release_version(self.engine,'main/tool',log=quiet))
+        self.assertEqual(available_update(self.engine,self.engine.installed()['main/tool'])['version'],'2.0')
+
     @unittest.skipUnless(os.name == 'nt', 'Bloqueo de archivos de Windows')
     def test_remove_in_use_reports_open_application_and_keeps_payload(self):
         # Un archivo abierto sin FILE_SHARE_DELETE equivale a la app abierta en la bandeja.

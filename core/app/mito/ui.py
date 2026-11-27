@@ -86,6 +86,45 @@ class InstallVersionDialog(ModalScreen[bool]):
         self.dismiss(event.button.id == 'install-version-confirm')
 
 
+class VersionRetentionDialog(ModalScreen[object]):
+    """Retener la versión instalada o liberarla; dismiss 'hold-version', 'release-version' o None."""
+    BINDINGS = [('escape', 'cancel', 'Cancelar')]
+    DEFAULT_CSS = """
+    VersionRetentionDialog { align: center middle; background: $background 70%; }
+    #version-retention-dialog { width: 72; height: auto; max-height: 90%; padding: 1 2; border: round #b5dc64; background: #153429; }
+    #version-retention-dialog Static { height: auto; margin-bottom: 1; }
+    #version-retention-actions { height: auto; align-horizontal: right; }
+    #version-retention-actions Button { margin-left: 1; }
+    """
+
+    def __init__(self, lock):
+        super().__init__()
+        self.lock = lock
+
+    def compose(self):
+        pinned = bool(self.lock.get('pinned'))
+        with VerticalScroll(id='version-retention-dialog'):
+            yield DialogHeader(tr('VERSIÓN DEL COMPONENTE'), 'version-retention-close')
+            yield Static(f'{self.lock["key"]} · {self.lock["version"]}'
+                         + (f' · {tr("retenida")}' if pinned else ''), markup=False)
+            yield Static(tr('Retener: Actualizar no sustituirá esta versión y, al exportar el profile, la importación instalará exactamente esta versión.'))
+            yield Static(tr('Liberar: Actualizar volverá a proponer la última versión del catálogo. La versión instalada no cambia hasta que actualices.'))
+            with Horizontal(id='version-retention-actions'):
+                yield Button(tr('Cancelar'), id='version-retention-cancel')
+                if pinned:
+                    yield Button(tr('Liberar para actualizar'), id='version-retention-release', variant='primary')
+                else:
+                    yield Button(tr('Retener versión'), id='version-retention-hold', variant='primary')
+
+    def action_cancel(self):
+        self.dismiss(None)
+
+    def on_button_pressed(self, event: Button.Pressed):
+        event.stop()
+        self.dismiss({'version-retention-hold': 'hold-version',
+                      'version-retention-release': 'release-version'}.get(event.button.id))
+
+
 class VersionsDialog(ModalScreen[object]):
     """Elegir una versión concreta de bucket/app: histórico Git o autoupdate."""
     BINDINGS = [('escape', 'cancel', 'Cancelar')]
@@ -657,6 +696,13 @@ class LongStepDialog(ModalScreen):
             self.dismiss(None)
 
 
+def icon_button(icon, label, **kwargs):
+    """Compact row button: an icon with the translated action as tooltip."""
+    button = Button(icon, **kwargs)
+    button.tooltip = label
+    return button
+
+
 def human_size(value):
     size = float(value or 0)
     for unit in ('B', 'KB', 'MB', 'GB'):
@@ -792,12 +838,18 @@ class YitoApp(App):
     .component { height: 1; margin-bottom: 1; padding: 0 1; align-vertical: middle; }
     .component-row-dark { background: #1b3b2e; }
     .component-row-light { background: #29513d; }
-    .component Checkbox { width: 1fr; height: 1; min-height: 1; content-align: left middle; border: none; background: transparent; }
+    .component Checkbox { width: auto; height: 1; min-height: 1; content-align: left middle; border: none; background: transparent; padding: 0; }
+    .component .component-toggle { width: 3; min-width: 3; text-overflow: clip; }
+    .component .component-name { width: auto; height: 1; padding-left: 1; content-align: left middle; }
+    .component .component-version { width: auto; min-width: 1; margin-left: 0; padding: 0; background: transparent; color: #b5dc64; text-style: underline; content-align: left middle; }
+    .component .component-spacer { width: 1fr; height: 1; }
     .component Button { width: 10; min-width: 10; height: 1; min-height: 1; padding: 0 1; border: none; }
-    .component .component-info { width: 10; margin-left: 1; }
+    .component .component-info { width: 6; min-width: 6; margin-left: 1; }
+    .component .component-remove { width: 6; min-width: 6; }
+    .component .component-open { width: 5; min-width: 5; color: #b5dc64; text-style: bold; }
     .component .component-update { width: 14; margin-left: 1; }
     .component .component-remove { margin-left: 1; }
-    .component .app-shortcut { width: 16; min-width: 16; margin-left: 1; }
+    .component .app-shortcut { width: 6; min-width: 6; margin-left: 1; }
     #home-actions { height: 3; margin-top: 1; }
     #home-actions Button { width: 1fr; }
     #browse { margin-right: 1; }
@@ -809,7 +861,7 @@ class YitoApp(App):
     .component .host-data-button { width: 12; min-width: 12; margin-left: 1; }
     .component .open-with-button { width: 20; min-width: 20; margin-left: 1; }
     .component .protocol-button { width: 14; min-width: 14; margin-left: 1; }
-    .host-app-name { width: 1fr; height: 1; padding-left: 5; content-align: left middle; color: #FFF; }
+    .host-app-name { width: 1fr; height: 1; padding-left: 4; content-align: left middle; color: #FFF; }
     '''
 
     def __init__(self, engine, profile=None):
@@ -1247,13 +1299,28 @@ class YitoApp(App):
             from .open_with import entries as open_with_entries
             catalog = dict(self.engine.catalog.all())
             pending = []
+            # Name and version are columns: fixed widths from the longest value keep
+            # every version and button aligned between rows.
+            def version_text(lock):
+                return str(lock['version']) + (' 🔒' if lock.get('pinned') else '')
+            from rich.cells import cell_len
+            name_width = max((cell_len(lock['key']) for lock in self.inventory.values()), default=0) + 1
+            version_width = max((cell_len(version_text(lock)) for lock in self.inventory.values()), default=0)
             for index, (installation, lock) in enumerate(self.inventory.items()):
                 self.row_ids[str(index)] = installation
-                label = f'{lock["key"]}   ·   {lock["version"]}' + (f'   ·   {tr("retenida")}' if lock.get('pinned') else '')
-                widgets = [Checkbox(label, value=installation in active, name=installation, id=f'active-{index}', disabled=not profile or self.busy)]
+                # Only the box toggles activation: a click on the name does nothing and
+                # the version opens the retention dialog.
+                name = Static(lock['key'], classes='component-name', markup=False)
+                name.styles.width = name_width + 1
+                version = Button(version_text(lock), id=f'version-{index}', classes='component-version', disabled=self.busy)
+                # Button pads its label with one column per side (line-pad: 1).
+                version.styles.width = version_width + 2
+                version.tooltip = tr('Liberar para actualizar') if lock.get('pinned') else tr('Retener versión')
+                widgets = [Checkbox('', value=installation in active, name=installation, id=f'active-{index}', classes='component-toggle', disabled=not profile or self.busy),
+                           name, version, Static('', classes='component-spacer')]
                 self.checkbox_states[widgets[0]] = (profile, installation in active)
                 if installation in active and self.engine.can_open(lock):
-                    widgets += [Button(tr('Abrir'), id=f'open-{index}', disabled=self.busy), Button(tr('Acc. directo'), id=f'link-{index}', classes='app-shortcut', disabled=self.busy)]
+                    widgets += [icon_button('▶', tr('Abrir'), id=f'open-{index}', classes='component-open', disabled=self.busy), icon_button('🔗', tr('Acc. directo'), id=f'link-{index}', classes='app-shortcut', disabled=self.busy)]
                     registered = bool(open_with_entries(self.engine.root, profile, installation))
                     widgets.append(Button(tr('Extensiones') + (' ✓' if registered else ' ✗'), id=f'openwith-{index}', classes='open-with-button', disabled=self.busy))
                     widgets.append(Button(tr('Protocolos'), id=f'protocol-{index}', classes='protocol-button', disabled=self.busy))
@@ -1261,7 +1328,7 @@ class YitoApp(App):
                     exposed = exposure_linked(self.engine.root, installation)
                     # Estado, como Extensiones: ✓ enlazado, ✗ sin enlace (no la acción).
                     widgets.append(Button(tr('Host · ') + ('✓' if exposed else '✗'), id=f'expose-{index}', classes='host-data-button', disabled=self.busy))
-                widgets.append(Button(tr('Info'), id=f'info-{index}', classes='component-info', disabled=self.busy))
+                widgets.append(icon_button('ℹ️', tr('Info'), id=f'info-{index}', classes='component-info', disabled=self.busy))
                 candidate = available_update(self.engine,lock,catalog)
                 if candidate:
                     # Green: update available · yellow: downloading in the background ·
@@ -1282,7 +1349,7 @@ class YitoApp(App):
                     widgets.append(button)
                     if candidate['status'] == 'Compatible':
                         pending.append(installation)
-                widgets.append(Button(tr('Eliminar'), id=f'remove-{index}', classes='component-remove', disabled=self.busy))
+                widgets.append(icon_button('🗑️', tr('Eliminar'), id=f'remove-{index}', classes='component-remove', variant='error', disabled=self.busy))
                 shade = 'component-row-light' if len(rows) % 2 else 'component-row-dark'
                 rows.append(Horizontal(*widgets, classes=f'component {shade}'))
             from .host_apps import inventory as host_inventory
@@ -1293,12 +1360,12 @@ class YitoApp(App):
                 path = Path(filename)
                 unavailable = not path.is_file()
                 widgets = [Static(f'{path.stem} · Host' + (tr(' · No disponible') if unavailable else ''), classes='host-app-name', markup=False),
-                           Button(tr('Abrir'), id=f'host-open-{identity}', disabled=self.busy or unavailable or not profile),
+                           icon_button('▶', tr('Abrir'), id=f'host-open-{identity}', classes='component-open', disabled=self.busy or unavailable or not profile),
                            Button(tr('Cache · ') + ('✓' if linked(self.engine.root, identity, 'cache') else '✗'), id=f'host-cache-{identity}', classes='host-data-button', disabled=self.busy),
                            Button(tr('Data · ') + ('✓' if linked(self.engine.root, identity, 'data') else '✗'), id=f'host-data-{identity}', classes='host-data-button', disabled=self.busy),
-                           Button(tr('Acc. directo'), id=f'host-link-{identity}', classes='app-shortcut', disabled=self.busy or unavailable or not profile),
-                           Button(tr('Info'), id=f'host-info-{identity}', classes='component-info', disabled=self.busy),
-                           Button(tr('Eliminar'), id=f'host-remove-{identity}', classes='component-remove', disabled=self.busy)]
+                           icon_button('🔗', tr('Acc. directo'), id=f'host-link-{identity}', classes='app-shortcut', disabled=self.busy or unavailable or not profile),
+                           icon_button('ℹ️', tr('Info'), id=f'host-info-{identity}', classes='component-info', disabled=self.busy),
+                           icon_button('🗑️', tr('Eliminar'), id=f'host-remove-{identity}', classes='component-remove', variant='error', disabled=self.busy)]
                 shade = 'component-row-light' if len(rows) % 2 else 'component-row-dark'
                 rows.append(Horizontal(*widgets, classes=f'component host-component {shade}'))
             # Sólo con más de una actualización compatible pendiente.
@@ -1537,6 +1604,13 @@ class YitoApp(App):
             if len(getattr(self, 'pending_updates', [])) > 1:
                 self.choose_download_mode('all', profile, list(self.pending_updates))
             return
+        if action.startswith('version-'):
+            installation = self.row_ids[action.removeprefix('version-')]
+            def chosen(result):
+                if result in ('hold-version', 'release-version'):
+                    self.begin(result, profile, installation)
+            self.push_screen(VersionRetentionDialog(self.inventory[installation]), chosen)
+            return
         if action not in ('create', 'refresh', 'install', 'versions') and not action.startswith(('remove-', 'update-', 'info-', 'expose-')) and not profile:
             self.notify(tr('Selecciona un profile'), severity='warning')
             return
@@ -1632,6 +1706,11 @@ class YitoApp(App):
             self.open_configuration(profile)
         elif action == 'profile-files':
             self.open_profile_files(profile)
+        elif action == 'profile-repository':
+            from .profile_repository_ui import ProfileRepositoryDialog
+            # Instalar desde el repositorio es la importación normal, con su revisión.
+            self.push_screen(ProfileRepositoryDialog(self.engine),
+                             lambda selection: self.begin('import-profile', profile, selection) if selection else None)
         elif action in ('export-profile', 'import-profile'):
             from .profile_transfer_ui import TransferPathDialog
             def chosen(selection):
@@ -1997,6 +2076,9 @@ class YitoApp(App):
             elif action == 'release-version':
                 from .components import release_version
                 release_version(self.engine, target, log)
+            elif action == 'hold-version':
+                from .components import hold_version
+                hold_version(self.engine, target, log)
             elif action == 'delete-profile':
                 removed = profile
                 profile = self.engine.delete_profile(profile)
@@ -2112,7 +2194,7 @@ class YitoApp(App):
             select = self.query_one('#profile', Select); old = select.value
             names = self.engine.profiles()
             select.set_options([(name, name) for name in names])
-            select.value = old if old in names else (names[0] if names else Select.BLANK)
+            select.value = old if old in names else (names[0] if names else Select.NULL)
             await self.refresh_home()
             if self.query_one('#pages', ContentSwitcher).current == 'catalog-page':
                 self.load_catalog()

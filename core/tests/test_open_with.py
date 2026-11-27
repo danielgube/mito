@@ -183,6 +183,9 @@ class OpenWithDialogTests(AsyncTestCase):
             table = app.screen.query_one('#open-with-table', DataTable)
             app.screen.query_one('#open-with-preset', Select).value = ' '.join(word)
             self.assertTrue(await until(pilot, lambda: table.row_count == len(word)))
+            await pilot.pause()
+            # clear() re-emits Changed with Select.NULL: it is not an extension.
+            self.assertEqual(str(app.screen.query_one('#open-with-error').content), '')
             app.screen.query_one('#open-with-confirm', Button).press()
             self.assertTrue(await until(pilot, lambda: results))
         self.assertEqual(results, [{'Office': list(word)}])

@@ -30,6 +30,7 @@ class ManageProfileDialog(ModalScreen):
             with Horizontal(id='profile-transfer-actions'):
                 yield Button(tr('Exportar'), id='export-profile', disabled=not self.profile)
                 yield Button(tr('Importar'), id='import-profile')
+            yield Button(tr('Repositorio de profiles'), id='profile-repository')
             yield Button(tr('Acceso directo'), id='mito-shortcut', disabled=not self.profile)
             yield Button(tr('Configuración'), id='profile-configuration', disabled=not self.profile)
             yield Button(tr('Archivos de configuración'), id='profile-files', disabled=not self.profile)
