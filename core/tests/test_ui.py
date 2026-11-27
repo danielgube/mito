@@ -76,6 +76,9 @@ class UITests(AsyncTestCase):
                 await app.workers.wait_for_complete()
                 await pilot.pause()
                 await click(pilot, '#update-0')
+                await pilot.pause()
+                # Actualizar ofrece ahora o en segundo plano; «ahora» conserva el flujo anterior.
+                await click(pilot, '#install-mode-now')
                 await app.workers.wait_for_complete()
                 await pilot.pause()
                 await asyncio.gather(app.refresh_home(), app.refresh_home())
@@ -362,6 +365,33 @@ class UITests(AsyncTestCase):
                     await pilot.press('escape')
                     await until(pilot, lambda: not isinstance(app.screen, DownloadIntegrityDialog))
 
+    async def test_proxy_confirmation_dialog_opens_only_the_origin_in_the_browser(self):
+        from mito.transfer import DownloadIntegrityError
+        from mito.ui import DownloadIntegrityDialog
+        with tempfile.TemporaryDirectory() as tmp:
+            engine = Engine(Path(tmp))
+            engine.create_profile('test')
+            app = YitoApp(engine)
+            error = DownloadIntegrityError('Proxy', url='https://downloads.example/app.exe', size=10000,
+                                           host='downloads.example', portal=True, confirm=True,
+                                           browse='https://downloads.example/')
+            with patch('mito.network.Network.check', return_value=True), \
+                 patch('webbrowser.open') as browser:
+                async with app.run_test(size=(130,42)) as pilot:
+                    await pilot.pause()
+                    # Background queue failures reach the same dialog, from the queue thread
+                    # (pushing from the test task would compose outside the app context).
+                    import asyncio
+                    await asyncio.to_thread(app.downloads.failed, error)
+                    await until(pilot, lambda: isinstance(app.screen, DownloadIntegrityDialog))
+                    text = ' '.join(str(s.render()) for s in app.screen.query('Static'))
+                    self.assertIn('downloads.example', text)
+                    self.assertNotIn('INTERNET', text)
+                    self.assertEqual(app.screen.focused.id, 'integrity-browse')
+                    await pilot.press('enter')
+                    await until(pilot, lambda: not isinstance(app.screen, DownloadIntegrityDialog))
+                    browser.assert_called_once_with('https://downloads.example/')
+
     async def test_long_engine_step_shows_centered_notice_that_closes_itself(self):
         import threading
         from mito.engine import LongStep
@@ -594,7 +624,7 @@ class UITests(AsyncTestCase):
                 await pilot.pause()
                 self.assertIn(__version__,app.title)
                 self.assertFalse(app.query('#home-info'))
-                self.assertEqual([b.id for b in app.query('#sidebar Button')], ['manage-profile','home-button','check-updates','self-update','open-home','configuration','pocketools','mcp-button','mcp-jobs-button','network-status'])
+                self.assertEqual([b.id for b in app.query('#sidebar Button')], ['manage-profile','home-button','check-updates','self-update','downloads-button','open-home','configuration','pocketools','mcp-button','mcp-jobs-button','network-status'])
                 self.assertFalse(app.query_one('#self-update', Button).display)
                 with patch('mito.persistence.open_location') as open_location:
                     await click(pilot, '#open-home')
@@ -852,6 +882,8 @@ class UITests(AsyncTestCase):
                     self.assertFalse(app.query_one('#update-0',Button).disabled)
                     self.assertEqual(app.query_one('#update-0',Button).variant, 'success')
                     await click(pilot, '#update-0')
+                    await pilot.pause()
+                    await click(pilot, '#install-mode-now')
                     await app.workers.wait_for_complete()
                     await pilot.pause()
                     update.assert_called_once()

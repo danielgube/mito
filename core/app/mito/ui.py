@@ -2,6 +2,7 @@ from .i18n import tr
 import json
 import subprocess
 import time
+import urllib.parse
 from rich.text import Text
 from textual import work
 from textual.app import App, ComposeResult
@@ -581,23 +582,38 @@ class DownloadIntegrityDialog(ModalScreen):
         with VerticalScroll(id='integrity-dialog'):
             yield Static(tr('DESCARGA ALTERADA POR LA RED'), id='integrity-title')
             yield Static(tr('Lo que ha llegado no es el archivo publicado, así que MITO lo ha descartado y no ha instalado nada.'))
-            if self.error.portal:
+            if getattr(self.error, 'confirm', False):
+                yield Static(tr('Causa más probable: el proxy de la red pide confirmar el acceso a {p1}. Ábrelo en el navegador, acepta el aviso y vuelve a intentarlo.',
+                                p1=self.error.host or '?'), markup=False)
+            elif self.error.portal:
                 yield Static(tr('Causa más probable: el portal de autenticación de la red. Pulsa INTERNET, conéctate y vuelve a intentarlo.'))
             else:
                 yield Static(tr('Causa más probable: el proxy o el antivirus de la red ha sustituido o modificado la descarga. No es un fallo de MITO ni del catálogo. Prueba desde otra red o pasa estos datos a soporte.'))
             # Read-only text so the URL can be selected and copied for support.
             yield TextArea(tr('URL: {p1}\nRecibido: {p2} bytes desde {p3}', p1=self.error.url or '?', p2=size, p3=self.error.host or '?'),
                            read_only=True, soft_wrap=True, id='integrity-details')
-            yield Button(tr('Cerrar'), id='integrity-close', variant='primary')
+            if self.browse:
+                yield Button(tr('Abrir en el navegador'), id='integrity-browse', variant='primary')
+            yield Button(tr('Cerrar'), id='integrity-close', variant='default' if self.browse else 'primary')
+
+    @property
+    def browse(self):
+        # Only an http(s) origin built by transfer.web_page_error, never a link from the page.
+        url = getattr(self.error, 'browse', '') if getattr(self.error, 'confirm', False) else ''
+        return url if urllib.parse.urlsplit(url).scheme in ('http', 'https') else ''
 
     def on_mount(self):
-        self.query_one('#integrity-close', Button).focus()
+        self.query_one('#integrity-browse' if self.browse else '#integrity-close', Button).focus()
 
     def action_close(self):
         self.dismiss(None)
 
     def on_button_pressed(self, event):
         event.stop()
+        if event.button.id == 'integrity-browse':
+            # The user accepts the notice there; MITO never submits the proxy form itself.
+            import webbrowser
+            webbrowser.open(self.browse)
         self.dismiss(None)
 
 
@@ -779,7 +795,7 @@ class YitoApp(App):
     .component Checkbox { width: 1fr; height: 1; min-height: 1; content-align: left middle; border: none; background: transparent; }
     .component Button { width: 10; min-width: 10; height: 1; min-height: 1; padding: 0 1; border: none; }
     .component .component-info { width: 10; margin-left: 1; }
-    .component .component-update { width: 12; margin-left: 1; }
+    .component .component-update { width: 14; margin-left: 1; }
     .component .component-remove { margin-left: 1; }
     .component .app-shortcut { width: 16; min-width: 16; margin-left: 1; }
     #home-actions { height: 3; margin-top: 1; }
@@ -823,6 +839,117 @@ class YitoApp(App):
         self.mcp_confirmations = []
         self.mcp_confirming = False
         self.mcp_dirty = False
+        import threading
+        from .download_queue import DownloadQueue
+        self.main_thread = threading.get_ident()
+        self.downloads = DownloadQueue(engine, log=self.queue_log, confirm_unverified=self.queue_confirm,
+                                       changed=self.queue_changed, failed=self.queue_failed)
+        self.downloads_dirty = True
+        self.downloads_done = set()
+
+    # Background downloads: the queue thread reports here; the UI repaints every second.
+    def queue_log(self, message, level='info'):
+        import threading
+        try:
+            if threading.get_ident() == self.main_thread:
+                self.write_log(message, level)
+            else:
+                self.call_from_thread(self.write_log, message, level)
+        except RuntimeError:
+            pass  # The manager is closing: the queue pauses with it.
+
+    def queue_confirm(self, downloads):
+        return self.call_from_thread(self.confirm_unverified, downloads)
+
+    def queue_changed(self):
+        self.downloads_dirty = True
+
+    def queue_failed(self, exc):
+        # Only the proxy confirmation needs a step from the user beyond reading the log.
+        from .transfer import DownloadIntegrityError
+        if isinstance(exc, DownloadIntegrityError) and exc.confirm:
+            import threading
+            try:
+                if threading.get_ident() == self.main_thread:
+                    self.push_screen(DownloadIntegrityDialog(exc))
+                else:
+                    self.call_from_thread(self.push_screen, DownloadIntegrityDialog(exc))
+            except RuntimeError:
+                pass  # The manager is closing.
+
+    def refresh_downloads(self):
+        if not self.downloads_dirty or not self.is_mounted or not self.screen_stack:
+            return
+        from textual.css.query import NoMatches
+        try:
+            # The sidebar lives on the base screen, also while a dialog is open on top.
+            button = self.screen_stack[0].query_one('#downloads-button', Button)
+        except NoMatches:
+            return
+        self.downloads_dirty = False
+        items = self.downloads.snapshot()
+        active = [item for item in items if item['status'] in ('pending', 'downloading')]
+        ready = [item for item in items if item['status'] == 'done']
+        running = next((item for item in active if item['status'] == 'downloading'), None)
+        label = tr('Descargas · {p1} en curso', p1=len(active)) if active else tr('Descargas · {p1} listas', p1=len(ready))
+        progress = (running or {}).get('progress') or {}
+        if progress.get('total') and progress.get('received') is not None and progress.get('unit', 'bytes') == 'bytes':
+            label += f' · {progress["received"] * 100 // progress["total"]}%'
+        if str(button.label) != label:
+            button.label = label
+        button.display = bool(items)
+        # Inicio repaints when an item changes state (queued, downloading, done), never for progress.
+        done = {(item['kind'], item['target'], item['status']) for item in items}
+        if done != self.downloads_done:
+            # With a dialog open or an operation running, retry on the next tick.
+            if self.busy or self.rebuilding or len(self.screen_stack) > 1:
+                self.downloads_dirty = True
+                return
+            self.downloads_done = done
+            self.call_later(self.refresh_home)
+
+    def choose_download_mode(self, kind, profile, target):
+        """Instalar/Actualizar: ahora (como siempre) o descarga en segundo plano."""
+        from .components import update_downloaded
+        from .downloads_ui import InstallModeDialog
+        if kind == 'install':
+            item = self.downloads.find('install', target)
+            if item and item['status'] == 'done':
+                self.begin('install', profile, target)
+                return
+            title, now = tr('¿Cómo quieres instalar {p1}?', p1=target), tr('Descargar e instalar ahora')
+            action = 'install'
+        elif kind == 'update':
+            lock = self.inventory.get(target)
+            if lock and update_downloaded(self.engine, lock):
+                self.begin('update-component', profile, target)
+                return
+            title, now = tr('¿Cómo quieres actualizar {p1}?', p1=target), tr('Descargar y actualizar ahora')
+            action = 'update-component'
+        else:
+            title, now = tr('¿Cómo quieres actualizar {p1} componentes?', p1=len(target)), tr('Actualizar todos ahora')
+            action = 'update-all'
+
+        def chosen(mode):
+            if mode == 'now':
+                self.begin(action, profile, target)
+            elif mode == 'background':
+                for value in (target if kind == 'all' else [target]):
+                    self.downloads.enqueue('install' if kind == 'install' else 'update', value)
+                self.notify(tr('Descarga en segundo plano iniciada. Sigue su progreso en Descargas.'))
+        self.push_screen(InstallModeDialog(title, now), chosen)
+
+    def open_downloads(self):
+        from .downloads_ui import DownloadsDialog
+        def chosen(result):
+            if result is None:
+                return
+            kind, target = result
+            if self.busy:
+                self.notify(tr('Espera a que termine la operación en curso'), severity='warning')
+                return
+            self.begin('install' if kind == 'install' else 'update-component', self.current_profile(), target)
+        self.push_screen(DownloadsDialog(self.downloads), chosen)
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -837,6 +964,9 @@ class YitoApp(App):
                 updater = Button(tr('Actualizar MITO'), id='self-update', variant='success')
                 updater.display = False
                 yield updater
+                downloads = Button(tr('Descargas · {p1} en curso', p1=0), id='downloads-button', variant='primary')
+                downloads.display = False
+                yield downloads
                 yield Button(tr('Abrir Home'), id='open-home')
                 yield Button(tr('Configuración'), id='configuration')
                 yield Button(tr('Pocketools'), id='pocketools')
@@ -899,6 +1029,12 @@ class YitoApp(App):
         self.start_network_poll()
         self.check_component_updates()
         self.check_mito_update()
+        # Background downloads left pending by an earlier session continue now.
+        try:
+            self.downloads.load()
+        except Exception as exc:
+            capture(self.engine.root, exc, operation='downloads.load')
+        self.set_interval(1, self.refresh_downloads)
 
     def start_network_poll(self):
         """Periodic silent check that only repaints the INTERNET button (0 disables it)."""
@@ -1106,7 +1242,7 @@ class YitoApp(App):
             self.row_ids = {}
             self.checkbox_states = {}
             rows = []
-            from .components import available_update
+            from .components import available_update, update_downloaded
             from .host_exposure import linked as exposure_linked
             from .open_with import entries as open_with_entries
             catalog = dict(self.engine.catalog.all())
@@ -1128,8 +1264,21 @@ class YitoApp(App):
                 widgets.append(Button(tr('Info'), id=f'info-{index}', classes='component-info', disabled=self.busy))
                 candidate = available_update(self.engine,lock,catalog)
                 if candidate:
-                    button = Button(tr('Actualizar'), id=f'update-{index}', classes='component-update', variant='success', disabled=self.busy or candidate['status'] != 'Compatible')
-                    button.tooltip = tr('Versión {p1} · {p3}', p1=(candidate['version']), p3=(tr(candidate['status'])))
+                    # Green: update available · yellow: downloading in the background ·
+                    # blue: already downloaded, updating no longer waits for the network.
+                    queued = self.downloads.find('update', installation)
+                    queued = queued['status'] if queued else None
+                    tooltip = tr('Versión {p1} · {p3}', p1=(candidate['version']), p3=(tr(candidate['status'])))
+                    if queued in ('pending', 'downloading'):
+                        label, variant = (tr('Descargando…') if queued == 'downloading' else tr('En cola')), 'warning'
+                        tooltip += ' · ' + tr('Descarga en segundo plano; pulsa para ver el progreso')
+                    elif candidate['status'] == 'Compatible' and update_downloaded(self.engine, lock, catalog):
+                        label, variant = tr('Actualizar'), 'primary'
+                        tooltip += ' · ' + tr('Descargada; actualizar ya no espera a la red')
+                    else:
+                        label, variant = tr('Actualizar'), 'success'
+                    button = Button(label, id=f'update-{index}', classes='component-update', variant=variant, disabled=self.busy or candidate['status'] != 'Compatible')
+                    button.tooltip = tooltip
                     widgets.append(button)
                     if candidate['status'] == 'Compatible':
                         pending.append(installation)
@@ -1301,6 +1450,9 @@ class YitoApp(App):
         if action == 'network-status':
             self.check_network(prompt=True)
             return
+        if action == 'downloads-button':
+            self.open_downloads()
+            return
         if action == 'open-home':
             from .persistence import open_location
             from .storage import YitoError
@@ -1383,7 +1535,7 @@ class YitoApp(App):
             return
         if action == 'bulk-update':
             if len(getattr(self, 'pending_updates', [])) > 1:
-                self.begin('update-all', profile, list(self.pending_updates))
+                self.choose_download_mode('all', profile, list(self.pending_updates))
             return
         if action not in ('create', 'refresh', 'install', 'versions') and not action.startswith(('remove-', 'update-', 'info-', 'expose-')) and not profile:
             self.notify(tr('Selecciona un profile'), severity='warning')
@@ -1435,9 +1587,17 @@ class YitoApp(App):
             self.push_screen(ProtocolDialog(lock['key'], self.engine.application_entries(lock), rows, session))
             return
         if action.startswith('update-'):
-            self.begin('update-component',profile,self.row_ids[action.removeprefix('update-')])
+            installation = self.row_ids[action.removeprefix('update-')]
+            queued = self.downloads.find('update', installation)
+            if queued and queued['status'] in ('pending', 'downloading'):
+                self.open_downloads()
+            else:
+                self.choose_download_mode('update', profile, installation)
             return
         if action == 'install' and (not self.selected or self.query_one('#install', Button).disabled):
+            return
+        if action == 'install':
+            self.choose_download_mode('install', profile, self.selected)
             return
         if action == 'versions' and (not self.selected or self.query_one('#versions', Button).disabled):
             return
@@ -1823,11 +1983,15 @@ class YitoApp(App):
             elif action == 'update-component':
                 from .components import update
                 update(self.engine, target, log, confirm_unverified=confirm)
+                self.downloads.forget('update', target)
             elif action == 'update-all':
                 from .components import update_all
-                update_all(self.engine, target, log, confirm_unverified=confirm)
+                for installation in update_all(self.engine, target, log, confirm_unverified=confirm):
+                    self.downloads.forget('update', installation)
             elif action == 'install':
                 self.install_from_catalog(target, log, confirm)
+                if self.engine.installed().get(target):
+                    self.downloads.forget('install', target)
             elif action == 'versions':
                 self.install_version_from_catalog(target, log, confirm)
             elif action == 'release-version':
@@ -1887,6 +2051,18 @@ class YitoApp(App):
             self.load_catalog()
 
     def action_quit(self):
+        if self.busy:
+            self.notify(tr('Espera a que termine la operación antes de salir'))
+            return
+        pending = self.downloads.active()
+        if pending:
+            from .downloads_ui import QuitDownloadsDialog
+            # Downloads only fill the cache: leaving pauses them and they resume later.
+            self.push_screen(QuitDownloadsDialog(pending), lambda leave: self.quit_now() if leave else None)
+            return
+        self.quit_now()
+
+    def quit_now(self):
         if self.busy:
             self.notify(tr('Espera a que termine la operación antes de salir'))
         elif self.mcp.state != 'disabled':

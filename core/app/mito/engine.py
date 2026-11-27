@@ -303,6 +303,9 @@ class Engine:
             raise YitoError(tr('Importación cancelada'))
         if prepared['unverified'] and (confirm_unverified is None or not confirm_unverified(prepared['unverified'])):
             raise YitoError(tr('Instalación cancelada: descargas sin hash no confirmadas'))
+        # Downloading changes no installation or profile: it happens outside the
+        # mutation lock, into a persistent cache that survives closing MITO.
+        self._prefetch(prepared, log)
         with mutation(self.root):
             current = self._installation_plan(requested, profile, lambda message: None, manifests, pins)
             if current != prepared:
@@ -315,6 +318,29 @@ class Engine:
                 log(tr('Componente instalado. Puedes activarlo en Inicio.'))
             return current['records']
 
+    def _prefetch(self, prepared, log):
+        from .components import changed_records
+        from .download_cache import prefetch
+        def announce(key, manifest, index, total):
+            message = tr('Descargando {p1} {p3} ({p5}/{p7})', p1=(key), p3=(manifest['version']), p5=(index + 1), p7=(total))
+            log(message)
+            operation.phase(tr('DESCARGANDO'), message)
+        records = changed_records(prepared['records'], prepared['current'])
+        # Resolved at call time so callers (and tests) can replace engine.download.
+        prefetch(self.root, records, log, announce, lambda *args, **kwargs: download(*args, **kwargs))
+        return records
+
+    def download_only(self, requested, log=print, confirm_unverified=None):
+        """Download into the cache what installing requested would publish; install nothing.
+
+        Same plan and hash-less confirmation as install, before any download."""
+        prepared = self.installation_plan(requested, None, log)
+        if prepared['unverified'] and (confirm_unverified is None or not confirm_unverified(prepared['unverified'])):
+            raise YitoError(tr('Descarga cancelada: descargas sin hash no confirmadas'))
+        records = self._prefetch(prepared, log)
+        log(tr('Descarga completa: {p1}. Ya puedes instalarlo sin esperar a la red.', p1=', '.join(records) or '-'))
+        return records
+
     def _install_payload(self, key, manifest, destination, log):
         m = effective(manifest)
         with tempfile.TemporaryDirectory(dir=self.root / 'core/staging') as tmp:
@@ -324,13 +350,16 @@ class Engine:
             urls = array(m['url'])
             hashes = download_hashes(urls, m.get('hash'))
             for index, (url, expected) in enumerate(zip(urls, hashes)):
-                if expected is None:
-                    log(tr('{p0}: descarga sin hash declarado ({p2}/{p4})', p0=(key), p2=(index + 1), p4=(len(urls))))
-                log(tr('Descargando {p1} {p3} ({p5}/{p7})', p1=(key), p3=(manifest['version']), p5=(index + 1), p7=(len(urls))))
-                operation.phase(tr('DESCARGANDO'), tr('Descargando {p1} {p3} ({p5}/{p7})', p1=(key), p3=(manifest['version']), p5=(index + 1), p7=(len(urls))))
-                archive = stage / f'download-{index}'
+                def announce(index=index):
+                    message = tr('Descargando {p1} {p3} ({p5}/{p7})', p1=(key), p3=(manifest['version']), p5=(index + 1), p7=(len(urls)))
+                    log(message)
+                    operation.phase(tr('DESCARGANDO'), message)
+                # Normally prefetched before the lock; downloads here only if the cache
+                # was emptied meanwhile. Extraction reads the cached file in place.
+                from .download_cache import artifact
                 with step(self.root, 'install', 'download-and-hash', key):
-                    download(url, archive, expected, root=self.root)
+                    archive = artifact(self.root, key, manifest, index, url, expected, log, announce,
+                                       lambda *args, **kwargs: download(*args, **kwargs))
                 operation.checkpoint()
                 expanded = stage / f'expanded-{index}'
                 from .archives import extract

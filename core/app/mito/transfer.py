@@ -49,14 +49,30 @@ def web_page(url, content_type, head):
     return text.startswith(MARKUP) or ((content_type or '').lower() == 'text/html' and text.startswith(b'<'))
 
 
+FORM = re.compile(rb'<form\b[^>]*\bmethod\s*=\s*["\']?post\b', re.IGNORECASE)
+PASSWORD = re.compile(rb'<input\b[^>]*\btype\s*=\s*["\']?password\b', re.IGNORECASE)
+SUBMIT = re.compile(rb'<(?:input\b[^>]*\btype\s*=\s*["\']?submit\b|button\b)', re.IGNORECASE)
+
+
+def confirmation_page(page):
+    """True for a proxy notice that only asks to accept a warning (POST form, no password).
+
+    Generic shape, no vendor rules. MITO never submits it: the user accepts it in
+    the browser, where the proxy records that decision."""
+    return bool(FORM.search(page) and SUBMIT.search(page) and not PASSWORD.search(page))
+
+
 class DownloadIntegrityError(YitoError):
     """The received content is not the declared artifact; the UI explains it in a dialog.
 
     url is the requested URL without query, host the final server and portal marks
-    an intercepted HTML page (authentication portal) instead of altered content."""
-    def __init__(self, message, url='', size=None, host='', portal=False):
+    an intercepted HTML page (authentication portal) instead of altered content.
+    confirm marks a proxy page asking to accept a warning; browse is the origin of
+    the intercepted server to open in the browser (never a URL taken from the page)."""
+    def __init__(self, message, url='', size=None, host='', portal=False, confirm=False, browse=''):
         super().__init__(message)
         self.url, self.size, self.host, self.portal = url, size, host, portal
+        self.confirm, self.browse = confirm, browse
 
 
 def public_url(url):
@@ -65,10 +81,26 @@ def public_url(url):
     return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, '', ''))
 
 
-def web_page_error(final_url, url='', size=None):
-    host = urllib.parse.urlsplit(final_url).hostname or '?'
+def web_page_error(final_url, url='', size=None, page=b''):
+    parsed = urllib.parse.urlsplit(final_url)
+    host = parsed.hostname or '?'
+    if parsed.scheme in ('http', 'https') and parsed.hostname and confirmation_page(page):
+        # The origin, not the artifact path: accepting in the browser must not start the download there.
+        browse = urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, '/', '', ''))
+        return DownloadIntegrityError(tr('El proxy de la red pide confirmar el acceso a {p1} antes de descargar. Ábrelo en el navegador, acepta el aviso y reintenta.',
+                            p1=host), url=public_url(url or final_url), size=size, host=host, portal=True,
+                            confirm=True, browse=browse)
     return DownloadIntegrityError(tr('La red devolvió una página web en lugar del archivo ({p1}); puede ser el portal de autenticación o un bloqueo del proxy. Pulsa INTERNET y reintenta.',
                         p1=host), url=public_url(url or final_url), size=size, host=host, portal=True)
+
+
+def _page(path, limit=1024 * 1024):
+    """Start of an intercepted page, read only to classify it."""
+    try:
+        with path.open('rb') as page:
+            return page.read(limit)
+    except OSError:
+        return b''
 
 
 def hash_verifier(expected):
@@ -191,13 +223,17 @@ class _Stream:
 
 
 def download(url: str, destination: Path, expected: str | None = None, *, root=None,
-             max_bytes=MAX_DOWNLOAD, attempts=5, delay=2):
+             max_bytes=MAX_DOWNLOAD, attempts=5, delay=2, resume=False):
     """Download with retries. After an interruption it resumes with Range from the
     bytes already received when the server allows it and the result stays verifiable
     (If-Range validator or declared hash); otherwise it starts again. An attempt that
     received at least 1 MiB restores the retry budget, so slow but advancing
     connections are not abandoned. The thread's operation (see operation.py)
-    receives progress and can cancel at any time, also during a stalled read."""
+    receives progress and can cancel at any time, also during a stalled read.
+
+    resume=True continues an existing destination left by an earlier session (for
+    example after closing MITO abruptly). Only with a declared hash: without it the
+    bytes already on disk could not be verified, so the download starts again."""
     from . import operation
     if urllib.parse.urlsplit(url).scheme not in ('http', 'https'):
         raise YitoError(tr('Las descargas requieren HTTP o HTTPS'))
@@ -220,6 +256,26 @@ def download(url: str, destination: Path, expected: str | None = None, *, root=N
     received, length, validator, resumed = 0, None, None, False
     hasher, digest = hash_verifier(expected)
     head, content_type, final_url = b'', '', address
+    if resume and has_hash and destination.is_file() and 0 < destination.stat().st_size <= max_bytes:
+        # Rebuild the in-memory state of the earlier session from the bytes on disk.
+        with destination.open('rb') as previous:
+            while block := previous.read(1024 * 1024):
+                if len(head) < 512:
+                    head += block[:512 - len(head)]
+                hasher.update(block)
+                received += len(block)
+        if hasher.copy().hexdigest().lower() == digest:
+            # Completed earlier but not yet renamed by the caller.
+            if web_page(address, content_type, head):
+                page = _page(destination)
+                destination.unlink(missing_ok=True)
+                raise web_page_error(final_url, address, received, page)
+            return
+        # A mismatch after joining parts downloads the whole file once.
+        resumed = True
+    elif resume:
+        # Without a hash (or with an unusable file) earlier bytes cannot be trusted.
+        destination.unlink(missing_ok=True)
 
     def warn(message):
         print(message, flush=True)
@@ -356,8 +412,9 @@ def download(url: str, destination: Path, expected: str | None = None, *, root=N
             # Checked before the hash and also without one: a hash-less install
             # must never publish an intercepted HTML page as the component.
             if web_page(request.full_url, content_type, head):
+                page = _page(destination)
                 destination.unlink(missing_ok=True)
-                raise web_page_error(final_url, request.full_url, total)
+                raise web_page_error(final_url, request.full_url, total, page)
             if hasher is not None and hasher.hexdigest().lower() != digest:
                 if resumed and remaining:
                     # Joining parts of a file that changed meanwhile: one full download decides.

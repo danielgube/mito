@@ -134,6 +134,55 @@ class TransferTests(unittest.TestCase):
             server.server_close()
             thread.join()
 
+    def test_proxy_confirmation_page_offers_the_intercepted_origin_without_submitting(self):
+        from mito.transfer import DownloadIntegrityError, confirmation_page
+        # Proxy notice served in place of the file (shape of a real one, anonymized):
+        # a POST form with only a Continue button, relative action and no password.
+        page=(b'<!DOCTYPE html><html><head><title>Web Page Blocked</title></head><body>'
+              b'<img src="data:image/png;base64,' + b'A'*4096 + b'"><p>Category: example</p>'
+              b'<form name="login" method="POST" action="/php/urlblock.php?args=x&amp;url=https://evil.example/">'
+              b'<input type="submit" name="ok" value="Continue"></form></body></html>')
+        posts=[]
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self,*args):pass
+            def do_GET(self):
+                self.send_response(200)
+                self.send_header('Content-Type','text/html')
+                self.end_headers()
+                self.wfile.write(page)
+            def do_POST(self):
+                posts.append(self.path)
+                self.send_response(200)
+                self.end_headers()
+        server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+        thread=threading.Thread(target=server.serve_forever,daemon=True)
+        thread.start()
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                target=Path(tmp)/'download'
+                base=f'http://127.0.0.1:{server.server_port}'
+                for expected in ('0'*64, None):
+                    with self.subTest(expected=expected):
+                        with self.assertRaises(DownloadIntegrityError) as error:
+                            download(base+'/release/app.zip?sig=secret',target,expected)
+                        exc=error.exception
+                        self.assertTrue(exc.confirm)
+                        self.assertEqual(exc.browse, base+'/')
+                        self.assertIn('navegador', str(exc))
+                        self.assertNotIn('INTERNET', str(exc))
+                        self.assertNotIn('secret', str(exc)+exc.browse)
+                        self.assertFalse(target.exists())
+                self.assertEqual(posts, [])
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+        # Login portals and plain block pages keep the previous classification.
+        self.assertFalse(confirmation_page(b'<form method="post"><input type="password" name="p"><button>OK</button></form>'))
+        self.assertFalse(confirmation_page(b'<html><p>Blocked</p></html>'))
+        self.assertFalse(confirmation_page(b'<form><input type="submit"></form>'))
+        self.assertTrue(confirmation_page(b"<FORM action='/c' METHOD=post><button type=submit>Continuar</button></FORM>"))
+
     def test_web_page_detection(self):
         from mito.transfer import web_page
         self.assertTrue(web_page('https://x/app.zip','application/octet-stream',b'\xef\xbb\xbf\n<!doctype html><p>'))

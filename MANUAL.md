@@ -283,6 +283,16 @@ profile cuando corresponda y conserva activación y persistencia. También actua
 componentes inactivos sin activarlos. Cierra la aplicación antes de actualizar y
 abre nuevas pestañas después.
 
+Al pulsar **Instalar**, **Actualizar** o **Actualizar todos**, MITO pregunta si
+quieres **descargar e instalar ahora** o **descargar en segundo plano**. En segundo
+plano puedes seguir usando MITO: las descargas se hacen de una en una y el botón
+**Descargas** de la barra lateral muestra el progreso. Cuando terminan, instala o
+actualiza desde esa lista o desde Inicio sin esperar a la red. En Inicio, el botón
+de actualización es verde si hay versión nueva, amarillo (**En cola** /
+**Descargando…**) mientras se descarga y azul cuando ya está descargada.
+Si cierras MITO, las descargas se pausan y continúan al volver a abrirlo; con hash
+declarado se reanudan desde donde iban. Nada se instala sin que lo pidas.
+
 Con más de una actualización compatible pendiente, Inicio muestra **Actualizar
 todos (N)**. Actualiza los componentes uno a uno, cada uno con su propio plan y su
 confirmación de descargas sin hash, y se detiene en el primer fallo o cancelación:

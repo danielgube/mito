@@ -404,6 +404,35 @@ Operation por hilo, no-op sin ella. Cancelar interrumpe la lectura en curso y el
 motor lo comprueba entre pasos hasta publish_plan; sustituir rutas estables no es
 cancelable. La UI muestra OperationDialog durante instalaciones.
 
+Descargar no cambia instalaciones ni profiles, así que Engine.install descarga
+antes de tomar el lock de mutación (download_cache.prefetch, tras las confirmaciones)
+y sólo extrae y publica con él. Las descargas van a la caché persistente
+`core/cache/downloads/<bucket>/<app>/<huella del manifiesto>/download-N`, con
+`download-N.partial` mientras llegan y un lock por componente: dentro del proceso
+los hilos esperan su turno (cancelable) y otro proceso falla en el acto con un aviso;
+componentes distintos se descargan a la vez sin bloquear a quien publica. Tras un cierre brusco, el siguiente intento reanuda el parcial con Range si
+el manifiesto declara hash (los bytes del disco se vuelven a resumir y, si ya están
+completos, no se usa la red); sin hash empieza de nuevo. Cada uso vuelve a comprobar
+el hash del archivo de la caché y lo descarga otra vez si no coincide. La extracción
+lee el archivo en su sitio. Publicar un componente o eliminarlo borra sus descargas;
+un fallo al publicar (por ejemplo, la aplicación abierta) las conserva para reintentar
+sin descargar. Cancelar sigue descartando la descarga en curso.
+
+Descargas en segundo plano (download_queue.py, downloads_ui.py): Instalar, Actualizar
+y Actualizar todos ofrecen descargar ahora (el flujo de siempre) o en segundo plano;
+si la descarga ya está completa, instalan directamente. La cola vive en un hilo del
+gestor, sin procesos auxiliares, y descarga en orden con Engine.download_only o
+components.download_update: mismo plan, mismas comprobaciones y confirmación de
+descargas sin hash antes de descargar; nunca instala ni sustituye nada. Se guarda en
+core/state/download-queue.json (pendientes y descargadas; los fallos no) y continúa al
+abrir el gestor; al restaurar se descartan las descargadas que ya no están en la caché
+o ya están instaladas. El botón Descargas muestra el progreso y abre la lista, desde
+la que se cancela, reintenta, quita (borra lo descargado sin usar) o se instala/
+actualiza de forma explícita. En Inicio, el botón de actualización es verde si hay
+versión nueva, amarillo («En cola»/«Descargando…», abre Descargas) mientras la cola la
+descarga y azul cuando ya está descargada; se repinta sólo al cambiar de estado. Salir con descargas pendientes pide confirmación y las
+pausa; cerrar la ventana no se puede impedir, pero tampoco causa daño.
+
 La URL determina un nombre local estable: alias #/nombre o último segmento de
 la ruta, decodificado y validado como nombre Windows. Se ignoran query, nombres
 de redirecciones y Content-Disposition; una ruta vacía requiere alias. Se admiten

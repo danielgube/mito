@@ -134,6 +134,8 @@ def remove(engine, installation, log=print):
         except OSError:
             log(tr('Componente retirado; quedan archivos en uso en {p1}. Cierra la aplicación para poder limpiarlos.', p1=(stage)))
         refresh_launchers(engine,backup)
+        from .download_cache import discard
+        discard(engine.root, lock['key'])
         from .host_exposure import unlink_locked as unexpose
         try:
             # The host would otherwise keep a junction for a component MITO no longer has.
@@ -189,6 +191,28 @@ def update(engine, installation, log=print, confirm_unverified=None):
     return old['key']
 
 
+def download_update(engine, installation, log=print, confirm_unverified=None):
+    """Download the update into the cache with the same checks as update; replace nothing."""
+    old = engine.installed().get(installation)
+    if not old:
+        raise YitoError(tr('El componente ya no está instalado'))
+    candidate = available_update(engine, old)
+    if not candidate:
+        raise YitoError(tr('No hay una versión posterior en el catálogo local'))
+    if candidate['status'] != 'Compatible':
+        raise YitoError(candidate['status'])
+    validate_update_layout(old, engine.catalog.resolve(old['key'])[1])
+    return engine.download_only(old['key'], log=log, confirm_unverified=confirm_unverified)
+
+
+def update_downloaded(engine, lock, catalog=None):
+    """True when the catalog update of lock is already complete in the download cache."""
+    from .download_cache import downloaded
+    catalog = dict(engine.catalog.all()) if catalog is None else catalog
+    manifest = catalog.get(lock['key'])
+    return bool(manifest) and downloaded(engine.root, lock['key'], manifest)
+
+
 def pending_updates(engine, catalog=None):
     """Instalaciones con una versión posterior compatible en el catálogo local."""
     catalog = dict(engine.catalog.all()) if catalog is None else catalog
@@ -218,12 +242,17 @@ def update_all(engine, installations, log=print, confirm_unverified=None):
     return updated
 
 
+def changed_records(records, current):
+    """Records whose payload the plan (re)publishes: new, other manifest or other retention."""
+    return {key: record for key, record in records.items()
+            if key not in current or current[key]['manifest_sha256'] != record['manifest_sha256']
+            or current[key].get('pinned') != record.get('pinned')}
+
+
 def publish_plan(engine, records, current, profile, data, log):
     """Caller holds mutation lock. Stage the entire plan before replacing stable paths."""
     from .isolation import isolated, payload_path, prepare_payload
-    changed = {key: record for key, record in records.items()
-               if key not in current or current[key]['manifest_sha256'] != record['manifest_sha256']
-               or current[key].get('pinned') != record.get('pinned')}
+    changed = changed_records(records, current)
     profiles = {name: engine.profile(name) for name in engine.profiles()}
     affected = {name for name, value in profiles.items() if set(value['apps']) & (changed.keys() & current.keys())}
     if profile:
@@ -325,6 +354,11 @@ def publish_plan(engine, records, current, profile, data, log):
         shutil.rmtree(stage)
         refresh_launchers(engine, affected)
         raise
+    # Published: the downloads are no longer needed. A failure above keeps them,
+    # so retrying (for example after closing the application) does not download again.
+    from .download_cache import discard
+    for key in changed:
+        discard(engine.root, key)
     try:
         shutil.rmtree(stage)
     except OSError as exc:

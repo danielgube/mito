@@ -61,7 +61,7 @@ def check_remote(root, current, source):
         raise YitoError('Respuesta de actualizaciones demasiado grande')
     from .transfer import web_page, web_page_error
     if web_page(source, content_type, data[:512]):
-        raise web_page_error(final_url, source, len(data))
+        raise web_page_error(final_url, source, len(data), data)
     info = release_info(json.loads(data), current)
     if info and info.get('checksum_url'):
         request = urllib.request.Request(info['checksum_url'], headers={'User-Agent': 'MITO/' + current})

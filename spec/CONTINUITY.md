@@ -1848,6 +1848,21 @@ El [plan original](MCP_PLAN.md) conserva decisiones y criterios previstos.
   centrado que culpa al proxy/antivirus (o al portal si llegó HTML), indica que no se ha
   instalado nada y deja URL, bytes y host en un TextArea de sólo lectura para copiarlos.
   Regresión en test_ui.py.
+- Proxy corporativo con aviso «continuar»: el firewall (URL filtering, categoría
+  artificial-intelligence) sirve HTTP 200 con una página propia en lugar del archivo
+  (visto en extras/claude desde 35.190.46.17, sin redirección) hasta que el usuario
+  acepta el aviso en el navegador; la aceptación caduca según la política del proxy.
+  transfer.confirmation_page la reconoce de forma genérica (formulario POST con botón
+  y sin contraseña, leyendo hasta 1 MiB del HTML descartado) y web_page_error devuelve
+  DownloadIntegrityError con confirm y browse = origen http(s) del servidor interceptado
+  (nunca una URL del HTML ni la ruta del artefacto). DownloadIntegrityDialog ofrece
+  «Abrir en el navegador»; también se abre desde fallos de la cola en segundo plano
+  (DownloadQueue.failed). MITO nunca envía el formulario: la aceptación es del usuario
+  y la registra el proxy. Sin proxy no cambia nada: la detección sólo actúa sobre
+  respuestas que ya se descartaban como página web. Textos en los 24 idiomas.
+  Regresiones en test_transfer.py y test_ui.py, pendientes de ejecutar por el usuario.
+  Límite: el usuario debe reintentar tras aceptar; si el proxy asocia la aceptación a
+  cookies del navegador y no a la IP/usuario, la descarga de MITO seguirá bloqueada.
 
 ## Suite: duración y fallos al ejecutarla desde una pestaña
 
@@ -2571,3 +2586,44 @@ No hay repositorio Git inicializado ni publicación remota creada por esta tarea
   y se detiene en el primer fallo o cancelación conservando los ya actualizados.
 - Regresiones en test_components.py (pending_updates y update_all), sin ejecutar.
   Sin prueba de interfaz nueva.
+
+## Descargas fuera del lock y caché persistente (26 de noviembre de 2026)
+
+- Fase 1 de las descargas en segundo plano, sólo motor. Engine.install descarga con
+  download_cache.prefetch antes del lock de mutación; publish_plan y
+  _install_payload usan download_cache.artifact, que reutiliza lo descargado o
+  descarga si la caché se vació. changed_records comparte el criterio de publish_plan.
+- transfer.download(resume=True) reconstruye hash y cabecera desde un parcial de una
+  sesión anterior y pide Range; si el parcial ya está completo no usa la red. Sin
+  hash borra el parcial y empieza de cero (los bytes no serían verificables).
+- La caché se borra al publicar o eliminar el componente; un fallo de publicación la
+  conserva. Cancelar descarta la descarga en curso (sin cambios respecto a antes).
+- Límites: un único proceso descarga a la vez (downloads.lock, sin espera); con
+  hashes de prueba que no coinciden, el uso dentro del lock vuelve a descargar.
+  No hay cola en segundo plano ni estado «descargado» en la UI: es la fase 2. Las
+  carpetas de manifiestos que nunca se publican quedan hasta eliminar el componente.
+- Regresiones en core/tests/test_download_cache.py. El usuario confirmó que la fase 1
+  funciona.
+
+## Descargas en segundo plano, fase 2 (26 de noviembre de 2026)
+
+- download_cache: lock por componente (hilo + archivo en core/state); los hilos del
+  gestor esperan su turno y otro proceso falla en el acto. downloaded() comprueba que
+  todas las URL estén completas sin rehacer hashes (el uso real sí los comprueba).
+- Engine.download_only y components.download_update descargan sin instalar, con el
+  mismo plan y confirmación de descargas sin hash. download_queue.DownloadQueue: un
+  hilo daemon en orden, persistida en core/state/download-queue.json, se reanuda al
+  abrir el gestor.
+- UI: diálogo «Descargar e instalar ahora» / «Descargar en segundo plano» en Instalar,
+  Actualizar y Actualizar todos (si ya está descargado, instala sin preguntar); botón
+  Descargas con progreso y lista (cancelar, reintentar, quitar, instalar/actualizar);
+  botón de actualización en Inicio verde (disponible), amarillo «En cola»/«Descargando…»
+  (abre Descargas) y azul (ya descargada); Ctrl+Q con descargas pendientes pide
+  confirmación.
+- Límites: instalar desde la lista refresca el manifiesto como siempre; si cambió,
+  vuelve a descargar. Una descarga sin hash interrumpida empieza de cero. Las
+  versiones concretas (Versiones…) siguen siendo sólo en primer plano. Cerrar la
+  ventana no se puede impedir: la cola continúa al reabrir.
+- Regresiones en test_download_queue.py y test_download_cache.py (locks por hilo);
+  test_ui.py pulsa «#install-mode-now» tras Actualizar y espera downloads-button en la
+  barra lateral. Sin ejecutar. Sin prueba de interfaz del diálogo Descargas.
