@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -89,23 +90,42 @@ class GitHub:
         self.token = dict(line.split('=',1) for line in credential.splitlines() if '=' in line).get('password')
         if not self.token:
             raise YitoError('Inicia sesión en GitHub con Git Credential Manager')
+        # Same proxy configuration as downloads and Git (properties and the host).
+        from .network import opener
+        self.opener = opener(root)
 
-    def request(self, method, path, data=None, missing=False, upload=False):
+    def request(self, method, path, data=None, missing=False, upload=False, attempts=3):
+        """Idempotent requests (GET, PATCH, DELETE) retry dropped connections and 5xx;
+        POST does not, so a lost answer never duplicates a release or an asset:
+        release resumes by finding them on GitHub."""
+        import http.client
         host = 'uploads.github.com' if upload else 'api.github.com'
         url = f'https://{host}/repos/{REPOSITORY}{path}'
         body = data if isinstance(data, bytes) else json.dumps(data).encode() if data is not None else None
         headers = {'Authorization': f'Bearer {self.token}', 'User-Agent': 'MITO',
                    'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2026-03-10',
                    'Content-Type': 'application/octet-stream' if upload else 'application/json'}
-        try:
-            with urllib.request.urlopen(urllib.request.Request(url, body, headers, method=method), timeout=60) as response:
-                return json.load(response)
-        except urllib.error.HTTPError as exc:
-            if missing and exc.code == 404:
-                return None
-            raise YitoError(f'GitHub devolvió HTTP {exc.code}; vuelve a ejecutar release para reanudar') from None
-        except urllib.error.URLError:
-            raise YitoError('No se pudo conectar con GitHub; vuelve a ejecutar release para reanudar') from None
+        tries = attempts if method in ('GET', 'PATCH', 'DELETE') else 1
+        for attempt in range(1, tries + 1):
+            try:
+                with self.opener.open(urllib.request.Request(url, body, headers, method=method),
+                                      timeout=600 if upload else 60) as response:
+                    content = response.read()
+                    return json.loads(content) if content.strip() else {}
+            except urllib.error.HTTPError as exc:
+                if missing and exc.code == 404:
+                    return None
+                if exc.code < 500 or attempt == tries:
+                    raise YitoError(f'GitHub devolvió HTTP {exc.code} en {method} {host}; '
+                                    'vuelve a ejecutar release para reanudar') from None
+                detail = f'HTTP {exc.code}'
+            except (urllib.error.URLError, http.client.HTTPException, OSError) as exc:
+                detail = str(getattr(exc, 'reason', None) or exc) or type(exc).__name__
+                if attempt == tries:
+                    raise YitoError(f'Se cortó la conexión con GitHub en {method} {host} ({detail}); '
+                                    'vuelve a ejecutar release para reanudar') from None
+            print(f'Aviso: {detail} en {method} {host}; reintentando ({attempt + 1}/{tries})')
+            time.sleep(2 * attempt)
 
 
 def next_version(local, releases, kind='hotfix'):
@@ -166,14 +186,21 @@ def _publish(engine, output=None, log=print, *, kind='hotfix', confirm=None):
         # it can be discarded and restarted from HEAD with the next version, on request.
         tag = f'v{pending["version"]}'
         releases = all_releases(api)
-        published = any(release.get('tag_name') == tag for release in releases) \
-            or git(root, 'ls-remote', 'origin', f'refs/tags/{tag}')
+        matching = [release for release in releases if release.get('tag_name') == tag]
+        # A draft is private and creates no tag until it is published: it is discarded too.
+        drafts = [release for release in matching if release.get('draft')]
+        published = len(drafts) != len(matching) or git(root, 'ls-remote', 'origin', f'refs/tags/{tag}')
         if published or not confirm or not confirm([
                 f'Hay una release pendiente de v{pending["version"]} del commit {pending["commit"][:7]}, '
                 f'y HEAD es {head[:7]}.',
-                f'GitHub no tiene tag ni release {tag}: se puede descartar y publicar HEAD como versión nueva.']):
+                f'GitHub no tiene tag ni release publicada {tag}'
+                + (' (se borrará su borrador)' if drafts else '')
+                + ': se puede descartar y publicar HEAD como versión nueva.']):
             raise YitoError('Hay una release pendiente de otro commit; vuelve a ese commit para reanudar'
                             + (f' (GitHub ya tiene {tag})' if published else ''))
+        for draft in drafts:
+            api.request('DELETE', f'/releases/{draft["id"]}')
+        releases = [release for release in releases if release not in drafts]
         pending_path.unlink()
         pending = None
         log(f'Release pendiente v{tag[1:]} descartada.')
@@ -235,7 +262,8 @@ def _publish(engine, output=None, log=print, *, kind='hotfix', confirm=None):
         archive = build_release(engine, output)
         pending.update(archive=str(archive), sha256=hashlib.sha256(archive.read_bytes()).hexdigest())
         write_json(pending_path, pending)
-    release = api.request('GET', f'/releases/tags/{tag}', missing=True)
+    # The tags endpoint ignores drafts: a draft whose creation lost its answer is reused.
+    release = next((item for item in all_releases(api) if item.get('tag_name') == tag), None)
     if release is None:
         release = api.request('POST', '/releases', {'tag_name': tag, 'target_commitish': head,
             'name': f'MITO {version}', 'draft': True,
@@ -244,6 +272,11 @@ def _publish(engine, output=None, log=print, *, kind='hotfix', confirm=None):
         data = asset.read_bytes()
         digest = 'sha256:' + hashlib.sha256(data).hexdigest()
         existing = next((a for a in release['assets'] if a['name'] == asset.name), None)
+        if existing and existing.get('state', 'uploaded') != 'uploaded':
+            # An interrupted upload leaves an incomplete asset that blocks the name.
+            log(f'Eliminando la subida incompleta de {asset.name}…')
+            api.request('DELETE', f'/releases/assets/{existing["id"]}')
+            existing = None
         if existing:
             if existing.get('digest') != digest:
                 raise YitoError(f'El asset remoto {asset.name} no coincide; no se sobrescribe')

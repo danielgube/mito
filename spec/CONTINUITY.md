@@ -26,10 +26,19 @@
   los emoji llevan VS16 para que Textual los mida como 2 columnas.
 - release: una release pendiente de otro commit (p. ej. interrumpida y con commits
   posteriores) se puede descartar tras confirmar en la CLI, sólo si GitHub no tiene
-  tag ni release (borradores incluidos) con su versión; continúa desde HEAD con la
+  tag ni release publicada con su versión (un borrador se borra al descartar, porque
+  no crea tag hasta publicarse); continúa desde HEAD con la
   versión siguiente (la pendiente queda como número saltado). Si GitHub ya tiene
   algo, sigue exigiendo volver a ese commit. Regresión sin ejecutar:
   test_publish `-k stale_pending`.
+- release v0.3.6 se cortó con «Remote end closed connection without response»
+  (http.client.RemoteDisconnected, no URLError: salía sin pista de reanudar). La API
+  de GitHub usa ahora network.opener (mismo proxy que descargas), reintenta GET,
+  PATCH y DELETE ante cortes y 5xx, nunca POST, y da 600 s a las subidas. Reanudar
+  busca la release en la lista completa (borradores incluidos, que /releases/tags no
+  devuelve) y borra assets con state distinto de uploaded antes de resubirlos.
+  No verificado contra GitHub real; regresiones sin ejecutar: `-k github_retries`,
+  `-k reuses_draft`.
 
 ## Raíz Inno {code_*} en extract_dir (25 de noviembre)
 

@@ -135,7 +135,7 @@ class PublishTests(unittest.TestCase):
                 def request(self,method,path,data=None,**kwargs):
                     calls.append((method,path))
                     if path=='':return {'permissions':{'push':True}}
-                    if path=='/releases/tags/v0.1.1':return None
+                    if path.startswith('/releases?per_page'):return []
                     if method=='POST' and path=='/releases':
                         self_body = data['body']
                         if self_body != 'Notas guardadas':
@@ -193,6 +193,53 @@ class PublishTests(unittest.TestCase):
                     self.assertIn('pendiente de otro commit', str(error.exception))
                     # Something already on GitHub is never offered for discarding.
                     self.assertEqual(len(asked), 0 if case == 'published' else 1)
+
+    def test_github_retries_idempotent_requests_but_never_post(self):
+        import http.client, io
+        from mito import publish as module
+        api = module.GitHub.__new__(module.GitHub)
+        api.token = 'token'
+        dropped = http.client.RemoteDisconnected('Remote end closed connection without response')
+        ok = io.BytesIO(b'{"id": 1}')
+        with patch.object(module.time, 'sleep'), patch('builtins.print'):
+            api.opener = unittest.mock.Mock(**{'open.side_effect': [dropped, ok]})
+            self.assertEqual(api.request('GET', '/releases?per_page=100&page=1'), {'id': 1})
+            api.opener = unittest.mock.Mock(**{'open.side_effect': [dropped]})
+            with self.assertRaisesRegex(YitoError, 'reanudar'):
+                api.request('POST', '/releases', {'tag_name': 'v1.0.1'})
+            self.assertEqual(api.opener.open.call_count, 1)
+
+    def test_resume_reuses_draft_and_replaces_incomplete_asset(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            engine = Engine(root)
+            source = root/'core/app/mito/__init__.py'
+            source.parent.mkdir(parents=True)
+            source.write_text('__version__ = "0.1.1"')
+            archive = root/'mito.zip'
+            archive.write_bytes(b'zip')
+            archive.with_suffix('.zip.sha256').write_text('checksum')
+            write_json(root/'core/state/pending-release.json', {'version': '0.1.1', 'commit': 'abc', 'body': 'Notas',
+                       'archive': str(archive), 'sha256': hashlib.sha256(b'zip').hexdigest()})
+            def git(root, *args, **kwargs):
+                return {('rev-parse', '--show-toplevel'): root.as_posix(), ('remote', 'get-url', 'origin'): 'https://github.com/danielgube/mito.git',
+                        ('branch', '--show-current'): 'main', ('rev-parse', 'HEAD'): 'abc'}.get(args, '')
+            draft = {'id': 7, 'tag_name': 'v0.1.1', 'draft': True,
+                     'assets': [{'id': 9, 'name': 'mito.zip', 'state': 'starter'}]}
+            calls = []
+            class API:
+                def __init__(self, root): pass
+                def request(self, method, path, data=None, **kwargs):
+                    calls.append((method, path))
+                    if path == '': return {'permissions': {'push': True}}
+                    if path.startswith('/releases?per_page'): return [draft]
+                    if 'assets?' in path: return {'digest': 'sha256:' + hashlib.sha256(data).hexdigest()}
+                    return {'html_url': 'https://github.com/danielgube/mito/releases/tag/v0.1.1'}
+            with patch('mito.publish.git', git), patch('mito.publish.GitHub', API):
+                publish(engine, log=lambda _: None)
+            self.assertNotIn(('POST', '/releases'), calls)
+            self.assertIn(('DELETE', '/releases/assets/9'), calls)
+            self.assertEqual(calls[-1], ('PATCH', '/releases/7'))
 
     def test_dirty_checkout_does_not_authenticate_or_publish(self):
         with tempfile.TemporaryDirectory() as tmp:
