@@ -4,12 +4,11 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
-import time
 
 from .i18n import tr
 from .network import proxy_environment, validate_url
 from .pocketools import git_executable
-from .storage import YitoError, inside, mutation, portable_path
+from .storage import YitoError, inside, mutation, portable_path, rename_released
 
 
 class Git:
@@ -106,17 +105,8 @@ def clone(engine, url, destination):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(git.run(['cat-file', 'blob', oid.decode('ascii')]))
             git.run(['read-tree', 'HEAD'])
-        # Antivirus or EDR may hold the freshly written .git files for a moment
-        # and deny the rename (WinError 5); retry briefly before failing.
-        deadline = time.monotonic() + 10
-        while True:
-            try:
-                folder.rename(destination)
-                break
-            except PermissionError:
-                if time.monotonic() >= deadline:
-                    raise
-                time.sleep(.25)
+        # Antivirus or EDR may hold the freshly written .git files for a moment.
+        rename_released(folder, destination)
 
 
 def file_stamp(folder, relative):

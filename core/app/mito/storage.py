@@ -7,10 +7,27 @@ import os
 from pathlib import Path, PureWindowsPath
 import re
 import tempfile
+import time
 
 
 class YitoError(Exception):
     pass
+
+
+def rename_released(source, target, *, wait=10.0, sleep=time.sleep, clock=time.monotonic):
+    """Rename a freshly written tree into place.
+
+    Antivirus/EDR scanners hold new files for a moment and Windows denies the
+    directory rename (WinError 5/32); retry with backoff for up to `wait` seconds."""
+    deadline, delay = clock() + wait, .25
+    while True:
+        try:
+            return Path(source).rename(target)
+        except PermissionError:
+            if clock() + delay > deadline:
+                raise
+            sleep(delay)
+            delay = min(delay * 2, 2.0)
 
 
 def identifier(value: str) -> str:

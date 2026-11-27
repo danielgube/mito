@@ -7,6 +7,35 @@ from unittest.mock import patch
 from mito.engine import move_whole
 
 
+class RenameReleasedTests(unittest.TestCase):
+    """Folder renames denied while a scanner holds new files are retried, then fail."""
+    def test_retries_until_released_and_gives_up_after_the_wait(self):
+        from mito.storage import rename_released
+        with tempfile.TemporaryDirectory() as tmp:
+            source, target = Path(tmp) / 'new', Path(tmp) / 'published'
+            source.mkdir()
+            real, calls, now = Path.rename, [], [0.0]
+
+            def rename(path, destination):
+                calls.append(path)
+                if len(calls) < 3:
+                    raise PermissionError(13, 'locked')
+                return real(path, destination)
+
+            def sleep(seconds):
+                now[0] += seconds
+
+            with patch.object(Path, 'rename', rename):
+                rename_released(source, target, sleep=sleep, clock=lambda: now[0])
+            self.assertEqual(len(calls), 3)
+            self.assertTrue(target.is_dir())
+            now[0] = 0.0
+            with patch.object(Path, 'rename', side_effect=PermissionError(13, 'locked')), \
+                    self.assertRaises(PermissionError):
+                rename_released(target, source, wait=1.0, sleep=sleep, clock=lambda: now[0])
+            self.assertLessEqual(now[0], 1.0)
+
+
 class MoveWholeTests(unittest.TestCase):
     """Extracted trees are published with one rename unless content must be merged."""
     def setUp(self):

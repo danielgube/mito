@@ -37,6 +37,14 @@
   update-checks.lock bloqueado al limpiar): su worker de arranque consultaba los
   catálogos reales por red. Ahora se simula `refresh_installed` y se esperan los
   workers antes de comprobar. No verificado.
+- Segunda ejecución de la release (473 pruebas, con la caché de descargas de otra
+  sesión): test_mcp `test_install_revalidates_after_approval_outside_lock` descargaba
+  el plan obsoleto antes de detectar el conflicto (404 real de example.com). Engine.install
+  y download_only revalidan el plan tras una confirmación y antes de descargar; si cambió,
+  STATE_CONFLICT sin red. test_isolation `test_relocation_rebuilds_profile_junction` falló
+  con WinError 5 al renombrar la copia del profile recién creada (antivirus/EDR).
+  `storage.rename_released` reintenta con espera creciente hasta 10 s; lo usan la copia
+  por profile, la publicación de `_install_payload` y el clon de pocketools. Sin verificar.
 
 ## Procesos residentes al actualizar MITO (25 de noviembre)
 

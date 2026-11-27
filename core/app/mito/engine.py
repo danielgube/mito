@@ -10,7 +10,7 @@ import time
 import zipfile
 
 from .catalog import Catalog, array, effective, fingerprint
-from .storage import YitoError, identifier, command_name, inside, mutation, read_json, write_json
+from .storage import YitoError, identifier, command_name, inside, mutation, read_json, rename_released, write_json
 from .transfer import download, extract_zip, download_hashes
 from .diagnostics import step
 from . import operation
@@ -303,6 +303,11 @@ class Engine:
             raise YitoError(tr('Importación cancelada'))
         if prepared['unverified'] and (confirm_unverified is None or not confirm_unverified(prepared['unverified'])):
             raise YitoError(tr('Instalación cancelada: descargas sin hash no confirmadas'))
+        # The user may take a while to confirm: never download a plan that changed
+        # meanwhile (catalog, inventory or profile). Rechecked again under the lock.
+        if (confirm_plan is not None or prepared['unverified']) and \
+                self.installation_plan(requested, profile, lambda message: None, manifests, pins) != prepared:
+            raise YitoError('STATE_CONFLICT: installation plan changed; retry and review again')
         # Downloading changes no installation or profile: it happens outside the
         # mutation lock, into a persistent cache that survives closing MITO.
         self._prefetch(prepared, log)
@@ -337,6 +342,8 @@ class Engine:
         prepared = self.installation_plan(requested, None, log)
         if prepared['unverified'] and (confirm_unverified is None or not confirm_unverified(prepared['unverified'])):
             raise YitoError(tr('Descarga cancelada: descargas sin hash no confirmadas'))
+        if prepared['unverified'] and self.installation_plan(requested, None, lambda message: None) != prepared:
+            raise YitoError('STATE_CONFLICT: installation plan changed; retry and review again')
         records = self._prefetch(prepared, log)
         log(tr('Descarga completa: {p1}. Ya puedes instalarlo sin esperar a la red.', p1=', '.join(records) or '-'))
         return records
@@ -465,7 +472,7 @@ class Engine:
             # analizar los archivos recién escritos; se indica para que no parezca colgado.
             log(tr('Publicando {p1}; el antivirus puede retrasar este paso con muchos archivos', p1=key))
             with step(self.root, 'install', 'publish', key):
-                payload.rename(destination)
+                rename_released(payload, destination)
             log(tr('Instalado {p1} {p3}', p1=(key), p3=(manifest['version'])))
 
     @staticmethod

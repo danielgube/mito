@@ -5,7 +5,7 @@ import os
 import shutil
 import tempfile
 from .catalog import effective
-from .storage import identifier, inside, YitoError
+from .storage import identifier, inside, rename_released, YitoError
 from .persistence import definitions, prepare
 
 
@@ -56,6 +56,6 @@ def prepare_payload(root, lock, profile):
                     if source.is_dir():shutil.copytree(source,defaults)
                     else:shutil.copy2(source,defaults)
             target.parent.mkdir(parents=True,exist_ok=True)
-            copy.rename(target)
+            rename_released(copy, target)
     prepare(root,target,lock['key'],manifest,persist_root(root,lock,profile))
     return target
