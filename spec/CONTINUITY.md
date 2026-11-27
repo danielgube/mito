@@ -1864,6 +1864,16 @@ El [plan original](MCP_PLAN.md) conserva decisiones y criterios previstos.
   Límite: el usuario debe reintentar tras aceptar; si el proxy asocia la aceptación a
   cookies del navegador y no a la IP/usuario, la descarga de MITO seguirá bloqueada.
 
+- release y Git tras el proxy con inspección TLS: el git de las pestañas (shim, HOME =
+  home de MITO) lee home/.gitconfig con http.https://github.com/.schannelCheckRevoke
+  false y llega a GitHub; publish.git usaba el entorno del host y fallaba con
+  CRYPT_E_NO_REVOCATION_CHECK. publish.git_environment fija ahora HOME al home de MITO
+  y aplica proxy_environment. Verificado con ls-remote en la red corporativa. El
+  proxy también devuelve de forma intermitente «Empty reply from server» con ambas
+  formas; eso no lo corrige MITO: reintentar. Una release interrumpida (v0.3.4) quedó
+  pendiente de un commit ya superado; se descartó renombrando
+  core/state/pending-release.json a .bak.
+
 ## Suite: duración y fallos al ejecutarla desde una pestaña
 
 - Primera ejecución completa vía `mito release`: 377 pruebas en 381 s, 1 fallo y

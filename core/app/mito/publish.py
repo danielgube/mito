@@ -60,10 +60,21 @@ def git_command(root):
     return git_executable(Engine(root))
 
 
+def git_environment(root):
+    """Same Git configuration as the profiles' git: MITO's single home and proxy.
+
+    Without it release read the host ~/.gitconfig and missed settings kept in
+    home/.gitconfig (for example TLS options a corporate proxy requires)."""
+    from pathlib import Path
+    from .network import proxy_environment
+    home = Path(root) / 'home'
+    return proxy_environment(root, dict(os.environ, HOME=str(home), GIT_TERMINAL_PROMPT='0'))
+
+
 def git(root, *args, input=None):
     result = subprocess.run([git_command(root), *args], cwd=root, input=input, capture_output=True,
                             text=True, encoding='utf-8', timeout=120,
-                            env=dict(os.environ, GIT_TERMINAL_PROMPT='0'))
+                            env=git_environment(root))
     if result.returncode:
         # Git no imprime credenciales; la última línea indica la causa (red, TLS, permisos).
         detail = next((line.strip() for line in reversed((result.stderr or '').splitlines()) if line.strip()), '')
