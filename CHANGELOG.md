@@ -80,6 +80,14 @@ de publicación remota. Las decisiones vigentes están en
 
 La versión del código continúa en 0.1.5. El salto a 1.0.0 todavía no se ha realizado.
 
+## 0.3.7 — 2026-11-27
+
+### Commits incluidos
+
+- release system improved for reconnections ([176b1b7](https://github.com/danielgube/mito/commit/176b1b74483847efc09c08def0ae518171c11514))
+
+[Comparar cambios](https://github.com/danielgube/mito/compare/e0aaca48fa0f3bec3c6310789f8d8b7a04919336...176b1b74483847efc09c08def0ae518171c11514)
+
 ## 0.3.6 — 2026-11-27
 
 ### Commits incluidos
